@@ -41,8 +41,8 @@ export default function CollaboratePage() {
       const data = await response.json()
       
       if (data.roomCode) {
-        // Redirect to lab with room code
-        window.location.href = `/lab?room=${roomCode}`
+        // Redirect to collaborative lab
+        window.location.href = `/lab/collaborative?room=${roomCode}`
       } else {
         alert('Room not found')
       }
@@ -126,7 +126,7 @@ export default function CollaboratePage() {
                 </div>
                 
                 <Link
-                  href={`/lab?room=${createdRoom}`}
+                  href={`/lab/collaborative?room=${createdRoom}`}
                   className="block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center transition-colors"
                 >
                   Enter Lab

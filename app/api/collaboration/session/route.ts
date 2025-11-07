@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
 import { getDatabase } from '@/lib/mongodb'
-import { authOptions } from '@/lib/auth'
 
 function generateRoomCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -9,23 +7,19 @@ function generateRoomCode(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+    // Generate guest user ID - no auth required for collaboration
+    const userId = `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const userName = 'Host'
     
     const roomCode = generateRoomCode()
     const db = await getDatabase()
     
     const collaborationSession = {
       roomCode,
-      hostId: session.user.id,
+      hostId: userId,
       participants: [{
-        userId: session.user.id,
-        name: session.user.name || 'Host',
+        userId: userId,
+        name: userName,
         color: '#3b82f6',
         isActive: true
       }],
@@ -87,15 +81,11 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-    
     const { roomCode, action, data } = await request.json()
+    
+    // Get user info from request data
+    const userId = data?.userId || `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const userName = data?.name || 'Guest User'
     const db = await getDatabase()
     
     const collabSession = await db.collection('collaboration_sessions').findOne({
@@ -110,39 +100,48 @@ export async function PUT(request: NextRequest) {
       )
     }
     
-    let update: any = {}
-    
     switch (action) {
       case 'join':
         const newParticipant = {
-          userId: session.user.id,
-          name: session.user.name || 'User',
+          userId: userId,
+          name: userName,
           color: data.color || '#10b981',
           isActive: true
         }
-        update = {
-          $push: { participants: newParticipant }
+        
+        // Check if user already exists
+        const existingParticipant = collabSession.participants.find(
+          (p: any) => p.userId === userId
+        )
+        
+        if (!existingParticipant) {
+          await db.collection('collaboration_sessions').updateOne(
+            { roomCode },
+            { $push: { participants: newParticipant } }
+          )
         }
         break
         
       case 'leave':
-        update = {
-          $pull: { participants: { userId: session.user.id } }
-        }
+        await db.collection('collaboration_sessions').updateOne(
+          { roomCode },
+          { $pull: { participants: { userId: userId } } }
+        )
         break
         
       case 'update-experiment':
-        update = {
-          $set: { experiment: data.experiment }
-        }
+        await db.collection('collaboration_sessions').updateOne(
+          { roomCode },
+          { $set: { experiment: data.experiment } }
+        )
         break
         
       case 'update-cursor':
-        update = {
-          $set: {
-            [`participants.$[elem].cursor`]: data.cursor
-          }
-        }
+        // Update cursor for specific user
+        await db.collection('collaboration_sessions').updateOne(
+          { roomCode, 'participants.userId': userId },
+          { $set: { 'participants.$.cursor': data.cursor } }
+        )
         break
         
       default:
@@ -151,12 +150,6 @@ export async function PUT(request: NextRequest) {
           { status: 400 }
         )
     }
-    
-    await db.collection('collaboration_sessions').updateOne(
-      { roomCode },
-      update,
-      { arrayFilters: [{ 'elem.userId': session.user.id }] }
-    )
     
     return NextResponse.json({ success: true })
   } catch (error) {
