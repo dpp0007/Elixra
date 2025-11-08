@@ -37,7 +37,14 @@ const experimentSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    let session = null
+    try {
+      session = await getServerSession(authOptions)
+    } catch (error) {
+      // Ignore JWT errors - treat as anonymous user
+      console.log('Session error (treating as anonymous):', error instanceof Error ? error.message : 'Unknown')
+    }
+    
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
     const skip = parseInt(searchParams.get('skip') || '0')
@@ -88,7 +95,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    let session = null
+    try {
+      session = await getServerSession(authOptions)
+    } catch (error) {
+      // Ignore JWT errors - treat as anonymous user
+      console.log('Session error (treating as anonymous):', error instanceof Error ? error.message : 'Unknown')
+    }
+    
     const body = await request.json()
     
     // Validate the experiment data

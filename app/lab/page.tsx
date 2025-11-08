@@ -9,6 +9,7 @@ import LabTable from '@/components/LabTable'
 import ChemicalShelf from '@/components/ChemicalShelf'
 import ReactionPanel from '@/components/ReactionPanel'
 import ExperimentControls from '@/components/ExperimentControls'
+import EquipmentPanel from '@/components/EquipmentPanel'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { useAuth } from '@/contexts/AuthContext'
 import { Experiment, ReactionResult } from '@/types/chemistry'
@@ -21,6 +22,7 @@ export default function LabPage() {
   const [isReacting, setIsReacting] = useState(false)
   const [addChemicalToTestTube, setAddChemicalToTestTube] = useState<((chemical: any) => void) | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [activeEquipment, setActiveEquipment] = useState<any[]>([])
   const labTableRef = useRef<HTMLDivElement>(null)
   
   // Prevent auto-scrolling during drag operations
@@ -89,13 +91,23 @@ export default function LabPage() {
     setIsReacting(true)
     setCurrentExperiment(experiment)
     
+    // Add equipment info to experiment
+    const experimentWithEquipment = {
+      ...experiment,
+      equipment: activeEquipment.filter(eq => eq.active).map(eq => ({
+        name: eq.name,
+        value: eq.value,
+        unit: eq.unit
+      }))
+    }
+    
     try {
       const response = await fetch('/api/react', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(experiment),
+        body: JSON.stringify(experimentWithEquipment),
       })
       
       if (!response.ok) {
@@ -217,6 +229,9 @@ export default function LabPage() {
           </div>
         </div>
       </div>
+      
+      {/* Equipment Panel */}
+      <EquipmentPanel onEquipmentChange={setActiveEquipment} />
     </div>
   )
 }

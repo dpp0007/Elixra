@@ -3,239 +3,164 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden;
-    -webkit-tap-highlight-color: transparent;
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
   }
-  
-  body {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply min-h-screen;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Touch action optimizations */
-  button, a, [role="button"] {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  input, textarea, select {
-    touch-action: manipulation;
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  /* Prevent auto-scrolling during drag operations */
-  body.dragging {
-    overflow-x: hidden !important;
-  }
-  
-  .lab-container {
-    overflow-y: auto !important;
-  }
-  
-  .chemical-shelf-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-    touch-action: pan-y !important;
-  }
-  
-  /* Simplified scrollbar */
-  .chemical-shelf-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-track {
-    background: rgba(30, 41, 59, 0.3);
-    border-radius: 3px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-thumb {
-    background: rgba(71, 85, 105, 0.8);
-    border-radius: 3px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.9);
-  }
-  
-  body.dragging .lab-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-  }
-  
-  body.dragging .chemical-shelf-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-    touch-action: pan-y !important;
-  }
-  
-  .chemical-card {
-    z-index: 50 !important;
-    position: relative;
-    pointer-events: auto !important;
-  }
-  
-  .chemical-card.dragging {
-    z-index: 1000 !important;
-    pointer-events: none;
-    position: fixed !important;
-  }
-  
-  body:not(.dragging) .chemical-card {
-    pointer-events: auto !important;
-    cursor: grab !important;
-  }
-  
-  .test-tube, .beaker {
-    z-index: 25;
-    position: relative;
-    pointer-events: auto;
-  }
-  
-  body.dragging .test-tube,
-  body.dragging .beaker {
-    pointer-events: auto !important;
-    z-index: 999 !important;
-  }
-  
-  /* Mobile-specific optimizations */
-  @media (max-width: 640px) {
-    /* Prevent pull-to-refresh */
-    body {
-      overscroll-behavior-y: contain;
-    }
-    
-    /* Optimize touch scrolling */
-    * {
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Hide scrollbars on mobile for cleaner look */
-    ::-webkit-scrollbar {
-      width: 3px;
-      height: 3px;
-    }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
-@layer components {
-  .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-    @apply shadow-lg rounded-lg;
-  }
-  
-  .lab-container {
-    @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl;
-    @apply border border-slate-200/60 dark:border-slate-700/60;
-    @apply rounded-xl shadow-xl;
-    position: relative;
-  }
-  
-  .test-tube {
-    @apply relative bg-gradient-to-b from-white/20 via-white/10 to-white/5;
-    @apply border-2 border-slate-300/60 dark:border-slate-600/60 rounded-b-full;
-    @apply shadow-lg;
-    backdrop-filter: blur(10px);
-    position: relative;
-  }
-  
-  .beaker {
-    @apply relative bg-gradient-to-b from-white/20 via-white/10 to-white/5;
-    @apply border-2 border-slate-300/60 dark:border-slate-600/60 rounded-b-lg;
-    @apply shadow-lg;
-    backdrop-filter: blur(10px);
-    position: relative;
-  }
-  
-  .liquid {
-    @apply absolute bottom-0 left-0 right-0;
-    @apply rounded-b-full transition-all duration-700 ease-out;
-  }
-  
-  .bubble {
-    @apply absolute rounded-full bg-white/30;
+@layer base {
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
-  .drag-over {
-    @apply ring-2 ring-blue-400 ring-opacity-50;
-    @apply bg-blue-50 dark:bg-blue-900/20;
+  .glass {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20;
   }
   
-  /* Simplified animations - remove heavy glow effects */
-  @keyframes bubble {
-    0% {
-      opacity: 0;
-      transform: translateY(0) scale(0.5);
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-40px) scale(0.8);
-    }
+  .glass-dark {
+    @apply bg-black/10 backdrop-blur-xl border border-black/20;
   }
   
-  @keyframes smell-wave {
-    0% {
-      opacity: 0;
-      transform: translateY(0);
-    }
-    50% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-50px);
-    }
+  .gradient-primary {
+    @apply bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600;
   }
   
-  @keyframes precipitate-settle {
-    0% {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .gradient-secondary {
+    @apply bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600;
   }
   
-  .animate-bubble {
-    animation: bubble 2s ease-out infinite;
+  .gradient-accent {
+    @apply bg-gradient-to-br from-orange-500 via-red-500 to-pink-600;
   }
   
-  .animate-smell {
-    animation: smell-wave 2.5s ease-out infinite;
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600;
   }
   
-  .animate-precipitate {
-    animation: precipitate-settle 1.5s ease-out forwards;
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl;
   }
   
-  /* Simple scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
   }
   
-  ::-webkit-scrollbar-track {
-    background: transparent;
+  .btn-secondary {
+    @apply px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
   }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgb(209 213 219);
-    border-radius: 3px;
-  }
-  
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgb(75 85 99);
-  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Lab specific styles */
+.lab-bench {
+  @apply bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20;
+}
+
+.lab-container {
+  @apply rounded-2xl shadow-2xl border-2 border-gray-200/50 dark:border-gray-700/50;
+}
+
+.chemical-card {
+  @apply bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border-2 border-transparent hover:border-blue-500 transition-all duration-300 cursor-pointer;
+}
+
+.equipment-active {
+  @apply border-green-500 shadow-lg shadow-green-500/20 bg-green-50 dark:bg-green-900/20;
+}
+
+/* Glassmorphism effects */
+.glass-card {
+  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl;
+}
+
+/* Gradient text */
+.gradient-text-blue {
+  @apply bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent;
+}
+
+.gradient-text-purple {
+  @apply bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent;
+}
+
+.gradient-text-orange {
+  @apply bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent;
 }
