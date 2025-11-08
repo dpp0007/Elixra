@@ -196,27 +196,27 @@ export default function SpectroscopyPage() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                 Analysis Type
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {SPECTROSCOPY_TYPES.map(type => {
                   const Icon = type.icon
                   return (
                     <button
                       key={type.id}
                       onClick={() => setSelectedType(type.id)}
-                      className={`w-full text-left p-3 rounded-lg border-2 transition-all ${selectedType === type.id
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 ${selectedType === type.id
+                        ? 'border-blue-500 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 shadow-lg shadow-blue-500/30 scale-105'
+                        : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
                         }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${type.color}`}>
-                          <Icon className="h-5 w-5 text-white" />
+                        <div className={`p-3 rounded-xl bg-gradient-to-br ${type.color} shadow-lg`}>
+                          <Icon className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900 dark:text-white text-sm">
+                          <div className="font-semibold text-white text-sm mb-0.5">
                             {type.name.split(' ')[0]}
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <div className="text-xs text-gray-300">
                             {type.name.split(' ').slice(1).join(' ')}
                           </div>
                         </div>
@@ -232,7 +232,7 @@ export default function SpectroscopyPage() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                 Sample
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {SAMPLE_COMPOUNDS.map(compound => (
                   <button
                     key={compound.name}
@@ -240,15 +240,15 @@ export default function SpectroscopyPage() {
                       setSelectedCompound(compound)
                       setShowCustomInput(false)
                     }}
-                    className={`w-full text-left p-3 rounded-lg border-2 transition-all ${selectedCompound.name === compound.name && !showCustomInput
-                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 ${selectedCompound.name === compound.name && !showCustomInput
+                      ? 'border-purple-500 bg-gradient-to-r from-purple-500/20 to-pink-500/20 shadow-lg shadow-purple-500/30 scale-105'
+                      : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
                       }`}
                   >
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                    <div className="font-semibold text-white text-sm mb-1">
                       {compound.name}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                    <div className="text-xs text-gray-300 font-mono">
                       {compound.formula}
                     </div>
                   </button>
@@ -257,9 +257,9 @@ export default function SpectroscopyPage() {
 
               <button
                 onClick={() => setShowCustomInput(!showCustomInput)}
-                className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105"
               >
-                {showCustomInput ? 'Hide Custom' : 'Analyze Custom Compound'}
+                {showCustomInput ? '✕ Hide Custom' : '✨ Analyze Custom Compound'}
               </button>
 
               {showCustomInput && (
@@ -269,14 +269,14 @@ export default function SpectroscopyPage() {
                     placeholder="Compound name (e.g., Benzene)"
                     value={customCompound}
                     onChange={(e) => setCustomCompound(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-white/10 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white placeholder-gray-400 text-sm transition-all duration-300"
                   />
                   <input
                     type="text"
                     placeholder="Formula (e.g., C₆H₆)"
                     value={customFormula}
                     onChange={(e) => setCustomFormula(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-white/10 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white placeholder-gray-400 font-mono text-sm transition-all duration-300"
                   />
                   <button
                     onClick={async () => {
@@ -366,31 +366,31 @@ export default function SpectroscopyPage() {
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 hover:border-white/40 transition-all duration-300">
               {/* Info */}
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-3xl font-bold text-white mb-2">
                   {spectType.name}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-gray-300 text-lg mb-4">
                   {spectType.description}
                 </p>
                 <div className="flex items-center space-x-4">
-                  <div className="px-4 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Sample: </span>
-                    <span className="font-bold text-purple-600">{selectedCompound.name}</span>
+                  <div className="px-5 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl backdrop-blur-sm">
+                    <span className="text-sm text-purple-200">Sample: </span>
+                    <span className="font-bold text-white">{selectedCompound.name}</span>
                   </div>
-                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Formula: </span>
-                    <span className="font-mono font-bold text-blue-600">{selectedCompound.formula}</span>
+                  <div className="px-5 py-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-xl backdrop-blur-sm">
+                    <span className="text-sm text-blue-200">Formula: </span>
+                    <span className="font-mono font-bold text-white">{selectedCompound.formula}</span>
                   </div>
                 </div>
               </div>
 
               {/* Spectrum Display */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-xl p-6 mb-6">
+              <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl border-2 border-white/20 rounded-2xl p-6 mb-6 shadow-2xl">
                 <svg
                   width="100%"
                   height="400"
                   viewBox="0 0 800 400"
-                  className="bg-white dark:bg-gray-900 rounded-lg"
+                  className="bg-slate-950/50 rounded-xl"
                 >
                   {/* Grid */}
                   {Array.from({ length: 10 }).map((_, i) => (
@@ -400,27 +400,36 @@ export default function SpectroscopyPage() {
                         y1={40 + i * 32}
                         x2={760}
                         y2={40 + i * 32}
-                        stroke="#e5e7eb"
+                        stroke="#475569"
                         strokeWidth="1"
-                        className="dark:stroke-gray-700"
+                        opacity="0.3"
                       />
                       <line
                         x1={80 + i * 68}
                         y1={40}
                         x2={80 + i * 68}
                         y2={360}
-                        stroke="#e5e7eb"
+                        stroke="#475569"
                         strokeWidth="1"
-                        className="dark:stroke-gray-700"
+                        opacity="0.3"
                       />
                     </g>
                   ))}
 
                   {/* Axes */}
-                  <line x1={80} y1={360} x2={760} y2={360} stroke="#374151" strokeWidth="2" />
-                  <line x1={80} y1={40} x2={80} y2={360} stroke="#374151" strokeWidth="2" />
+                  <line x1={80} y1={360} x2={760} y2={360} stroke="#94a3b8" strokeWidth="3" />
+                  <line x1={80} y1={40} x2={80} y2={360} stroke="#94a3b8" strokeWidth="3" />
 
-                  {/* Spectrum Line */}
+                  {/* Spectrum Line with Glow */}
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
                   <path
                     d={spectrum.data.map((point, i) => {
                       const x = 80 + (i / spectrum.data.length) * 680
@@ -429,7 +438,9 @@ export default function SpectroscopyPage() {
                     }).join(' ')}
                     fill="none"
                     stroke={spectrum.color}
-                    strokeWidth="3"
+                    strokeWidth="4"
+                    filter="url(#glow)"
+                    opacity="0.9"
                   />
 
                   {/* Peak Labels */}
@@ -444,15 +455,24 @@ export default function SpectroscopyPage() {
                           y2={360}
                           stroke={spectrum.color}
                           strokeWidth="2"
-                          strokeDasharray="5,5"
-                          opacity="0.5"
+                          strokeDasharray="8,4"
+                          opacity="0.7"
+                        />
+                        <rect
+                          x={xPos - 35}
+                          y={15}
+                          width="70"
+                          height="20"
+                          fill={spectrum.color}
+                          opacity="0.2"
+                          rx="4"
                         />
                         <text
                           x={xPos}
-                          y={30}
+                          y={28}
                           textAnchor="middle"
-                          fontSize="12"
-                          fill={spectrum.color}
+                          fontSize="13"
+                          fill="#ffffff"
                           fontWeight="bold"
                         >
                           {peak.label}
@@ -461,14 +481,14 @@ export default function SpectroscopyPage() {
                     )
                   })}
 
-                  {/* Labels */}
+                  {/* Axis Labels */}
                   <text
                     x={420}
                     y={390}
                     textAnchor="middle"
-                    fontSize="14"
-                    fill="#6B7280"
-                    className="dark:fill-gray-400"
+                    fontSize="16"
+                    fill="#cbd5e1"
+                    fontWeight="600"
                   >
                     {spectType.xLabel}
                   </text>
@@ -476,8 +496,9 @@ export default function SpectroscopyPage() {
                     x={30}
                     y={200}
                     textAnchor="middle"
-                    fontSize="14"
-                    fill="#6B7280"
+                    fontSize="16"
+                    fill="#cbd5e1"
+                    fontWeight="600"
                     transform="rotate(-90 30 200)"
                     className="dark:fill-gray-400"
                   >

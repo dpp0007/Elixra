@@ -199,23 +199,23 @@ export default function MoleculesPage() {
               <h2 className="text-lg font-bold text-white mb-4">
                 Elements
               </h2>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {ELEMENTS.map(element => (
                   <button
                     key={element.symbol}
                     onClick={() => setSelectedElement(element.symbol)}
-                    className={`p-3 rounded-lg border-2 transition-all ${selectedElement === element.symbol
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                    className={`p-3 rounded-xl border-2 transition-all duration-300 ${selectedElement === element.symbol
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-500/20 to-pink-500/20 shadow-lg shadow-purple-500/30 scale-105'
+                      : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
                       }`}
                   >
                     <div
-                      className="w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center text-white font-bold text-sm"
+                      className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-sm shadow-lg"
                       style={{ backgroundColor: element.color }}
                     >
                       {element.symbol}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                    <div className="text-xs text-gray-300 text-center font-medium">
                       {element.name}
                     </div>
                   </button>
@@ -224,9 +224,9 @@ export default function MoleculesPage() {
 
               <button
                 onClick={addAtom}
-                className="w-full mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg hover:shadow-blue-500/50 hover:scale-105"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" />
                 <span>Add Atom</span>
               </button>
             </div>
@@ -236,17 +236,17 @@ export default function MoleculesPage() {
               <h2 className="text-lg font-bold text-white mb-4">
                 Common Molecules
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {COMMON_MOLECULES.map(molecule => (
                   <button
                     key={molecule.name}
                     onClick={() => loadMolecule(molecule)}
-                    className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    className="w-full text-left p-4 rounded-xl border-2 border-white/20 bg-white/5 hover:border-purple-400/50 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-pink-500/10 transition-all duration-300 group"
                   >
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                    <div className="font-semibold text-white text-sm mb-1 group-hover:text-purple-200 transition-colors">
                       {molecule.name}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                    <div className="text-xs text-gray-400 font-mono group-hover:text-gray-300 transition-colors">
                       {molecule.formula}
                     </div>
                   </button>
@@ -276,41 +276,45 @@ export default function MoleculesPage() {
                     <button
                       onClick={analyzeMolecule}
                       disabled={analyzing}
-                      className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 disabled:opacity-50 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105"
                     >
-                      {analyzing ? 'Analyzing...' : 'AI Analysis'}
+                      {analyzing ? 'Analyzing...' : '✨ AI Analysis'}
                     </button>
                   )}
                   <button
                     onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-                    className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                    className="p-2 bg-white/10 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300"
+                    title="Zoom Out"
                   >
-                    <ZoomOut className="h-4 w-4" />
+                    <ZoomOut className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-                    className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                    className="p-2 bg-white/10 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300"
+                    title="Zoom In"
                   >
-                    <ZoomIn className="h-4 w-4" />
+                    <ZoomIn className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => setRotation({ x: 0, y: 0 })}
-                    className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                    className="p-2 bg-white/10 hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-cyan-500/20 text-white border border-white/20 hover:border-white/40 rounded-xl transition-all duration-300"
+                    title="Reset Rotation"
                   >
-                    <RotateCw className="h-4 w-4" />
+                    <RotateCw className="h-5 w-5" />
                   </button>
                   <button
                     onClick={clearAll}
-                    className="p-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 rounded-lg"
+                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 rounded-xl transition-all duration-300"
+                    title="Clear All"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
               </div>
 
               {/* 3D Viewer */}
               <div
-                className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-xl overflow-hidden"
+                className="relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-inner"
                 style={{ height: '500px' }}
               >
                 <svg
@@ -392,29 +396,29 @@ export default function MoleculesPage() {
 
               {/* Info */}
               <div className="mt-6 grid grid-cols-3 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">
+                <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-2xl p-4 text-center backdrop-blur-xl">
+                  <div className="text-3xl font-bold text-blue-300 mb-1">
                     {atoms.length}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-blue-200 font-medium">
                     Atoms
                   </div>
                 </div>
 
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-1">
+                <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-2xl p-4 text-center backdrop-blur-xl">
+                  <div className="text-3xl font-bold text-green-300 mb-1">
                     {bonds.length}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-green-200 font-medium">
                     Bonds
                   </div>
                 </div>
 
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-2xl p-4 text-center backdrop-blur-xl">
+                  <div className="text-3xl font-bold text-purple-300 mb-1">
                     {new Set(atoms.map(a => a.element)).size}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-purple-200 font-medium">
                     Elements
                   </div>
                 </div>
@@ -422,27 +426,27 @@ export default function MoleculesPage() {
 
               {/* AI Analysis Results */}
               {analysis && (
-                <div className="mt-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border-2 border-purple-200 dark:border-purple-800">
-                  <h3 className="text-xl font-bold text-purple-900 dark:text-purple-100 mb-4">
-                    AI Analysis Results
+                <div className="mt-6 bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-xl rounded-2xl p-6 border-2 border-purple-400/40 shadow-lg shadow-purple-500/20">
+                  <h3 className="text-xl font-bold text-purple-200 mb-4 flex items-center gap-2">
+                    ✨ AI Analysis Results
                   </h3>
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Name</h4>
-                      <p className="text-gray-700 dark:text-gray-300">{analysis.commonName}</p>
+                      <h4 className="font-semibold text-white mb-1">Name</h4>
+                      <p className="text-gray-200">{analysis.commonName}</p>
                       {analysis.iupacName && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">IUPAC: {analysis.iupacName}</p>
+                        <p className="text-sm text-gray-300">IUPAC: {analysis.iupacName}</p>
                       )}
                     </div>
 
                     {analysis.properties && (
                       <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Properties</h4>
+                        <h4 className="font-semibold text-white mb-2">Properties</h4>
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-600 dark:text-gray-400">Geometry</div>
-                            <div className="font-medium text-gray-900 dark:text-white">{analysis.properties.geometry}</div>
+                          <div className="bg-white/10 border border-white/20 rounded-xl p-3 backdrop-blur-sm">
+                            <div className="text-xs text-gray-300">Geometry</div>
+                            <div className="font-medium text-white">{analysis.properties.geometry}</div>
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                             <div className="text-xs text-gray-600 dark:text-gray-400">Polarity</div>
