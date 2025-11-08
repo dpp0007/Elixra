@@ -14,13 +14,13 @@ interface TestTubeProps {
   isReacting: boolean
 }
 
-export default function TestTube({ 
-  id, 
-  contents, 
-  onAddChemical, 
-  onClear, 
-  reactionResult, 
-  isReacting 
+export default function TestTube({
+  id,
+  contents,
+  onAddChemical,
+  onClear,
+  reactionResult,
+  isReacting
 }: TestTubeProps) {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'chemical',
@@ -92,7 +92,7 @@ export default function TestTube({
 
   const getPrecipitateColor = () => {
     if (!reactionResult?.precipitateColor) return '#ffffff'
-    
+
     const color = reactionResult.precipitateColor.toLowerCase()
     if (color === 'white') return '#f8fafc'
     if (color === 'blue') return '#3b82f6'
@@ -101,21 +101,31 @@ export default function TestTube({
     if (color === 'yellow') return '#f59e0b'
     if (color === 'brown') return '#92400e'
     if (color === 'black') return '#1f2937'
-    
+
     return reactionResult.precipitateColor
   }
 
   return (
-    <div className="flex flex-col items-center space-y-2 sm:space-y-3 group">
+    <div className="flex flex-col items-center space-y-3 w-full relative">
+      {/* Clear button - aligned with trash button */}
+      {contents.length > 0 && (
+        <button
+          onClick={onClear}
+          className="absolute top-0 left-0 p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50"
+          title="Clear contents"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+
       <motion.div
         ref={drop as any}
-        className={`test-tube relative w-16 h-28 sm:w-20 sm:h-36 z-25 transition-all duration-300 ${
-          isOver && canDrop 
-            ? 'ring-4 ring-blue-400 ring-opacity-50 shadow-xl shadow-blue-400/30 scale-105' 
-            : canDrop 
-              ? 'ring-2 ring-blue-300 ring-opacity-30'
-              : ''
-        } ${isReacting ? 'reaction-glow' : ''}`}
+        className={`test-tube relative w-20 h-40 z-25 transition-all duration-300 ${isOver && canDrop
+          ? 'ring-4 ring-blue-400 ring-opacity-50 shadow-xl shadow-blue-400/30 scale-105'
+          : canDrop
+            ? 'ring-2 ring-blue-300 ring-opacity-30'
+            : ''
+          } ${isReacting ? 'reaction-glow' : ''}`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={{
@@ -126,28 +136,29 @@ export default function TestTube({
         role="region"
         aria-label={`Test tube ${id}. Contains ${contents.length} chemical${contents.length !== 1 ? 's' : ''}.`}
       >
-        {/* Test tube liquid */}
+        {/* Test tube liquid - fills from BOTTOM with proper rounded shape */}
         <AnimatePresence>
           {contents.length > 0 && (
             <motion.div
-              className={`liquid ${isReacting ? 'animate-color-change' : ''}`}
+              className={`absolute bottom-0 left-0 right-0 ${isReacting ? 'animate-color-change' : ''}`}
               style={{
                 backgroundColor: getLiquidColor(),
                 height: `${getLiquidHeight()}%`,
+                borderRadius: '0 0 50% 50% / 0 0 50% 50%',
               }}
               initial={{ height: 0, opacity: 0 }}
-              animate={{ 
+              animate={{
                 height: `${getLiquidHeight()}%`,
                 opacity: 1
               }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ 
+              transition={{
                 height: { duration: 0.8, ease: 'easeOut' },
                 opacity: { duration: 0.4 }
               }}
             >
               {/* Liquid shimmer effect */}
-              <div className="absolute inset-0 overflow-hidden rounded-b-full">
+              <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: '0 0 50% 50% / 0 0 50% 50%' }}>
                 <motion.div
                   className="absolute top-0 left-0 w-full h-full"
                   style={{
@@ -211,8 +222,8 @@ export default function TestTube({
                     filter: 'blur(8px)',
                   }}
                   initial={{ opacity: 0, y: 0, scale: 0.5 }}
-                  animate={{ 
-                    opacity: [0, 0.6, 0], 
+                  animate={{
+                    opacity: [0, 0.6, 0],
                     y: [-10, -40, -70],
                     scale: [0.5, 1.2, 1.5]
                   }}
@@ -249,7 +260,7 @@ export default function TestTube({
                 }}
               />
               {/* Precipitate settling effect */}
-              <div 
+              <div
                 className="absolute inset-0 rounded-b-full overflow-hidden"
                 style={{ height: '20px' }}
               >
@@ -282,30 +293,18 @@ export default function TestTube({
           )}
         </AnimatePresence>
 
-        {/* Clear button - positioned on the LEFT */}
-        {contents.length > 0 && (
-          <motion.button
-            onClick={onClear}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute -top-2 -left-2 p-2 sm:p-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50 touch-manipulation"
-            title="Clear contents"
-          >
-            <X className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
-          </motion.button>
-        )}
       </motion.div>
 
       {/* Contents list */}
-      <div className="text-center min-h-[100px] w-full max-w-[140px]">
+      <div className="text-center min-h-[120px] w-full">
         {contents.length === 0 ? (
-          <div className="text-xs text-gray-400 dark:text-gray-500 flex flex-col items-center space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+          <div className="text-xs text-gray-400 flex flex-col items-center space-y-2 p-4 bg-slate-800/30 rounded-xl border-2 border-dashed border-gray-600 hover:border-blue-400 transition-colors">
             <Droplets className="h-6 w-6" />
             <span className="font-medium">Drop chemicals here</span>
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="text-xs font-semibold text-gray-300 mb-2">
               Contents ({contents.length})
             </div>
             {contents.map((content, index) => (
@@ -319,7 +318,7 @@ export default function TestTube({
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
                   {/* Chemical Color Indicator */}
                   <div className="flex items-center space-x-2 mb-1">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
                       style={{ backgroundColor: content.chemical.color }}
                     />
@@ -327,12 +326,12 @@ export default function TestTube({
                       {content.chemical.formula}
                     </div>
                   </div>
-                  
+
                   {/* Amount */}
                   <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                     {content.amount < 1 ? content.amount.toFixed(2) : content.amount} {content.unit}
                   </div>
-                  
+
                   {/* Chemical Name (on hover) */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                     {content.chemical.name}
@@ -340,7 +339,7 @@ export default function TestTube({
                 </div>
               </motion.div>
             ))}
-            
+
             {/* Total Volume/Mass */}
             <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600">
               <div className="text-xs font-semibold text-blue-600 dark:text-blue-400">

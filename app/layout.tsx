@@ -11,6 +11,11 @@ export const metadata = {
   title: 'ChemLab Online - Virtual Chemistry Laboratory',
   description: 'Interactive virtual chemistry lab for qualitative inorganic salt analysis',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/Assets/Link logo.svg',
+    shortcut: '/Assets/Link logo.svg',
+    apple: '/Assets/Link logo.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

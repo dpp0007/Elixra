@@ -14,13 +14,13 @@ interface BeakerProps {
   isReacting: boolean
 }
 
-export default function Beaker({ 
-  id, 
-  contents, 
-  onAddChemical, 
-  onClear, 
-  reactionResult, 
-  isReacting 
+export default function Beaker({
+  id,
+  contents,
+  onAddChemical,
+  onClear,
+  reactionResult,
+  isReacting
 }: BeakerProps) {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'chemical',
@@ -65,12 +65,12 @@ export default function Beaker({
       return sum + (content.unit === 'ml' ? content.amount : content.amount * 10)
     }, 0)
     const baseHeight = Math.min((totalVolume / 50) * 100, 85) // Max 85% height for beaker
-    
+
     // If there's a precipitate, reduce liquid height to make room for it
     if (shouldShowPrecipitate()) {
       return Math.max(baseHeight - 15, 20) // Leave space for precipitate, minimum 20% liquid
     }
-    
+
     return baseHeight
   }
 
@@ -98,7 +98,7 @@ export default function Beaker({
 
   const getPrecipitateColor = () => {
     if (!reactionResult?.precipitateColor) return '#f8fafc'
-    
+
     const color = reactionResult.precipitateColor.toLowerCase()
     if (color === 'white') return '#f8fafc'
     if (color === 'blue') return '#3b82f6'
@@ -107,21 +107,31 @@ export default function Beaker({
     if (color === 'yellow') return '#f59e0b'
     if (color === 'brown') return '#92400e'
     if (color === 'black') return '#1f2937'
-    
+
     return reactionResult.precipitateColor
   }
 
   return (
-    <div className="flex flex-col items-center space-y-2 sm:space-y-3 group">
+    <div className="flex flex-col items-center space-y-3 w-full relative">
+      {/* Clear button - aligned with trash button */}
+      {contents.length > 0 && (
+        <button
+          onClick={onClear}
+          className="absolute top-0 left-0 p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50"
+          title="Clear contents"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+
       <motion.div
         ref={drop as any}
-        className={`beaker relative w-20 h-24 sm:w-24 sm:h-28 z-25 transition-all duration-300 ${
-          isOver && canDrop 
-            ? 'ring-4 ring-green-400 ring-opacity-50 shadow-xl shadow-green-400/30 scale-105' 
-            : canDrop 
-              ? 'ring-2 ring-green-300 ring-opacity-30'
-              : ''
-        } ${isReacting ? 'reaction-glow' : ''}`}
+        className={`beaker relative w-24 h-32 z-25 transition-all duration-300 ${isOver && canDrop
+          ? 'ring-4 ring-green-400 ring-opacity-50 shadow-xl shadow-green-400/30 scale-105'
+          : canDrop
+            ? 'ring-2 ring-green-300 ring-opacity-30'
+            : ''
+          } ${isReacting ? 'reaction-glow' : ''}`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={{
@@ -135,28 +145,29 @@ export default function Beaker({
         {/* Beaker spout */}
         <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-transparent border-l-2 border-r-2 border-gray-300 rounded-t-lg"></div>
 
-        {/* Beaker liquid */}
+        {/* Beaker liquid - with proper rounded bottom */}
         <AnimatePresence>
           {contents.length > 0 && (
             <motion.div
-              className={`absolute bottom-0 left-0 right-0 rounded-b-lg transition-all duration-1000 ease-out ${isReacting ? 'animate-color-change' : ''}`}
+              className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-out ${isReacting ? 'animate-color-change' : ''}`}
               style={{
                 backgroundColor: getLiquidColor(),
                 height: `${getLiquidHeight()}%`,
+                borderRadius: '0 0 24px 24px',
               }}
               initial={{ height: 0, opacity: 0 }}
-              animate={{ 
+              animate={{
                 height: `${getLiquidHeight()}%`,
                 opacity: 1
               }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ 
+              transition={{
                 height: { duration: 0.8, ease: 'easeOut' },
                 opacity: { duration: 0.4 }
               }}
             >
               {/* Liquid shimmer effect */}
-              <div className="absolute inset-0 overflow-hidden rounded-b-lg">
+              <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: '0 0 24px 24px' }}>
                 <motion.div
                   className="absolute top-0 left-0 w-full h-full"
                   style={{
@@ -220,8 +231,8 @@ export default function Beaker({
                     filter: 'blur(10px)',
                   }}
                   initial={{ opacity: 0, y: 0, scale: 0.5 }}
-                  animate={{ 
-                    opacity: [0, 0.6, 0], 
+                  animate={{
+                    opacity: [0, 0.6, 0],
                     y: [-15, -50, -85],
                     scale: [0.5, 1.3, 1.6]
                   }}
@@ -257,7 +268,7 @@ export default function Beaker({
                   boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)'
                 }}
               />
-              
+
               {/* Precipitate particles floating in solution */}
               <div className="absolute bottom-5 left-0 right-0 h-8 overflow-hidden">
                 {[...Array(8)].map((_, i) => (
@@ -272,7 +283,7 @@ export default function Beaker({
                       opacity: 0.6
                     }}
                     initial={{ y: -10, opacity: 0 }}
-                    animate={{ 
+                    animate={{
                       y: [0, 5, 10, 15, 20, 25],
                       opacity: [0.6, 0.8, 0.6, 0.4, 0.2, 0]
                     }}
@@ -285,7 +296,7 @@ export default function Beaker({
                   />
                 ))}
               </div>
-              
+
               {/* Swirling effect in precipitate */}
               <motion.div
                 className="absolute bottom-0 left-0 right-0 h-4 rounded-b-lg overflow-hidden"
@@ -302,7 +313,7 @@ export default function Beaker({
                   ease: 'easeInOut'
                 }}
               />
-              
+
               {/* Dense settled layer */}
               <div
                 className="absolute bottom-0 left-0 right-0 h-2 rounded-b-lg"
@@ -322,18 +333,6 @@ export default function Beaker({
         <div className="absolute left-0 top-1/2 w-2 h-px bg-gray-400"></div>
         <div className="absolute left-0 top-3/4 w-2 h-px bg-gray-400"></div>
 
-        {/* Clear button - positioned on the LEFT */}
-        {contents.length > 0 && (
-          <motion.button
-            onClick={onClear}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute -top-2 -left-2 p-2 sm:p-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50 touch-manipulation"
-            title="Clear contents"
-          >
-            <X className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
-          </motion.button>
-        )}
       </motion.div>
 
       {/* Contents list */}
@@ -359,7 +358,7 @@ export default function Beaker({
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
                   {/* Chemical Color Indicator */}
                   <div className="flex items-center space-x-2 mb-1">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
                       style={{ backgroundColor: content.chemical.color }}
                     />
@@ -367,12 +366,12 @@ export default function Beaker({
                       {content.chemical.formula}
                     </div>
                   </div>
-                  
+
                   {/* Amount */}
                   <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                     {content.amount < 1 ? content.amount.toFixed(2) : content.amount} {content.unit}
                   </div>
-                  
+
                   {/* Chemical Name (on hover) */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                     {content.chemical.name}
@@ -380,7 +379,7 @@ export default function Beaker({
                 </div>
               </motion.div>
             ))}
-            
+
             {/* Total Volume/Mass */}
             <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600">
               <div className="text-xs font-semibold text-blue-600 dark:text-blue-400">

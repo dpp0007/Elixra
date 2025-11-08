@@ -58,12 +58,12 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
       console.warn('Invalid chemical object received')
       return
     }
-    
+
     if (!chemical.name || !chemical.formula) {
       console.warn('Chemical missing required properties:', chemical)
       return
     }
-    
+
     // Open quantity modal
     setQuantityModal({
       chemical,
@@ -82,14 +82,14 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
       unit: unit as 'ml' | 'g' | 'mol' | 'drops'
     }
 
-    setTestTubes(prev => prev.map(tube => 
-      tube.id === glasswareId 
+    setTestTubes(prev => prev.map(tube =>
+      tube.id === glasswareId
         ? { ...tube, contents: [...tube.contents, newContent] }
         : tube
     ))
 
-    setBeakers(prev => prev.map(beaker => 
-      beaker.id === glasswareId 
+    setBeakers(prev => prev.map(beaker =>
+      beaker.id === glasswareId
         ? { ...beaker, contents: [...beaker.contents, newContent] }
         : beaker
     ))
@@ -110,12 +110,12 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
       console.warn('Invalid chemical object for test tube')
       return
     }
-    
+
     if (!chemical.name || !chemical.formula) {
       console.warn('Chemical missing required properties for test tube')
       return
     }
-    
+
     // Find the first test tube
     const firstTestTube = testTubes[0]
     if (firstTestTube) {
@@ -135,10 +135,10 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
   }, [handleAddChemicalToFirstTestTube, onAddChemicalToTestTube])
 
   const clearGlassware = (glasswareId: string) => {
-    setTestTubes(prev => prev.map(tube => 
+    setTestTubes(prev => prev.map(tube =>
       tube.id === glasswareId ? { ...tube, contents: [] } : tube
     ))
-    setBeakers(prev => prev.map(beaker => 
+    setBeakers(prev => prev.map(beaker =>
       beaker.id === glasswareId ? { ...beaker, contents: [] } : beaker
     ))
   }
@@ -187,11 +187,10 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
   }))
 
   return (
-    <div 
-      ref={drop as any} 
-      className={`lab-container lab-bench lab-bench-container p-4 sm:p-6 lg:p-8 h-full overflow-y-auto transition-all duration-300 ${
-        isOver ? 'drag-over border-2 border-blue-400 border-dashed' : ''
-      }`} 
+    <div
+      ref={drop as any}
+      className={`lab-container lab-bench lab-bench-container p-4 sm:p-6 lg:p-8 h-full overflow-y-auto transition-all duration-300 ${isOver ? 'drag-over border-2 border-blue-400 border-dashed' : ''
+        }`}
       style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b'
@@ -231,9 +230,9 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
         </div>
       </div>
 
-      {/* Glassware Grid */}
+      {/* Glassware Grid - Fixed Layout */}
       <div className="mb-6 sm:mb-8 flex-1">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 min-h-[250px] sm:min-h-[300px] p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-50/80 to-blue-50/30 dark:from-gray-800/50 dark:to-gray-700/30 rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-300/60 dark:border-gray-600/60 backdrop-blur-sm">
+        <div className="flex flex-wrap justify-center gap-8 min-h-[400px] p-8 bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-white/10">
           <AnimatePresence>
             {testTubes.map((tube) => (
               <motion.div
@@ -241,7 +240,7 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                className="relative group flex flex-col items-center"
+                className="relative group flex flex-col items-center justify-start w-[180px]"
               >
                 <TestTube
                   id={tube.id}
@@ -256,10 +255,10 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
                     onClick={() => removeGlassware(tube.id, 'tube')}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="absolute -top-2 -right-2 p-2 sm:p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50 touch-manipulation"
+                    className="absolute top-0 right-0 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50"
                     title="Remove test tube"
                   >
-                    <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
+                    <Trash2 className="h-3 w-3" />
                   </motion.button>
                 )}
               </motion.div>
@@ -273,7 +272,7 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                className="relative group flex flex-col items-center"
+                className="relative group flex flex-col items-center justify-start w-[180px]"
               >
                 <Beaker
                   id={beaker.id}
@@ -288,10 +287,10 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
                     onClick={() => removeGlassware(beaker.id, 'beaker')}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="absolute -top-2 -right-2 p-2 sm:p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50 touch-manipulation"
+                    className="absolute top-0 right-0 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg z-50"
                     title="Remove beaker"
                   >
-                    <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
+                    <Trash2 className="h-3 w-3" />
                   </motion.button>
                 )}
               </motion.div>
@@ -319,11 +318,10 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
           disabled={isReacting}
           whileHover={!isReacting ? { scale: 1.05 } : {}}
           whileTap={!isReacting ? { scale: 0.95 } : {}}
-          className={`flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 w-full sm:w-auto touch-manipulation ${
-            isReacting
-              ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-              : 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white shadow-xl hover:shadow-2xl'
-          }`}
+          className={`flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 w-full sm:w-auto touch-manipulation ${isReacting
+            ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+            : 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white shadow-xl hover:shadow-2xl'
+            }`}
         >
           <Atom className={`h-5 w-5 sm:h-6 sm:w-6 ${isReacting ? 'animate-spin' : ''}`} />
           <span>{isReacting ? 'Analyzing...' : 'Perform Reaction'}</span>

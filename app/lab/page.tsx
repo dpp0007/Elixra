@@ -1,214 +1,398 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+    ArrowLeft,
+    Save,
+    Download,
+    Share2,
+    RotateCcw,
+    Flame,
+    Atom,
+    Sparkles
+} from 'lucide-react'
 import LabTable from '@/components/LabTable'
 import ChemicalShelf from '@/components/ChemicalShelf'
 import ReactionPanel from '@/components/ReactionPanel'
-import ExperimentControls from '@/components/ExperimentControls'
-import EquipmentPanel from '@/components/EquipmentPanel'
-import ModernNavbar from '@/components/ModernNavbar'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { useAuth } from '@/contexts/AuthContext'
 import { Experiment, ReactionResult } from '@/types/chemistry'
 
 export default function LabPage() {
-  const router = useRouter()
-  const { isAuthenticated, user } = useAuth()
-  const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
-  const [reactionResult, setReactionResult] = useState<ReactionResult | null>(null)
-  const [isReacting, setIsReacting] = useState(false)
-  const [addChemicalToTestTube, setAddChemicalToTestTube] = useState<((chemical: any) => void) | null>(null)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [activeEquipment, setActiveEquipment] = useState<any[]>([])
-  const labTableRef = useRef<HTMLDivElement>(null)
-  
-  // Prevent auto-scrolling during drag operations
-  useDragScroll()
-  
-  // Auto-scroll to lab table on mobile devices
-  useEffect(() => {
-    const isMobile = window.innerWidth < 1024 // lg breakpoint
-    if (isMobile && labTableRef.current && isAuthenticated && !isCheckingAuth) {
-      // Small delay to ensure page is fully rendered
-      setTimeout(() => {
-        labTableRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        })
-      }, 500)
-    }
-  }, [isAuthenticated, isCheckingAuth])
-  
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = () => {
-      // Allow some time for auth context to initialize
-      setTimeout(() => {
-        setIsCheckingAuth(false)
-        if (!isAuthenticated) {
-          router.push('/auth/signin')
+    const router = useRouter()
+    const { isAuthenticated, user } = useAuth()
+    const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
+    const [reactionResult, setReactionResult] = useState<ReactionResult | null>(null)
+    const [isReacting, setIsReacting] = useState(false)
+    const [addChemicalToTestTube, setAddChemicalToTestTube] = useState<((chemical: any) => void) | null>(null)
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+    const [showFeatures, setShowFeatures] = useState(false)
+    const labTableRef = useRef<HTMLDivElement>(null)
+
+    useDragScroll()
+
+    useEffect(() => {
+        const isMobile = window.innerWidth < 1024
+        if (isMobile && labTableRef.current && isAuthenticated && !isCheckingAuth) {
+            setTimeout(() => {
+                labTableRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                })
+            }, 500)
         }
-      }, 100)
+    }, [isAuthenticated, isCheckingAuth])
+
+    useEffect(() => {
+        const checkAuth = () => {
+            setTimeout(() => {
+                setIsCheckingAuth(false)
+                if (!isAuthenticated) {
+                    router.push('/auth/signin')
+                }
+            }, 100)
+        }
+        checkAuth()
+    }, [isAuthenticated, router])
+
+    if (isCheckingAuth) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="relative w-16 h-24 mx-auto mb-4">
+                        <img
+                            src="/Assets/Testube.svg"
+                            alt="Loading"
+                            className="w-full h-full animate-pulse"
+                        />
+                    </div>
+                    <p className="text-gray-300">Loading laboratory...</p>
+                </div>
+            </div>
+        )
     }
-    
-    checkAuth()
-  }, [isAuthenticated, router])
-  
-  // Show loading while checking authentication
-  if (isCheckingAuth) {
+
+    if (!isAuthenticated) {
+        return null
+    }
+
+    const handleAddChemicalToTestTube = (chemical: any) => {
+        if (addChemicalToTestTube && chemical) {
+            addChemicalToTestTube(chemical)
+        }
+    }
+
+    const handleReaction = async (experiment: Experiment) => {
+        setIsReacting(true)
+        setCurrentExperiment(experiment)
+
+        try {
+            const response = await fetch('/api/react', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(experiment),
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
+            const result = await response.json()
+
+            if (result.error) {
+                throw new Error(result.error)
+            }
+
+            setReactionResult(result)
+
+            await fetch('/api/experiments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...experiment,
+                    reactionDetails: result,
+                }),
+            })
+        } catch (error) {
+            console.error('Reaction failed:', error)
+        } finally {
+            setIsReacting(false)
+        }
+    }
+
+    const clearExperiment = () => {
+        setCurrentExperiment(null)
+        setReactionResult(null)
+    }
+
+    const handleSave = async () => {
+        if (!currentExperiment) return
+        // Save logic here
+    }
+
+    const handleExport = async () => {
+        if (!currentExperiment) return
+        // Export logic here
+    }
+
+    const handleShare = async () => {
+        if (!currentExperiment) return
+        // Share logic here
+    }
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-  
-  // Don't render lab if not authenticated
-  if (!isAuthenticated) {
-    return null
-  }
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
+            {/* Navbar - Matching Home Page Theme */}
+            <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 items-center justify-between">
+                        {/* Left: Back + Logo */}
+                        <div className="flex items-center space-x-4">
+                            <Link
+                                href="/"
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                title="Back to home"
+                            >
+                                <ArrowLeft className="h-5 w-5" />
+                            </Link>
+                            <Link href="/" className="flex items-center space-x-2 group">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                                    <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 p-1.5 rounded-lg">
+                                        <Atom className="h-5 w-5 text-white" />
+                                    </div>
+                                </div>
+                                <span className="text-lg font-bold text-white">ChemLab AI</span>
+                            </Link>
+                        </div>
 
-  const handleAddChemicalToTestTube = (chemical: any) => {
-    console.log('=== LAB PAGE: handleAddChemicalToTestTube called ===')
-    console.log('Chemical:', chemical)
-    console.log('addChemicalToTestTube function:', addChemicalToTestTube)
-    
-    if (addChemicalToTestTube && chemical) {
-      console.log('Calling addChemicalToTestTube')
-      addChemicalToTestTube(chemical)
-    } else {
-      console.error('Cannot add chemical to test tube:', { addChemicalToTestTube, chemical })
-    }
-  }
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={clearExperiment}
+                                disabled={!currentExperiment}
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Clear experiment"
+                            >
+                                <RotateCcw className="h-5 w-5" />
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={!currentExperiment}
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Save experiment"
+                            >
+                                <Save className="h-5 w-5" />
+                            </button>
+                            <button
+                                onClick={handleExport}
+                                disabled={!currentExperiment}
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Export PDF"
+                            >
+                                <Download className="h-5 w-5" />
+                            </button>
+                            <button
+                                onClick={handleShare}
+                                disabled={!currentExperiment}
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Share experiment"
+                            >
+                                <Share2 className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-  const handleReaction = async (experiment: Experiment) => {
-    setIsReacting(true)
-    setCurrentExperiment(experiment)
-    
-    // Add equipment info to experiment
-    const experimentWithEquipment = {
-      ...experiment,
-      equipment: activeEquipment.filter(eq => eq.active).map(eq => ({
-        name: eq.name,
-        value: eq.value,
-        unit: eq.unit
-      }))
-    }
-    
-    try {
-      const response = await fetch('/api/react', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(experimentWithEquipment),
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result = await response.json()
-      
-      // Check if result has error
-      if (result.error) {
-        throw new Error(result.error)
-      }
-      
-      setReactionResult(result)
-      
-      // Save experiment to database
-      await fetch('/api/experiments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...experiment,
-          reactionDetails: result,
-        }),
-      })
-    } catch (error) {
-      console.error('Reaction failed:', error)
-    } finally {
-      setIsReacting(false)
-    }
-  }
+            {/* Main Content - Fixed Height Grid */}
+            <div className="h-[calc(100vh-4rem)] grid lg:grid-cols-[320px_1fr_380px] gap-4 p-4">
+                {/* Left Panel - Chemical Shelf */}
+                <motion.div
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="h-full bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+                >
+                    {/* Header */}
+                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500/20 rounded-lg">
+                                <Sparkles className="w-5 h-5 text-blue-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white">Chemical Reagents</h2>
+                                <p className="text-xs text-gray-400">Click or drag to add</p>
+                            </div>
+                        </div>
+                    </div>
 
-  const clearExperiment = () => {
-    setCurrentExperiment(null)
-    setReactionResult(null)
-  }
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <ChemicalShelf onAddChemicalToTestTube={handleAddChemicalToTestTube} />
+                    </div>
+                </motion.div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -top-48 -left-48 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-1/2 right-0 animate-pulse delay-1000"></div>
-        <div className="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl bottom-0 left-1/3 animate-pulse delay-2000"></div>
-      </div>
+                {/* Center Panel - Lab Bench */}
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="h-full bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+                    ref={labTableRef}
+                >
+                    {/* Header */}
+                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-cyan-500/20 rounded-lg">
+                                    <Atom className="w-5 h-5 text-cyan-400" />
+                                </div>
+                                <h2 className="text-lg font-bold text-white">Lab Bench</h2>
+                            </div>
+                        </div>
+                    </div>
 
-      {/* Modern Navbar */}
-      <ModernNavbar />
+                    {/* Scrollable Lab Content */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <LabTable
+                            onReaction={handleReaction}
+                            reactionResult={reactionResult}
+                            isReacting={isReacting}
+                            onAddChemicalToTestTube={setAddChemicalToTestTube}
+                        />
+                    </div>
+                </motion.div>
 
-      <div className="relative z-10 max-w-[1600px] mx-auto px-3 sm:px-6 py-3 sm:py-6">
-        {/* Mobile Scroll Hint - Only visible on mobile */}
-        <div className="lg:hidden mb-3 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-full text-xs sm:text-sm text-blue-700 dark:text-blue-300"
-          >
-            <motion.span
-              animate={{ y: [0, 3, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+                {/* Right Panel - Reaction Analysis */}
+                <motion.div
+                    initial={{ x: 100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="h-full bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+                >
+                    {/* Header */}
+                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-500/20 rounded-lg">
+                                <Atom className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white">Reaction Analysis</h2>
+                                <p className="text-xs text-gray-400">AI-powered results</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <ReactionPanel
+                            experiment={currentExperiment}
+                            result={reactionResult}
+                            isLoading={isReacting}
+                        />
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Floating Features Button */}
+            <motion.button
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.5 }}
+                onClick={() => setShowFeatures(!showFeatures)}
+                className="fixed bottom-8 right-8 z-50 group"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
             >
-              ↓
-            </motion.span>
-            Scroll to see Lab Bench below
-          </motion.div>
-        </div>
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
 
-        {/* Mobile: Vertical Stack | Desktop: Horizontal Layout */}
-        <div className="flex flex-col lg:flex-row gap-3 sm:gap-6 min-h-screen items-start">
-          
-          {/* Lab Table - Priority on mobile (top), center on desktop */}
-          <div ref={labTableRef} className="w-full lg:flex-1 lg:max-w-2xl order-1 lg:order-2 scroll-mt-20">
-            <LabTable 
-              onReaction={handleReaction}
-              reactionResult={reactionResult}
-              isReacting={isReacting}
-              onAddChemicalToTestTube={setAddChemicalToTestTube}
-            />
-          </div>
-          
-          {/* Chemical Shelf - Full width on mobile, sidebar on desktop */}
-          <div className="w-full lg:w-80 lg:flex-shrink-0 order-2 lg:order-1">
-            <ChemicalShelf onAddChemicalToTestTube={handleAddChemicalToTestTube} />
-          </div>
+                {/* Button */}
+                <div className="relative w-16 h-16 bg-gradient-to-br from-orange-500/90 to-red-500/90 backdrop-blur-xl border border-white/20 rounded-full shadow-2xl flex items-center justify-center">
+                    <motion.div
+                        animate={{ rotate: showFeatures ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Flame className="w-7 h-7 text-white drop-shadow-lg" />
+                    </motion.div>
+                </div>
 
-          {/* Reaction Panel - Full width on mobile, sidebar on desktop */}
-          <div className="w-full lg:w-80 lg:flex-shrink-0 order-3">
-            <ReactionPanel 
-              experiment={currentExperiment}
-              result={reactionResult}
-              isLoading={isReacting}
-            />
-          </div>
+                {/* Ripple Effect */}
+                <motion.div
+                    className="absolute inset-0 border-2 border-orange-500/50 rounded-full"
+                    animate={{
+                        scale: [1, 1.5, 1],
+                        opacity: [0.5, 0, 0.5],
+                    }}
+                    transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                />
+            </motion.button>
+
+            {/* Features Panel */}
+            <AnimatePresence>
+                {showFeatures && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 100 }}
+                        className="fixed bottom-28 right-8 z-40 w-64"
+                    >
+                        <div className="bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-4">
+                            <h3 className="text-sm font-bold text-white mb-3">Quick Actions</h3>
+                            <div className="space-y-2">
+                                <button className="w-full px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-300 rounded-lg text-sm transition-all text-left">
+                                    Save Experiment
+                                </button>
+                                <button className="w-full px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-300 rounded-lg text-sm transition-all text-left">
+                                    Export Results
+                                </button>
+                                <button className="w-full px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-green-300 rounded-lg text-sm transition-all text-left">
+                                    Share Lab
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Custom Scrollbar Styles */}
+            <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.3);
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5));
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, rgba(59, 130, 246, 0.7), rgba(139, 92, 246, 0.7));
+        }
+
+        /* Firefox */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(59, 130, 246, 0.5) rgba(15, 23, 42, 0.3);
+        }
+      `}</style>
         </div>
-      </div>
-      
-      {/* Equipment Panel */}
-      <EquipmentPanel onEquipmentChange={setActiveEquipment} />
-    </div>
-  )
+    )
 }
