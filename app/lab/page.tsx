@@ -11,6 +11,7 @@ import {
     Share2,
     RotateCcw,
     Flame,
+    Plus,
     Atom,
     Sparkles
 } from 'lucide-react'
@@ -256,6 +257,23 @@ export default function LabPage() {
                                     <Atom className="w-5 h-5 text-cyan-400" />
                                 </div>
                                 <h2 className="text-lg font-bold text-white">Lab Bench</h2>
+                            </div>
+                            {/* Add Glassware Buttons */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => (window as any).__addTestTube?.()}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Test Tube
+                                </button>
+                                <button
+                                    onClick={() => (window as any).__addBeaker?.()}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Beaker
+                                </button>
                             </div>
                         </div>
                     </div>

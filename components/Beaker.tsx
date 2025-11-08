@@ -126,7 +126,7 @@ export default function Beaker({
 
       <motion.div
         ref={drop as any}
-        className={`beaker relative w-24 h-32 z-25 transition-all duration-300 ${isOver && canDrop
+        className={`beaker relative w-24 h-40 z-25 transition-all duration-300 ${isOver && canDrop
           ? 'ring-4 ring-green-400 ring-opacity-50 shadow-xl shadow-green-400/30 scale-105'
           : canDrop
             ? 'ring-2 ring-green-300 ring-opacity-30'
@@ -336,15 +336,29 @@ export default function Beaker({
       </motion.div>
 
       {/* Contents list */}
-      <div className="text-center min-h-[100px] w-full max-w-[160px]">
-        {contents.length === 0 ? (
-          <div className="text-xs text-gray-400 dark:text-gray-500 flex flex-col items-center space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+      <div className="text-center min-h-[120px] w-full flex flex-col items-center">
+        {reactionResult ? (
+          <div className="space-y-2 w-full max-w-[160px]">
+            {/* Products in single box - matching test tube style */}
+            {reactionResult.products && reactionResult.products.length > 0 && (
+              <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Products:</span>
+                  <span className="text-xs text-gray-900 dark:text-white font-medium">
+                    {reactionResult.products.join(' + ')}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : contents.length === 0 ? (
+          <div className="text-xs text-gray-400 flex flex-col items-center space-y-2 p-4 bg-slate-800/30 rounded-xl border-2 border-dashed border-gray-600 hover:border-green-400 transition-colors">
             <Droplets className="h-6 w-6" />
             <span className="font-medium">Drop chemicals here</span>
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="text-xs font-semibold text-gray-300 mb-2">
               Contents ({contents.length})
             </div>
             {contents.map((content, index) => (
@@ -355,25 +369,25 @@ export default function Beaker({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
+                <div className="bg-slate-800/60 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-white/10 hover:shadow-md hover:border-green-400/50 transition-all">
                   {/* Chemical Color Indicator */}
                   <div className="flex items-center space-x-2 mb-1">
                     <div
-                      className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                      className="w-3 h-3 rounded-full border border-white/20"
                       style={{ backgroundColor: content.chemical.color }}
                     />
-                    <div className="font-bold text-gray-900 dark:text-white text-xs">
+                    <div className="font-bold text-white text-xs">
                       {content.chemical.formula}
                     </div>
                   </div>
 
                   {/* Amount */}
-                  <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <div className="text-xs text-gray-300 font-medium">
                     {content.amount < 1 ? content.amount.toFixed(2) : content.amount} {content.unit}
                   </div>
 
                   {/* Chemical Name (on hover) */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                     {content.chemical.name}
                   </div>
                 </div>
@@ -381,8 +395,8 @@ export default function Beaker({
             ))}
 
             {/* Total Volume/Mass */}
-            <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600">
-              <div className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+            <div className="mt-3 pt-2 border-t border-white/10">
+              <div className="text-xs font-semibold text-blue-400">
                 Total: {(() => {
                   const total = contents.reduce((sum, content) => {
                     if (content.unit === 'ml' || content.unit === 'drops') {

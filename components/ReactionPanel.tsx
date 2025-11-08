@@ -2,12 +2,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Experiment, ReactionResult } from '@/types/chemistry'
-import { 
-  Atom, 
-  Eye, 
-  Wind as SmellIcon, 
-  Thermometer, 
-  AlertTriangle, 
+import {
+  Atom,
+  Eye,
+  Wind as SmellIcon,
+  Thermometer,
+  AlertTriangle,
   Beaker,
   Zap,
   Wind
@@ -22,7 +22,7 @@ interface ReactionPanelProps {
 export default function ReactionPanel({ experiment, result, isLoading }: ReactionPanelProps) {
   if (!experiment && !result && !isLoading) {
     return (
-      <div className="lab-container reaction-panel-container p-4 sm:p-6 h-auto lg:h-[calc(100vh-140px)] max-h-[500px] lg:max-h-none overflow-y-auto flex items-center justify-center" style={{
+      <div className="p-4 sm:p-6 h-full flex items-center justify-center" style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b'
       }}>
@@ -38,19 +38,10 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
   }
 
   return (
-    <div className="lab-container reaction-panel-container p-4 sm:p-6 h-auto lg:h-[calc(100vh-140px)] max-h-[600px] lg:max-h-none overflow-y-auto" style={{
+    <div className="p-4" style={{
       scrollbarWidth: 'thin',
       scrollbarColor: '#475569 #1e293b'
     }}>
-      <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-        <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-          <Atom className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-        </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-          Reaction Analysis
-        </h2>
-      </div>
-
       <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div
@@ -119,18 +110,18 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
                   Visual Observations
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-700 dark:text-gray-300">Solution Color:</span>
                     <div className="flex items-center space-x-2">
-                      <div 
+                      <div
                         className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner relative flex-shrink-0"
-                        style={{ 
-                          backgroundColor: result.color === 'colorless' || result.color === 'transparent' 
-                            ? 'transparent' 
-                            : result.color 
+                        style={{
+                          backgroundColor: result.color === 'colorless' || result.color === 'transparent'
+                            ? 'transparent'
+                            : result.color
                         }}
                       >
                         {(result.color === 'colorless' || result.color === 'transparent') && (
@@ -149,7 +140,7 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-700 dark:text-gray-300">Precipitate:</span>
                       <div className="flex items-center space-x-2">
-                        <div 
+                        <div
                           className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner flex-shrink-0"
                           style={{ backgroundColor: result.precipitateColor || '#ffffff' }}
                         ></div>

@@ -189,7 +189,7 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
   return (
     <div
       ref={drop as any}
-      className={`lab-container lab-bench lab-bench-container p-4 sm:p-6 lg:p-8 h-full overflow-y-auto transition-all duration-300 ${isOver ? 'drag-over border-2 border-blue-400 border-dashed' : ''
+      className={`p-4 h-full overflow-y-auto transition-all duration-300 ${isOver ? 'border-2 border-blue-400 border-dashed rounded-2xl' : ''
         }`}
       style={{
         scrollbarWidth: 'thin',
@@ -198,41 +198,9 @@ export default function LabTable({ onReaction, reactionResult, isReacting, onAdd
       role="region"
       aria-label="Laboratory workbench. Add glassware and chemicals here."
     >
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 lg:mb-8 gap-3 sm:gap-0">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-            <Atom className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            Lab Bench
-          </h2>
-        </div>
-        <div className="flex space-x-2 sm:space-x-3 w-full sm:w-auto">
-          <motion.button
-            onClick={addTestTube}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex-1 sm:flex-initial touch-manipulation"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="font-medium text-sm sm:text-base">Test Tube</span>
-          </motion.button>
-          <motion.button
-            onClick={addBeaker}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex-1 sm:flex-initial touch-manipulation"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="font-medium text-sm sm:text-base">Beaker</span>
-          </motion.button>
-        </div>
-      </div>
-
       {/* Glassware Grid - Fixed Layout */}
-      <div className="mb-6 sm:mb-8 flex-1">
-        <div className="flex flex-wrap justify-center gap-8 min-h-[400px] p-8 bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-white/10">
+      <div className="flex-1">
+        <div className="flex flex-wrap justify-center gap-8 min-h-[400px]">
           <AnimatePresence>
             {testTubes.map((tube) => (
               <motion.div
