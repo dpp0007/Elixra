@@ -3,12 +3,13 @@ import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import DndWrapper from '@/components/DndWrapper'
 import Providers from '@/components/Providers'
-import Navigation from '@/components/Navigation'
+import Footer from '@/components/Footer'
+import PageLoader from '@/components/PageLoader'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'ChemLab Online - Virtual Chemistry Laboratory',
+  title: 'Elixra - Virtual Chem Lab',
   description: 'Interactive virtual chemistry lab for qualitative inorganic salt analysis',
   manifest: '/manifest.json',
   icons: {
@@ -19,7 +20,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ChemLab',
+    title: 'Elixra',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -40,12 +41,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <Providers>
           <ThemeProvider>
             <DndWrapper>
-              <Navigation />
-              {children}
+              <PageLoader>
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </PageLoader>
             </DndWrapper>
           </ThemeProvider>
         </Providers>

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Atom, Beaker, TestTube, Zap, Users, Shield, Sparkles, ArrowRight, Play, Check } from 'lucide-react'
 import ModernNavbar from '@/components/ModernNavbar'
 import AuthButton from '@/components/AuthButton'
@@ -32,7 +33,7 @@ export default function HomePage() {
                 <Sparkles className="h-4 w-4 text-yellow-400" />
                 <span className="text-sm text-gray-200">Powered by AI • Real-time Analysis</span>
               </div>
-              
+
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 <span className="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                   Chemistry Lab
@@ -42,12 +43,12 @@ export default function HomePage() {
                   Reimagined
                 </span>
               </h1>
-              
+
               <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Experience chemistry like never before. AI-powered analysis, real-time collaboration, 
+                Experience chemistry like never before. AI-powered analysis, real-time collaboration,
                 and interactive experiments—all in your browser.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
                   href="/auth/signup"
@@ -56,7 +57,7 @@ export default function HomePage() {
                   <span>Start Free Trial</span>
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                
+
                 <Link
                   href="/lab"
                   className="group px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl font-semibold text-white hover:bg-white/20 transition-all duration-300 flex items-center space-x-2"
@@ -81,7 +82,7 @@ export default function HomePage() {
               Professional-grade tools for modern chemistry education
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
@@ -129,8 +130,8 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 className="group relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" 
-                     style={{ background: `linear-gradient(to right, var(--tw-gradient-stops))` }}></div>
+                <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
+                  style={{ background: `linear-gradient(to right, var(--tw-gradient-stops))` }}></div>
                 <div className="relative h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
                   <div className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4`}>
                     <feature.icon className="h-6 w-6 text-white" />
@@ -174,7 +175,7 @@ export default function HomePage() {
             Ready to Transform Your Chemistry Learning?
           </h2>
           <p className="text-xl text-gray-400 mb-10">
-            Join thousands of students and educators using ChemLab AI
+            Join thousands of students and educators using Elixra
           </p>
           <Link
             href="/auth/signup"
@@ -192,7 +193,7 @@ export default function HomePage() {
           <h3 className="text-2xl font-bold text-white mb-2">Trusted by Students Worldwide</h3>
           <p className="text-gray-400">Explore our comprehensive chemistry features</p>
         </div>
-        
+
         {/* Scrolling Row 1 - Left to Right */}
         <div className="relative mb-6">
           <div className="flex animate-scroll-right">
@@ -257,23 +258,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-white/5 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
-                <Atom className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-white font-bold">ChemLab AI</span>
-            </div>
-            <p className="text-gray-400 text-sm">
-              
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

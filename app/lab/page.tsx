@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -163,14 +164,15 @@ export default function LabPage() {
                             >
                                 <ArrowLeft className="h-5 w-5" />
                             </Link>
-                            <Link href="/" className="flex items-center space-x-2 group">
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                                    <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 p-1.5 rounded-lg">
-                                        <Atom className="h-5 w-5 text-white" />
-                                    </div>
+                            <Link href="/" className="flex items-center group">
+                                <div className="relative h-8 w-28">
+                                    <Image
+                                        src="/Assets/Main Logo.svg"
+                                        alt="Elixra"
+                                        fill
+                                        className="object-contain object-left"
+                                    />
                                 </div>
-                                <span className="text-lg font-bold text-white">ChemLab AI</span>
                             </Link>
                         </div>
 

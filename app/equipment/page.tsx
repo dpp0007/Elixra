@@ -108,19 +108,19 @@ export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<Equipment[]>(EQUIPMENT_LIST)
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
-  
+
   const categories = ['all', ...Array.from(new Set(equipment.map(e => e.category)))]
-  
-  const filteredEquipment = filterCategory === 'all' 
-    ? equipment 
+
+  const filteredEquipment = filterCategory === 'all'
+    ? equipment
     : equipment.filter(e => e.category === filterCategory)
-  
+
   const toggleEquipment = (id: string) => {
-    setEquipment(equipment.map(e => 
+    setEquipment(equipment.map(e =>
       e.id === id ? { ...e, inUse: !e.inUse, status: e.inUse ? 'Off' : 'On' } : e
     ))
   }
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 relative overflow-hidden">
       {/* Animated background */}
@@ -132,7 +132,7 @@ export default function EquipmentPage() {
 
       {/* Modern Navbar */}
       <ModernNavbar />
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Filter */}
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-lg mb-6">
@@ -141,18 +141,17 @@ export default function EquipmentPage() {
               <button
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  filterCategory === cat
+                className={`px-4 py-2 rounded-lg transition-colors ${filterCategory === cat
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                  }`}
               >
                 {cat === 'all' ? 'All Equipment' : cat}
               </button>
             ))}
           </div>
         </div>
-        
+
         {/* Equipment Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredEquipment.map((item, index) => {
@@ -163,39 +162,37 @@ export default function EquipmentPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`bg-white/10 backdrop-blur-xl border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${
-                  item.inUse 
-                    ? 'border-green-500' 
+                className={`bg-white/10 backdrop-blur-xl border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col ${item.inUse
+                    ? 'border-green-500'
                     : 'border-transparent hover:border-blue-500'
-                }`}
+                  }`}
               >
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 mx-auto`}>
                   <Icon className="h-8 w-8 text-white" />
                 </div>
-                
+
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">
                   {item.name}
                 </h3>
-                
+
                 <p className="text-xs text-gray-600 dark:text-gray-400 text-center mb-3">
                   {item.description}
                 </p>
-                
-                <div className="space-y-2 mb-4">
+
+                <div className="space-y-2 mb-4 flex-grow">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Category:</span>
                     <span className="font-medium text-gray-900 dark:text-white">{item.category}</span>
                   </div>
-                  
+
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                    <span className={`font-medium ${
-                      item.inUse ? 'text-green-600' : 'text-gray-600 dark:text-gray-400'
-                    }`}>
+                    <span className={`font-medium ${item.inUse ? 'text-green-600' : 'text-gray-600 dark:text-gray-400'
+                      }`}>
                       {item.status}
                     </span>
                   </div>
-                  
+
                   {item.temperature !== undefined && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">Temp:</span>
@@ -205,14 +202,13 @@ export default function EquipmentPage() {
                     </div>
                   )}
                 </div>
-                
+
                 <button
                   onClick={() => toggleEquipment(item.id)}
-                  className={`w-full px-4 py-2 rounded-lg transition-colors ${
-                    item.inUse
+                  className={`w-full px-4 py-2 rounded-lg transition-colors mt-auto ${item.inUse
                       ? 'bg-red-600 hover:bg-red-700 text-white'
                       : 'bg-green-600 hover:bg-green-700 text-white'
-                  }`}
+                    }`}
                 >
                   {item.inUse ? 'Turn Off' : 'Turn On'}
                 </button>
@@ -220,7 +216,7 @@ export default function EquipmentPage() {
             )
           })}
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6 shadow-lg">
@@ -231,7 +227,7 @@ export default function EquipmentPage() {
               Total Equipment
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="text-3xl font-bold text-green-600 mb-2">
               {equipment.filter(e => e.inUse).length}
@@ -240,7 +236,7 @@ export default function EquipmentPage() {
               Currently In Use
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="text-3xl font-bold text-purple-600 mb-2">
               {categories.length - 1}

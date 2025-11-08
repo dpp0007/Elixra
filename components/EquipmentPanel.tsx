@@ -26,17 +26,17 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
     { id: 'stirrer', name: 'Magnetic Stirrer', icon: Wind, active: false, value: 0, unit: 'RPM', min: 0, max: 1500 },
     { id: 'timer', name: 'Timer', icon: Timer, active: false, value: 0, unit: 'min', min: 0, max: 60 },
   ])
-  
+
   const [isOpen, setIsOpen] = useState(false)
-  
+
   const toggleEquipment = (id: string) => {
-    const updated = equipment.map(eq => 
+    const updated = equipment.map(eq =>
       eq.id === id ? { ...eq, active: !eq.active } : eq
     )
     setEquipment(updated)
     onEquipmentChange?.(updated)
   }
-  
+
   const updateValue = (id: string, change: number) => {
     const updated = equipment.map(eq => {
       if (eq.id === id && eq.value !== undefined && eq.min !== undefined && eq.max !== undefined) {
@@ -48,9 +48,9 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
     setEquipment(updated)
     onEquipmentChange?.(updated)
   }
-  
+
   const activeEquipment = equipment.filter(eq => eq.active)
-  
+
   return (
     <>
       {/* Floating Button */}
@@ -70,7 +70,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
           </span>
         )}
       </motion.button>
-      
+
       {/* Equipment Panel */}
       <AnimatePresence>
         {isOpen && (
@@ -83,7 +83,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
               onClick={() => setIsOpen(false)}
             />
-            
+
             {/* Panel */}
             <motion.div
               initial={{ x: '100%' }}
@@ -105,7 +105,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               {/* Equipment List */}
               <div className="p-4 space-y-4">
                 {equipment.map((eq) => {
@@ -113,47 +113,32 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                   return (
                     <div
                       key={eq.id}
-                      className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border-2 transition-all ${
-                        eq.active 
-                          ? 'border-green-500 shadow-lg shadow-green-500/20' 
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
+                      className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border-2 transition-all flex flex-col ${eq.active
+                        ? 'border-green-500 shadow-lg shadow-green-500/20'
+                        : 'border-gray-200 dark:border-gray-700'
+                        }`}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-lg ${
-                            eq.active 
-                              ? 'bg-green-100 dark:bg-green-900/30' 
-                              : 'bg-gray-200 dark:bg-gray-700'
+                      {/* Header */}
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className={`p-2 rounded-lg ${eq.active
+                          ? 'bg-green-100 dark:bg-green-900/30'
+                          : 'bg-gray-200 dark:bg-gray-700'
                           }`}>
-                            <Icon className={`h-5 w-5 ${
-                              eq.active 
-                                ? 'text-green-600 dark:text-green-400' 
-                                : 'text-gray-600 dark:text-gray-400'
+                          <Icon className={`h-5 w-5 ${eq.active
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-gray-600 dark:text-gray-400'
                             }`} />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                              {eq.name}
-                            </h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              {eq.active ? 'Active' : 'Inactive'}
-                            </p>
-                          </div>
                         </div>
-                        
-                        <button
-                          onClick={() => toggleEquipment(eq.id)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            eq.active
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}
-                        >
-                          {eq.active ? 'Turn Off' : 'Turn On'}
-                        </button>
+                        <div>
+                          <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                            {eq.name}
+                          </h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {eq.active ? 'Active' : 'Inactive'}
+                          </p>
+                        </div>
                       </div>
-                      
+
                       {/* Controls */}
                       {eq.active && eq.value !== undefined && (
                         <div className="bg-white dark:bg-gray-900 rounded-lg p-3">
@@ -165,7 +150,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                               {eq.value} {eq.unit}
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => updateValue(eq.id, -10)}
@@ -173,7 +158,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                             >
                               <Minus className="h-4 w-4 mx-auto" />
                             </button>
-                            
+
                             <div className="flex-1">
                               <input
                                 type="range"
@@ -181,8 +166,8 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                                 max={eq.max}
                                 value={eq.value}
                                 onChange={(e) => {
-                                  const updated = equipment.map(item => 
-                                    item.id === eq.id 
+                                  const updated = equipment.map(item =>
+                                    item.id === eq.id
                                       ? { ...item, value: parseInt(e.target.value) }
                                       : item
                                   )
@@ -192,7 +177,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                                 className="w-full"
                               />
                             </div>
-                            
+
                             <button
                               onClick={() => updateValue(eq.id, 10)}
                               className="flex-1 p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
@@ -202,11 +187,22 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                           </div>
                         </div>
                       )}
+
+                      {/* Toggle Button at Bottom */}
+                      <button
+                        onClick={() => toggleEquipment(eq.id)}
+                        className={`w-full mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${eq.active
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : 'bg-green-600 hover:bg-green-700 text-white'
+                          }`}
+                      >
+                        {eq.active ? 'Turn Off' : 'Turn On'}
+                      </button>
                     </div>
                   )
                 })}
               </div>
-              
+
               {/* Active Equipment Summary */}
               {activeEquipment.length > 0 && (
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 border-t border-green-200 dark:border-green-800">
@@ -222,11 +218,11 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                   </div>
                 </div>
               )}
-              
+
               {/* Info */}
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Tip:</strong> Turn on equipment before performing reactions. 
+                  <strong>Tip:</strong> Turn on equipment before performing reactions.
                   Active equipment will affect your experiment results!
                 </p>
               </div>

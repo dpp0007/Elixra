@@ -79,10 +79,10 @@ export default function ModernNavbar() {
 
           {/* Main container with gradient border */}
           <div className="relative h-full bg-slate-900/95 backdrop-blur-xl rounded-full shadow-2xl border-2 border-white/10">
-            <div className="flex h-16 items-center px-6 lg:px-8">
+            <div className="flex h-16 items-center px-8 lg:px-10">
               {/* Logo - Left side */}
-              <div className="flex items-center flex-shrink-0">
-                <div className="relative h-7 w-20 sm:h-8 sm:w-24">
+              <div className="flex items-center flex-shrink-0 mr-8">
+                <div className="relative h-10 w-32">
                   <Image
                     src="/Assets/Main Logo.svg"
                     alt="Elixra Virtual Chem Lab"
@@ -101,7 +101,7 @@ export default function ModernNavbar() {
                     <Link
                       key={item.name}
                       href={item.path}
-                      className={`px-4 py-2 text-base font-medium transition-all rounded-full whitespace-nowrap ${isActive
+                      className={`px-4 py-2.5 text-sm font-medium transition-all rounded-full whitespace-nowrap ${isActive
                         ? 'text-white bg-white/10'
                         : 'text-gray-300 hover:text-white hover:bg-white/5'
                         }`}

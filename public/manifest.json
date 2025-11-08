@@ -1,6 +1,6 @@
 {
-  "name": "Virtual Chemistry Lab",
-  "short_name": "ChemLab",
+  "name": "Elixra Virtual Chem Lab",
+  "short_name": "Elixra",
   "description": "Interactive virtual chemistry laboratory for experiments and learning",
   "start_url": "/",
   "display": "standalone",

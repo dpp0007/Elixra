@@ -19,12 +19,16 @@ export async function GET(request: NextRequest) {
     if (!challenge) {
       // Generate new daily challenge
       const newChallenge = generateDailyChallenge()
-      challenge = {
+      const challengeDoc = {
         ...newChallenge,
         date: today,
         completedBy: []
       }
-      await db.collection('daily_challenges').insertOne(challenge)
+      const result = await db.collection('daily_challenges').insertOne(challengeDoc)
+      challenge = {
+        ...challengeDoc,
+        _id: result.insertedId
+      }
     }
     
     return NextResponse.json(challenge)
