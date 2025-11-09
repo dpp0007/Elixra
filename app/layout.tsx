@@ -3,8 +3,9 @@ import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import DndWrapper from '@/components/DndWrapper'
 import Providers from '@/components/Providers'
-import Footer from '@/components/Footer'
+import ConditionalFooter from '@/components/ConditionalFooter'
 import PageLoader from '@/components/PageLoader'
+import TopLoadingBar from '@/components/TopLoadingBar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,10 +47,11 @@ export default function RootLayout({
           <ThemeProvider>
             <DndWrapper>
               <PageLoader>
+                <TopLoadingBar />
                 <main className="flex-1">
                   {children}
                 </main>
-                <Footer />
+                <ConditionalFooter />
               </PageLoader>
             </DndWrapper>
           </ThemeProvider>

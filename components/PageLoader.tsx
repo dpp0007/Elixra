@@ -7,10 +7,10 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        // Show loading for 2 seconds on initial load
+        // Show loading only on first visit - reduced time
         const timer = setTimeout(() => {
             setIsLoading(false)
-        }, 2000)
+        }, 600) // Reduced from 2000ms to 600ms for faster initial load
 
         return () => clearTimeout(timer)
     }, [])

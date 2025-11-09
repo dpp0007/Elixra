@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame, Zap, Wind, Droplet, Thermometer, Scale, Timer, X, Plus, Minus } from 'lucide-react'
 
@@ -17,9 +17,12 @@ interface Equipment {
 
 interface EquipmentPanelProps {
   onEquipmentChange?: (equipment: Equipment[]) => void
+  hideFloatingButton?: boolean
+  externalIsOpen?: boolean
+  onClose?: () => void
 }
 
-export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProps) {
+export default function EquipmentPanel({ onEquipmentChange, hideFloatingButton = false, externalIsOpen, onClose }: EquipmentPanelProps) {
   const [equipment, setEquipment] = useState<Equipment[]>([
     { id: 'burner', name: 'Bunsen Burner', icon: Flame, active: false, value: 0, unit: '°C', min: 0, max: 1500 },
     { id: 'hotplate', name: 'Hot Plate', icon: Zap, active: false, value: 25, unit: '°C', min: 25, max: 400 },
@@ -27,7 +30,24 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
     { id: 'timer', name: 'Timer', icon: Timer, active: false, value: 0, unit: 'min', min: 0, max: 60 },
   ])
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
+
+  // Use external state if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
+
+  // Handle closing - use external handler if provided
+  const handleClose = () => {
+    if (onClose) {
+      onClose()
+    } else {
+      setInternalIsOpen(false)
+    }
+  }
+
+  // Handle opening (for internal button)
+  const handleOpen = () => {
+    setInternalIsOpen(true)
+  }
 
   const toggleEquipment = (id: string) => {
     const updated = equipment.map(eq =>
@@ -53,23 +73,25 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
 
   return (
     <>
-      {/* Floating Button */}
-      <motion.button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-40 p-4 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.2 }}
-      >
-        <Flame className="h-6 w-6" />
-        {activeEquipment.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-xs flex items-center justify-center">
-            {activeEquipment.length}
-          </span>
-        )}
-      </motion.button>
+      {/* Floating Button - Hidden when integrated into Features menu */}
+      {!hideFloatingButton && (
+        <motion.button
+          onClick={handleOpen}
+          className="fixed bottom-24 right-6 z-40 p-4 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.2 }}
+        >
+          <Flame className="h-6 w-6" />
+          {activeEquipment.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-xs flex items-center justify-center">
+              {activeEquipment.length}
+            </span>
+          )}
+        </motion.button>
+      )}
 
       {/* Equipment Panel */}
       <AnimatePresence>
@@ -81,7 +103,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
             />
 
             {/* Panel */}
@@ -99,7 +121,7 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                   <h2 className="text-lg font-bold">Lab Equipment</h2>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
                   <X className="h-5 w-5" />
@@ -192,8 +214,8 @@ export default function EquipmentPanel({ onEquipmentChange }: EquipmentPanelProp
                       <button
                         onClick={() => toggleEquipment(eq.id)}
                         className={`w-full mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${eq.active
-                            ? 'bg-red-600 hover:bg-red-700 text-white'
-                            : 'bg-green-600 hover:bg-green-700 text-white'
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-green-600 hover:bg-green-700 text-white'
                           }`}
                       >
                         {eq.active ? 'Turn Off' : 'Turn On'}

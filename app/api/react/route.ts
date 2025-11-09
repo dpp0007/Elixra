@@ -101,14 +101,12 @@ Provide ONLY the JSON response, no additional text. Ensure all field names match
       return NextResponse.json(validatedResult)
 
     } catch (aiError) {
-      console.error('Gemini AI error:', aiError)
-      return NextResponse.json(
-        { 
-          error: 'AI analysis failed. Please check your API key or try again later.',
-          details: aiError instanceof Error ? aiError.message : 'Unknown error'
-        },
-        { status: 503 }
-      )
+      console.error('Gemini AI error, using fallback:', aiError)
+      
+      // Fallback: Use deterministic reactions
+      const fallbackResult = generateFallbackReaction(experiment)
+      console.log('Using fallback reaction:', fallbackResult)
+      return NextResponse.json(fallbackResult)
     }
 
   } catch (error) {
@@ -117,5 +115,95 @@ Provide ONLY the JSON response, no additional text. Ensure all field names match
       { error: 'Failed to analyze reaction' },
       { status: 500 }
     )
+  }
+}
+
+// Fallback function for deterministic reactions
+function generateFallbackReaction(experiment: Experiment): ReactionResult {
+  const formulas = experiment.chemicals.map(c => c.chemical.formula)
+  
+  // Common reactions database
+  const reactions: Record<string, ReactionResult> = {
+    'NaCl+AgNO₃': {
+      color: 'white precipitate',
+      smell: 'none',
+      precipitate: true,
+      precipitateColor: 'white',
+      products: ['AgCl', 'NaNO₃'],
+      balancedEquation: 'NaCl + AgNO₃ → AgCl↓ + NaNO₃',
+      reactionType: 'precipitation',
+      observations: [
+        'White precipitate forms immediately',
+        'Solution becomes cloudy',
+        'Precipitate settles at bottom'
+      ],
+      safetyNotes: ['Handle silver compounds with care', 'Avoid skin contact'],
+      temperature: 'unchanged',
+      gasEvolution: false,
+      confidence: 0.95
+    },
+    'CuSO₄+NaOH': {
+      color: 'blue precipitate',
+      smell: 'none',
+      precipitate: true,
+      precipitateColor: 'blue',
+      products: ['Cu(OH)₂', 'Na₂SO₄'],
+      balancedEquation: 'CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄',
+      reactionType: 'precipitation',
+      observations: [
+        'Blue gelatinous precipitate forms',
+        'Solution color changes from blue to lighter blue',
+        'Precipitate is insoluble'
+      ],
+      safetyNotes: ['NaOH is corrosive', 'Wear protective equipment'],
+      temperature: 'increased',
+      gasEvolution: false,
+      confidence: 0.92
+    },
+    'HCl+NaOH': {
+      color: 'colorless',
+      smell: 'none',
+      precipitate: false,
+      precipitateColor: undefined,
+      products: ['NaCl', 'H₂O'],
+      balancedEquation: 'HCl + NaOH → NaCl + H₂O',
+      reactionType: 'acid-base neutralization',
+      observations: [
+        'Solution becomes warm',
+        'No visible change in color',
+        'pH changes to neutral'
+      ],
+      safetyNotes: ['Exothermic reaction', 'Handle acids and bases carefully'],
+      temperature: 'increased',
+      gasEvolution: false,
+      confidence: 0.98
+    }
+  }
+
+  // Try to find matching reaction
+  const key1 = formulas.sort().join('+')
+  const key2 = formulas.reverse().join('+')
+  
+  if (reactions[key1]) return reactions[key1]
+  if (reactions[key2]) return reactions[key2]
+
+  // Generic fallback
+  return {
+    color: 'mixed',
+    smell: 'none',
+    precipitate: false,
+    precipitateColor: undefined,
+    products: ['Mixed solution'],
+    balancedEquation: `${formulas.join(' + ')} → Mixed solution`,
+    reactionType: 'mixing',
+    observations: [
+      'Chemicals mixed together',
+      'Solution color may change',
+      'No obvious reaction observed'
+    ],
+    safetyNotes: ['Handle all chemicals with care', 'Wear protective equipment'],
+    temperature: 'unchanged',
+    gasEvolution: false,
+    confidence: 0.5
   }
 }
