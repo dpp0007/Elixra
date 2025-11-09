@@ -116,16 +116,16 @@ export async function PUT(request: NextRequest) {
         
         if (!existingParticipant) {
           await db.collection('collaboration_sessions').updateOne(
-            { roomCode },
-            { $push: { participants: newParticipant } }
+            { roomCode } as any,
+            { $push: { participants: newParticipant } } as any
           )
         }
         break
         
       case 'leave':
         await db.collection('collaboration_sessions').updateOne(
-          { roomCode },
-          { $pull: { participants: { userId: userId } } }
+          { roomCode } as any,
+          { $pull: { participants: { userId: userId } } } as any
         )
         break
         

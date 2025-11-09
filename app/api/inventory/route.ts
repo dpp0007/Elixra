@@ -40,16 +40,17 @@ export async function GET(request: NextRequest) {
     
     if (!inventory) {
       // Create default inventory for new user
-      inventory = {
+      const newInventory = {
         userEmail: session.user.email,
         inventory: DEFAULT_INVENTORY,
         createdAt: new Date()
       }
-      await db.collection('inventory').insertOne(inventory)
+      const result = await db.collection('inventory').insertOne(newInventory as any)
+      inventory = { ...newInventory, _id: result.insertedId } as any
     }
     
     return NextResponse.json({ 
-      inventory: inventory.inventory || DEFAULT_INVENTORY 
+      inventory: inventory?.inventory || DEFAULT_INVENTORY 
     })
   } catch (error) {
     console.error('Inventory GET error:', error)

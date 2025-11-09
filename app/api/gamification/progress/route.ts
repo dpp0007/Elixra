@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     let progress = await db.collection('user_progress').findOne({ userId })
     
     if (!progress) {
-      progress = {
+      const newProgress = {
         userId,
         level: 1,
         xp: 0,
@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
         streak: 0,
         lastActive: new Date()
       }
-      await db.collection('user_progress').insertOne(progress)
+      const result = await db.collection('user_progress').insertOne(newProgress as any)
+      progress = { ...newProgress, _id: result.insertedId } as any
     }
     
     return NextResponse.json(progress)
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     
     const db = await getDatabase()
     
-    let progress = await db.collection('user_progress').findOne({ userId })
+    let progress: any = await db.collection('user_progress').findOne({ userId })
     
     if (!progress) {
       progress = {

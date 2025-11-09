@@ -50,16 +50,19 @@ export async function POST(request: NextRequest) {
     const db = await getDatabase()
     
     // Get challenge
-    const challenge = await db.collection('daily_challenges').findOne({
+    const challengeDoc = await db.collection('daily_challenges').findOne({
       id: challengeId
     })
     
-    if (!challenge) {
+    if (!challengeDoc) {
       return NextResponse.json(
         { error: 'Challenge not found' },
         { status: 404 }
       )
     }
+    
+    // Cast to Challenge type
+    const challenge = challengeDoc as any
     
     // Check if already completed
     if (challenge.completedBy?.includes(userId)) {
@@ -75,13 +78,13 @@ export async function POST(request: NextRequest) {
     if (isCompleted) {
       // Mark as completed
       await db.collection('daily_challenges').updateOne(
-        { id: challengeId },
-        { $push: { completedBy: userId } }
+        { id: challengeId } as any,
+        { $push: { completedBy: userId } } as any
       )
       
       // Award points
       await db.collection('user_progress').updateOne(
-        { userId },
+        { userId } as any,
         { 
           $inc: { xp: challenge.points },
           $push: { 
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
               points: challenge.points
             }
           }
-        },
+        } as any,
         { upsert: true }
       )
       
