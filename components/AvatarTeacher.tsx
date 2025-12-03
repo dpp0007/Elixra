@@ -78,8 +78,8 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
   })
   
   return (
-    <group ref={groupRef} position={[0, -9.8, 0]}>
-      <primitive object={clonedScene} scale={5} />
+    <group ref={groupRef} position={[0, -1.2, 0]}>
+      <primitive object={clonedScene} scale={6} />
     </group>
   )
 }
@@ -92,7 +92,7 @@ export default function AvatarTeacher({ speaking = false }: { speaking: boolean 
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, -2, 3.5], fov: 45 }}
+        camera={{ position: [0, 0.8, 2.5], fov: 50 }}
         style={{ background: 'transparent' }}
       >
         <ambientLight intensity={0.8} />
