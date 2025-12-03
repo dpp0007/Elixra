@@ -1,8 +1,8 @@
 # 🚀 START HERE FIRST!
 
-## Welcome to Your AI Chemistry Teacher! 🧪✨
+## Welcome to ERA - ELIXRA Reaction Avatar! 🧪✨
 
-You've just received a **complete, production-ready offline AI chemistry teaching avatar** integrated into your chemistry lab app!
+You've just received **ERA (ELIXRA Reaction Avatar)** - a complete, production-ready offline AI chemistry teaching assistant integrated into your chemistry lab app!
 
 ---
 

@@ -6,7 +6,7 @@ import { OrbitControls, Environment, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
 // Avatar Model Component using GLB
-function AvatarModel({ speaking = false }: { speaking: boolean }) {
+function AvatarModel({ speaking = false, lipSyncIntensity = 0 }: { speaking: boolean, lipSyncIntensity?: number }) {
   const groupRef = useRef<THREE.Group>(null)
   const [morphTargetMeshes, setMorphTargetMeshes] = useState<THREE.Mesh[]>([])
   const [bones, setBones] = useState<{ bone: THREE.Bone | THREE.Object3D, name: string, type: string }[]>([])
@@ -74,23 +74,30 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
         } else if (boneName.includes('eye')) {
           type = 'eye'
           if (!eyeBoneRef.current) eyeBoneRef.current = child
-        } else if (boneName.includes('leftarm') || boneName.includes('left_arm') || boneName.includes('leftupperarm')) {
+        } else if (boneName.includes('leftarm') || boneName.includes('left_arm') || boneName.includes('leftupperarm') || 
+                   boneName.includes('arm_l') || boneName.includes('arml') || boneName.includes('l_arm')) {
           type = 'leftArm'
-          leftArmRef.current = child
+          if (!leftArmRef.current) leftArmRef.current = child
           console.log('💪 Found LEFT ARM:', child.name)
-        } else if (boneName.includes('rightarm') || boneName.includes('right_arm') || boneName.includes('rightupperarm')) {
+        } else if (boneName.includes('rightarm') || boneName.includes('right_arm') || boneName.includes('rightupperarm') ||
+                   boneName.includes('arm_r') || boneName.includes('armr') || boneName.includes('r_arm')) {
           type = 'rightArm'
-          rightArmRef.current = child
+          if (!rightArmRef.current) rightArmRef.current = child
           console.log('💪 Found RIGHT ARM:', child.name)
-        } else if (boneName.includes('leftshoulder') || boneName.includes('left_shoulder')) {
+        } else if (boneName.includes('leftshoulder') || boneName.includes('left_shoulder') || 
+                   boneName.includes('shoulder_l') || boneName.includes('shoulderl') || boneName.includes('l_shoulder')) {
           type = 'leftShoulder'
-          leftShoulderRef.current = child
+          if (!leftShoulderRef.current) leftShoulderRef.current = child
           console.log('💪 Found LEFT SHOULDER:', child.name)
-        } else if (boneName.includes('rightshoulder') || boneName.includes('right_shoulder')) {
+        } else if (boneName.includes('rightshoulder') || boneName.includes('right_shoulder') ||
+                   boneName.includes('shoulder_r') || boneName.includes('shoulderr') || boneName.includes('r_shoulder')) {
           type = 'rightShoulder'
-          rightShoulderRef.current = child
+          if (!rightShoulderRef.current) rightShoulderRef.current = child
           console.log('💪 Found RIGHT SHOULDER:', child.name)
         }
+        
+        // Log ALL bones to help debug
+        console.log('🦴 ALL BONES:', child.name, 'Type:', child.type)
         
         detectedBones.push({ bone: child, name: child.name, type })
         console.log('🦴 Found bone:', child.name, 'Type:', type)
@@ -101,6 +108,18 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
     setBones(detectedBones)
     console.log(`🎭 Wolf3D Animation ready: ${meshes.length} morph targets, ${detectedBones.length} bones`)
     console.log(`🎯 Targets: Head=${!!headBoneRef.current}, Jaw=${!!jawBoneRef.current}, Eyes=${!!eyeBoneRef.current}`)
+    console.log(`💪 ARM BONES: LeftShoulder=${!!leftShoulderRef.current}, RightShoulder=${!!rightShoulderRef.current}`)
+    console.log(`💪 ARM BONES: LeftArm=${!!leftArmRef.current}, RightArm=${!!rightArmRef.current}`)
+    
+    // If bones not found, try to find them by traversing the entire skeleton
+    if (!leftShoulderRef.current || !rightShoulderRef.current || !leftArmRef.current || !rightArmRef.current) {
+      console.warn('⚠️ Some arm bones not found! Listing all bones:')
+      clonedScene.traverse((child) => {
+        if (child.type === 'Bone') {
+          console.log('  🦴', child.name)
+        }
+      })
+    }
   }, [clonedScene])
   
   // Debug speaking state
@@ -121,11 +140,17 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
 
   
   // Use requestAnimationFrame instead of useFrame (Next.js compatible)
-  // Store speaking state in a ref to avoid re-renders
+  // Store speaking state and lip sync intensity in refs to avoid re-renders
   const speakingRef = useRef(speaking)
+  const lipSyncIntensityRef = useRef(lipSyncIntensity)
+  
   useEffect(() => {
     speakingRef.current = speaking
   }, [speaking])
+  
+  useEffect(() => {
+    lipSyncIntensityRef.current = lipSyncIntensity
+  }, [lipSyncIntensity])
   
   useEffect(() => {
     console.log('🎬 Starting requestAnimationFrame animation loop')
@@ -148,6 +173,15 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
       // Log every 60 frames
       if (frameCount % 60 === 0) {
         console.log('🎬 RAF frame #' + frameCount, 'speaking:', isSpeaking)
+        console.log('💪 Arm bones status:', {
+          leftShoulder: !!leftShoulderRef.current,
+          rightShoulder: !!rightShoulderRef.current,
+          leftArm: !!leftArmRef.current,
+          rightArm: !!rightArmRef.current
+        })
+        if (leftArmRef.current) {
+          console.log('💪 Left arm rotation:', leftArmRef.current.rotation)
+        }
       }
       frameCount++
       
@@ -184,41 +218,65 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
         }
       }
       
-      // ARM ANIMATIONS - Fix T-pose and add gestures
-      // LEFT ARM - hanging naturally at side (close to thigh)
+      // ARM ANIMATIONS - Natural human-like poses
+      // LEFT SHOULDER - Primary control for arm position
+      if (leftShoulderRef.current) {
+        if (isSpeaking) {
+          // Animated shoulder movement when speaking
+          leftShoulderRef.current.rotation.x = -0.2 + Math.sin(time * 1.5) * 0.1  // Forward/back
+          leftShoulderRef.current.rotation.z = 0.5 + Math.sin(time * 2) * 0.15    // Up/down gesture
+          leftShoulderRef.current.rotation.y = Math.sin(time * 1.8) * 0.1         // Slight twist
+        } else {
+          // Relaxed shoulder position (idle)
+          leftShoulderRef.current.rotation.x = -0.1  // Slight forward
+          leftShoulderRef.current.rotation.z = 0.3   // Rotated down
+          leftShoulderRef.current.rotation.y = 0.05  // Slight inward
+        }
+      }
+      
+      // RIGHT SHOULDER - Primary control for arm position
+      if (rightShoulderRef.current) {
+        if (isSpeaking) {
+          // Animated shoulder movement when speaking (opposite phase)
+          rightShoulderRef.current.rotation.x = -0.2 + Math.sin(time * 1.5 + Math.PI) * 0.1
+          rightShoulderRef.current.rotation.z = -0.5 + Math.sin(time * 2 + Math.PI) * 0.15
+          rightShoulderRef.current.rotation.y = Math.sin(time * 1.8 + Math.PI) * 0.1
+        } else {
+          // Relaxed shoulder position (idle)
+          rightShoulderRef.current.rotation.x = -0.1   // Slight forward
+          rightShoulderRef.current.rotation.z = -0.3   // Rotated down
+          rightShoulderRef.current.rotation.y = -0.05  // Slight inward
+        }
+      }
+      
+      // LEFT ARM (Upper Arm) - Secondary control for natural hang
       if (leftArmRef.current) {
         if (isSpeaking) {
-          // Gentle hand gestures when speaking
-          leftArmRef.current.rotation.z = 0.8 + Math.sin(time * 2) * 0.2
-          leftArmRef.current.rotation.x = 0.3 + Math.sin(time * 1.5) * 0.15
+          // Expressive gestures when speaking
+          leftArmRef.current.rotation.z = 1.2 + Math.sin(time * 2.5) * 0.3      // Main down rotation + gesture
+          leftArmRef.current.rotation.x = 0.4 + Math.sin(time * 2) * 0.2        // Forward/back movement
+          leftArmRef.current.rotation.y = Math.sin(time * 1.5) * 0.15           // Twist for natural look
         } else {
-          // Arms hanging down at sides, close to thighs
-          leftArmRef.current.rotation.z = 0.7  // Rotate down more
-          leftArmRef.current.rotation.x = 0.2  // Slight forward
+          // Natural hanging position (idle) - subtle breathing motion
+          leftArmRef.current.rotation.z = 1.0 + Math.sin(time * 0.5) * 0.05    // Hanging down with breathing
+          leftArmRef.current.rotation.x = 0.3 + Math.sin(time * 0.8) * 0.03    // Slight forward
+          leftArmRef.current.rotation.y = 0.1                                    // Slight inward rotation
         }
       }
       
-      // RIGHT ARM - hanging naturally at side (close to thigh)
+      // RIGHT ARM (Upper Arm) - Secondary control for natural hang
       if (rightArmRef.current) {
         if (isSpeaking) {
-          // Gentle hand gestures when speaking (opposite phase)
-          rightArmRef.current.rotation.z = -0.8 + Math.sin(time * 2 + Math.PI) * 0.2
-          rightArmRef.current.rotation.x = 0.3 + Math.sin(time * 1.5 + Math.PI) * 0.15
+          // Expressive gestures when speaking (opposite phase)
+          rightArmRef.current.rotation.z = -1.2 + Math.sin(time * 2.5 + Math.PI) * 0.3
+          rightArmRef.current.rotation.x = 0.4 + Math.sin(time * 2 + Math.PI) * 0.2
+          rightArmRef.current.rotation.y = Math.sin(time * 1.5 + Math.PI) * 0.15
         } else {
-          // Arms hanging down at sides, close to thighs
-          rightArmRef.current.rotation.z = -0.7  // Rotate down more
-          rightArmRef.current.rotation.x = 0.2   // Slight forward
+          // Natural hanging position (idle) - subtle breathing motion
+          rightArmRef.current.rotation.z = -1.0 + Math.sin(time * 0.5 + 1) * 0.05  // Hanging down with breathing
+          rightArmRef.current.rotation.x = 0.3 + Math.sin(time * 0.8 + 1) * 0.03   // Slight forward
+          rightArmRef.current.rotation.y = -0.1                                      // Slight inward rotation
         }
-      }
-      
-      // SHOULDERS - rotated down for natural hanging arms
-      if (leftShoulderRef.current) {
-        leftShoulderRef.current.rotation.z = 0.3   // Rotate shoulder down
-        leftShoulderRef.current.rotation.x = 0.1   // Slight forward
-      }
-      if (rightShoulderRef.current) {
-        rightShoulderRef.current.rotation.z = -0.3  // Rotate shoulder down
-        rightShoulderRef.current.rotation.x = 0.1   // Slight forward
       }
       
       // NATURAL BLINKING SYSTEM
@@ -264,17 +322,48 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
           mesh.morphTargetInfluences[eyeBlinkRightIndex] = blinkValue
         }
         
-        // Lip sync when speaking
+        // Realistic lip sync when speaking - uses intensity from speech events
         if (isSpeaking) {
-          const jawIndex = mesh.morphTargetDictionary['jawOpen']
-          if (jawIndex !== undefined) {
-            mesh.morphTargetInfluences[jawIndex] = Math.abs(Math.sin(time * 10)) * 0.8
+          const currentIntensity = lipSyncIntensityRef.current
+          
+          // If we have real-time intensity from speech events, use it
+          if (currentIntensity > 0) {
+            const jawIndex = mesh.morphTargetDictionary['jawOpen']
+            if (jawIndex !== undefined) {
+              // Use the intensity directly with smooth interpolation
+              const targetValue = currentIntensity * 0.7  // Max 70% jaw opening
+              const currentValue = mesh.morphTargetInfluences[jawIndex] || 0
+              // Smooth transition to avoid jerky movements
+              mesh.morphTargetInfluences[jawIndex] = currentValue + (targetValue - currentValue) * 0.3
+            }
+            
+            // Add subtle mouth movements for realism
+            const mouthOpenIndex = mesh.morphTargetDictionary['mouthOpen']
+            if (mouthOpenIndex !== undefined) {
+              mesh.morphTargetInfluences[mouthOpenIndex] = currentIntensity * 0.4
+            }
+          } else {
+            // Fallback: use time-based animation if no intensity data
+            const jawIndex = mesh.morphTargetDictionary['jawOpen']
+            if (jawIndex !== undefined) {
+              // Natural speech rhythm with multiple frequencies
+              const rhythm = (Math.sin(time * 8) + Math.sin(time * 12.5) + Math.sin(time * 6.2)) / 3
+              mesh.morphTargetInfluences[jawIndex] = Math.abs(rhythm) * 0.6
+            }
           }
         } else {
           // Reset jaw when not speaking (but keep blink values)
           const jawIndex = mesh.morphTargetDictionary['jawOpen']
           if (jawIndex !== undefined) {
-            mesh.morphTargetInfluences[jawIndex] = 0
+            // Smooth close
+            const currentValue = mesh.morphTargetInfluences[jawIndex] || 0
+            mesh.morphTargetInfluences[jawIndex] = currentValue * 0.7  // Gradual close
+          }
+          
+          const mouthOpenIndex = mesh.morphTargetDictionary['mouthOpen']
+          if (mouthOpenIndex !== undefined) {
+            const currentValue = mesh.morphTargetInfluences[mouthOpenIndex] || 0
+            mesh.morphTargetInfluences[mouthOpenIndex] = currentValue * 0.7
           }
         }
       })
@@ -301,15 +390,15 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
 // Preload the GLB model
 useGLTF.preload('/avatar.glb')
 
-// Main Avatar Component
-export default function AvatarTeacher({ speaking = false }: { speaking: boolean }) {
+// Main Avatar Component with lip sync intensity control
+export default function AvatarTeacher({ speaking = false, lipSyncIntensity = 0 }: { speaking: boolean, lipSyncIntensity?: number }) {
   useEffect(() => {
     console.log('🎬 AvatarTeacher mounted, speaking:', speaking)
   }, [])
   
   useEffect(() => {
-    console.log('🎤 Speaking prop changed:', speaking)
-  }, [speaking])
+    console.log('🎤 Speaking prop changed:', speaking, 'intensity:', lipSyncIntensity)
+  }, [speaking, lipSyncIntensity])
   
   return (
     <div className="w-full h-full relative">
@@ -325,7 +414,7 @@ export default function AvatarTeacher({ speaking = false }: { speaking: boolean 
         <pointLight position={[-5, 3, -5]} intensity={0.5} color="#8b5cf6" />
         <spotLight position={[0, 5, 0]} intensity={0.5} angle={0.3} penumbra={1} />
         
-        <AvatarModel speaking={speaking} />
+        <AvatarModel speaking={speaking} lipSyncIntensity={lipSyncIntensity} />
         
         <Environment preset="city" />
         <OrbitControls

@@ -13,19 +13,25 @@ interface Message {
 
 interface StreamingChatProps {
   onSpeakingChange?: (speaking: boolean) => void
+  onLipSyncIntensityChange?: (intensity: number) => void
+  onPhonemeChange?: (phoneme: string) => void
+  onEmotionChange?: (emotion: string) => void
   currentChemicals?: string[]
   experimentContext?: string
 }
 
 export default function StreamingChat({ 
-  onSpeakingChange, 
+  onSpeakingChange,
+  onLipSyncIntensityChange,
+  onPhonemeChange,
+  onEmotionChange,
   currentChemicals = [],
   experimentContext = ''
 }: StreamingChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm CHEM, your chemistry teaching assistant. Ask me anything about chemical reactions, mechanisms, or the experiments you're working on!",
+      content: "Hello! I'm ERA - ELIXRA Reaction Avatar, your intelligent chemistry teaching assistant. I'm here to help you understand chemical reactions, mechanisms, and guide you through your experiments. What would you like to explore today?",
       timestamp: new Date()
     }
   ])
@@ -247,6 +253,103 @@ export default function StreamingChat({
     }
   }, [])
 
+  // Detect emotion from word/sentence context
+  const detectEmotion = (word: string, sentence: string): string => {
+    const lowerWord = word.toLowerCase()
+    const lowerSentence = sentence.toLowerCase()
+    
+    // Positive/Happy words
+    const happyWords = ['great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'perfect', 'love', 'beautiful', 'awesome', 'brilliant', 'success', 'congratulations', 'yes', 'correct', 'right']
+    if (happyWords.some(w => lowerWord.includes(w))) return 'happy'
+    
+    // Excited words
+    const excitedWords = ['wow', 'incredible', 'extraordinary', 'fascinating', 'remarkable', 'spectacular', 'outstanding', 'phenomenal', 'exciting']
+    if (excitedWords.some(w => lowerWord.includes(w))) return 'excited'
+    
+    // Curious/Interested words
+    const curiousWords = ['interesting', 'curious', 'wonder', 'question', 'why', 'how', 'what', 'explore', 'discover', 'investigate']
+    if (curiousWords.some(w => lowerWord.includes(w)) || lowerSentence.includes('?')) return 'curious'
+    
+    // Concerned/Serious words
+    const concernedWords = ['careful', 'caution', 'warning', 'danger', 'important', 'critical', 'serious', 'attention', 'safety', 'toxic', 'hazard']
+    if (concernedWords.some(w => lowerWord.includes(w))) return 'concerned'
+    
+    // Surprised words
+    const surprisedWords = ['surprise', 'unexpected', 'shocking', 'unbelievable', 'astonishing', 'whoa', 'oh']
+    if (surprisedWords.some(w => lowerWord.includes(w)) || lowerSentence.includes('!')) return 'surprised'
+    
+    // Thinking words
+    const thinkingWords = ['think', 'consider', 'analyze', 'examine', 'study', 'understand', 'complex', 'difficult', 'hmm', 'let']
+    if (thinkingWords.some(w => lowerWord.includes(w))) return 'thinking'
+    
+    return 'neutral'
+  }
+
+  // Detect phoneme type from word/character
+  const detectPhoneme = (word: string): string => {
+    if (!word) return 'neutral'
+    
+    const firstChar = word[0].toUpperCase()
+    const firstTwo = word.substring(0, 2).toUpperCase()
+    
+    // Check for specific phoneme patterns
+    if (firstChar === 'F' || firstChar === 'V') return 'F'
+    if (firstTwo === 'TH') return 'TH'
+    if (firstChar === 'S' || firstChar === 'Z') return 'S'
+    if (firstChar === 'T' || firstChar === 'D' || firstChar === 'N') return 'T'
+    if (firstChar === 'M' || firstChar === 'B' || firstChar === 'P') return 'M'
+    
+    // Check for vowel sounds
+    if (/^[AEIOU]/.test(firstChar)) {
+      if (firstChar === 'E' || firstChar === 'I') return 'EE'
+      if (firstChar === 'O' || firstChar === 'U') return 'O'
+      return 'A'
+    }
+    
+    return 'neutral'
+  }
+
+  // Clean markdown formatting from text for speech
+  const cleanMarkdownForSpeech = (text: string): string => {
+    let cleaned = text
+    
+    // Step 1: Remove markdown headers (# ## ###)
+    cleaned = cleaned.replace(/^#{1,6}\s+/gm, '')
+    
+    // Step 2: Remove bold markers (** __)
+    cleaned = cleaned.replace(/\*\*/g, '')
+    cleaned = cleaned.replace(/__/g, '')
+    
+    // Step 3: Remove ALL asterisks (for bullets and emphasis)
+    cleaned = cleaned.replace(/\*/g, '')
+    
+    // Step 4: Remove underscores
+    cleaned = cleaned.replace(/_/g, ' ')
+    
+    // Step 5: Remove bullet points at start of lines (- * •)
+    cleaned = cleaned.replace(/^[\s]*[-•]\s+/gm, '')
+    
+    // Step 6: Remove numbered lists (1. 2. 3.)
+    cleaned = cleaned.replace(/^[\s]*\d+\.\s+/gm, '')
+    
+    // Step 7: Remove code blocks and backticks
+    cleaned = cleaned.replace(/```[\s\S]*?```/g, '')
+    cleaned = cleaned.replace(/`([^`]+)`/g, '$1')
+    cleaned = cleaned.replace(/`/g, '')
+    
+    // Step 8: Remove links [text](url) -> text
+    cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    
+    // Step 9: Remove any remaining special markdown characters
+    cleaned = cleaned.replace(/[#~>|[\]{}]/g, '')
+    
+    // Step 10: Clean up whitespace
+    cleaned = cleaned.replace(/\s+/g, ' ')
+    cleaned = cleaned.trim()
+    
+    return cleaned
+  }
+
   // Speak text progressively as it arrives
   const speakTextProgressive = (text: string) => {
     if (!synthRef.current || !text) return
@@ -278,6 +381,7 @@ export default function StreamingChat({
       isSpeakingRef.current = false
       setIsSpeaking(false)
       onSpeakingChange?.(false)
+      onLipSyncIntensityChange?.(0)  // Close mouth when queue is empty
       console.log('✅ Speech queue empty, stopping')
       // Mic stays running - no need to restart
       return
@@ -295,13 +399,19 @@ export default function StreamingChat({
 
     // Mark this sentence as spoken
     spokenSentencesRef.current.add(sentence)
-    console.log('🗣️ Speaking:', sentence)
+    
+    // Clean markdown formatting before speaking
+    const cleanedSentence = cleanMarkdownForSpeech(sentence)
+    console.log('�  Original sentence:', sentence)
+    console.log('🗣️ Cleaned sentence:', cleanedSentence)
+    console.log('✨ Asterisks removed:', (sentence.match(/\*/g) || []).length)
 
     isSpeakingRef.current = true
     setIsSpeaking(true)
     onSpeakingChange?.(true)
+    // Don't set intensity here - wait for first word boundary event
 
-    const utterance = new SpeechSynthesisUtterance(sentence)
+    const utterance = new SpeechSynthesisUtterance(cleanedSentence)
     utterance.rate = 1.1  // Slightly faster for better flow
     utterance.pitch = 1.0
     utterance.volume = 1.0
@@ -318,9 +428,90 @@ export default function StreamingChat({
       utterance.voice = femaleVoice
     }
 
+    // Track current character position for punctuation detection
+    // Use cleaned text for boundary events
+    let currentText = cleanedSentence
+    let lastCharIndex = 0
+    
+    // Start event - only open mouth when speech actually starts
+    utterance.onstart = () => {
+      console.log('🎤 Speech audio started')
+      // Start with varied opening for natural start
+      const startIntensity = 0.55 + Math.random() * 0.2  // 0.55-0.75
+      onLipSyncIntensityChange?.(startIntensity)
+    }
+    
+    // Add boundary event for word-level lip sync
+    utterance.onboundary = (event) => {
+      if (event.name === 'word' && event.charIndex !== undefined) {
+        // Get the character at this position
+        const char = currentText[event.charIndex]
+        const prevChar = event.charIndex > 0 ? currentText[event.charIndex - 1] : ''
+        
+        // Check for punctuation before this word
+        const isPunctuation = /[.!?,;:]/.test(prevChar)
+        
+        if (isPunctuation) {
+          // Pause at punctuation - close mouth completely
+          console.log('🤐 Punctuation detected:', prevChar, '- closing mouth')
+          onLipSyncIntensityChange?.(0)
+          
+          // Brief pause, then resume with varied intensity
+          setTimeout(() => {
+            const resumeIntensity = 0.55 + Math.random() * 0.2  // 0.55-0.75
+            onLipSyncIntensityChange?.(resumeIntensity)
+          }, prevChar === '.' || prevChar === '!' || prevChar === '?' ? 200 : 100)
+        } else {
+          // Extract current word for phoneme and emotion detection
+          const nextSpace = currentText.indexOf(' ', event.charIndex)
+          const wordEnd = nextSpace > 0 ? nextSpace : currentText.length
+          const currentWord = currentText.substring(event.charIndex, wordEnd).trim()
+          const wordLength = currentWord.length
+          
+          // DETECT PHONEME from current word
+          const phoneme = detectPhoneme(currentWord)
+          console.log('🔤 Word:', currentWord, '- Phoneme:', phoneme)
+          onPhonemeChange?.(phoneme)
+          
+          // DETECT EMOTION from current word and sentence context
+          const emotion = detectEmotion(currentWord, currentText)
+          console.log('😊 Emotion:', emotion)
+          onEmotionChange?.(emotion)
+          
+          // Longer words = slightly more mouth opening
+          const lengthFactor = Math.min(wordLength / 10, 0.15)
+          
+          // High variation for ultra-realistic speech (0.6-0.95)
+          const baseIntensity = 0.6 + Math.random() * 0.35
+          const intensity = Math.min(0.95, baseIntensity + lengthFactor)
+          
+          console.log('🗣️ Word at', event.charIndex, '- intensity:', intensity.toFixed(2))
+          onLipSyncIntensityChange?.(intensity)
+          
+          // Add micro-pauses between words for realism
+          setTimeout(() => {
+            onLipSyncIntensityChange?.(intensity * 0.7)  // Slight close between syllables
+            onPhonemeChange?.('neutral')  // Reset to neutral between words
+          }, 50)
+          
+          // Hold emotion for longer (500ms) for natural expression
+          setTimeout(() => {
+            onEmotionChange?.('neutral')  // Reset to neutral after expression
+          }, 500)
+        }
+        
+        lastCharIndex = event.charIndex
+      }
+    }
+
     utterance.onend = () => {
-      // Speak next sentence in queue
-      speakNextInQueue()
+      console.log('🤐 Sentence ended - closing mouth')
+      onLipSyncIntensityChange?.(0)  // Close mouth at end of sentence
+      
+      // Small pause between sentences for natural speech
+      setTimeout(() => {
+        speakNextInQueue()
+      }, 300)  // 300ms pause between sentences
     }
 
     utterance.onerror = (event) => {
@@ -341,6 +532,7 @@ export default function StreamingChat({
       isSpeakingRef.current = false
       setIsSpeaking(false)
       onSpeakingChange?.(false)
+      onLipSyncIntensityChange?.(0)  // Close mouth when stopping
     }
   }
 

@@ -23,6 +23,9 @@ const AvatarTeacher = dynamic(() => import('@/components/AvatarTeacherNew'), {
 
 export default function AvatarPage() {
   const [speaking, setSpeaking] = useState(false)
+  const [lipSyncIntensity, setLipSyncIntensity] = useState(0)
+  const [currentPhoneme, setCurrentPhoneme] = useState('neutral')
+  const [currentEmotion, setCurrentEmotion] = useState('neutral')
   const [currentChemicals, setCurrentChemicals] = useState<string[]>([])
 
   return (
@@ -63,11 +66,11 @@ export default function AvatarPage() {
 
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                AI Chemistry Teacher
+                ERA - ELIXRA Reaction Avatar
               </span>
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Ask questions, learn mechanisms, and get instant explanations from your personal AI chemistry tutor
+              Your intelligent chemistry teaching assistant. Ask questions, learn mechanisms, and get instant explanations with interactive guidance
             </p>
           </motion.div>
 
@@ -91,7 +94,7 @@ export default function AvatarPage() {
                       </div>
                     </div>
                   }>
-                    <AvatarTeacher speaking={speaking} />
+                    <AvatarTeacher speaking={speaking} lipSyncIntensity={lipSyncIntensity} currentPhoneme={currentPhoneme} currentEmotion={currentEmotion} />
                   </Suspense>
                   
                   {/* Status Indicator */}
@@ -132,6 +135,9 @@ export default function AvatarPage() {
             >
               <StreamingChat
                 onSpeakingChange={setSpeaking}
+                onLipSyncIntensityChange={setLipSyncIntensity}
+                onPhonemeChange={setCurrentPhoneme}
+                onEmotionChange={setCurrentEmotion}
                 currentChemicals={currentChemicals}
                 experimentContext="Learning chemistry concepts"
               />

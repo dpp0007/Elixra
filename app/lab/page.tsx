@@ -21,6 +21,7 @@ import ChemicalShelf from '@/components/ChemicalShelf'
 import ReactionPanel from '@/components/ReactionPanel'
 import ExperimentControls from '@/components/ExperimentControls'
 import EquipmentPanel from '@/components/EquipmentPanel'
+import ActiveEquipmentDisplay from '@/components/ActiveEquipmentDisplay'
 import ModernNavbar from '@/components/ModernNavbar'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { Experiment, ReactionResult } from '@/types/chemistry'
@@ -542,6 +543,9 @@ export default function LabPage() {
           scrollbar-color: rgba(59, 130, 246, 0.5) rgba(15, 23, 42, 0.3);
         }
       `}</style>
+
+            {/* Active Equipment Display - Floating on lab screen */}
+            <ActiveEquipmentDisplay equipment={activeEquipment} />
 
             {/* Equipment Panel - Integrated into Features button, no separate floating button */}
             <EquipmentPanel
