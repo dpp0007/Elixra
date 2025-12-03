@@ -9,7 +9,7 @@ import ModernNavbar from '@/components/ModernNavbar'
 import StreamingChat from '@/components/StreamingChat'
 
 // Dynamically import 3D avatar to avoid SSR issues
-const AvatarTeacher = dynamic(() => import('@/components/AvatarTeacher'), {
+const AvatarTeacher = dynamic(() => import('@/components/AvatarTeacherNew'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">

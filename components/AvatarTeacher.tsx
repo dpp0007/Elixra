@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Environment, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -88,66 +88,104 @@ function AvatarModel({ speaking = false }: { speaking: boolean }) {
     console.log('🎤 Speaking state changed:', speaking)
   }, [speaking])
   
-  // SINGLE useFrame - all animations in one place
-  useFrame((state) => {
-    if (!groupRef.current) return
+  // Force rendering
+  const { invalidate } = useThree()
+  
+  // Log when component mounts
+  useEffect(() => {
+    console.log('🎭 AvatarModel mounted, groupRef:', !!groupRef.current)
+    console.log('🎭 Scene children:', clonedScene.children.length)
+    invalidate() // Force a render
+  }, [clonedScene, invalidate])
+  
+
+  
+  // Use requestAnimationFrame instead of useFrame (Next.js compatible)
+  // Store speaking state in a ref to avoid re-renders
+  const speakingRef = useRef(speaking)
+  useEffect(() => {
+    speakingRef.current = speaking
+  }, [speaking])
+  
+  useEffect(() => {
+    console.log('🎬 Starting requestAnimationFrame animation loop')
+    let frameId: number
+    let frameCount = 0
     
-    const time = state.clock.getElapsedTime()
-    
-    // TEST: Very obvious tilt animation (proves useFrame works)
-    groupRef.current.rotation.z = Math.sin(time) * 0.15
-    
-    // 1. BODY ANIMATIONS (breathing & swaying)
-    groupRef.current.scale.y = 1 + Math.sin(time * 2) * 0.05
-    groupRef.current.rotation.y = Math.sin(time * 0.5) * 0.1
-    
-    // 2. SPEAKING ANIMATIONS (more movement)
-    if (speaking) {
-      groupRef.current.rotation.x = Math.sin(time * 8) * 0.1
-      groupRef.current.scale.x = 1 + Math.sin(time * 10) * 0.03
-    }
-    
-    // 3. HEAD BONE (nodding)
-    if (headBoneRef.current) {
-      if (speaking) {
-        headBoneRef.current.rotation.z = Math.sin(time * 2) * 0.1
-        headBoneRef.current.rotation.x = Math.sin(time * 1.5) * 0.08
-      } else {
-        headBoneRef.current.rotation.z = Math.sin(time * 0.5) * 0.03
+    const animate = () => {
+      if (!groupRef.current) {
+        frameId = requestAnimationFrame(animate)
+        return
       }
-    }
-    
-    // 4. JAW BONE (lip sync)
-    if (jawBoneRef.current) {
-      if (speaking) {
-        jawBoneRef.current.rotation.x = Math.abs(Math.sin(time * 10)) * 0.4
-      } else {
-        jawBoneRef.current.rotation.x = 0
+      
+      const time = Date.now() * 0.001
+      const isSpeaking = speakingRef.current
+      
+      // Log every 60 frames
+      if (frameCount % 60 === 0) {
+        console.log('🎬 RAF frame #' + frameCount, 'speaking:', isSpeaking)
       }
-    }
-    
-    // 5. MORPH TARGETS (lip sync)
-    if (speaking && morphTargetMeshes.length > 0) {
+      frameCount++
+      
+      // BODY ANIMATIONS (always active)
+      groupRef.current.rotation.z = Math.sin(time) * 0.15
+      groupRef.current.scale.y = 1 + Math.sin(time * 2) * 0.05
+      groupRef.current.rotation.y = Math.sin(time * 0.5) * 0.1
+      
+      if (isSpeaking) {
+        groupRef.current.rotation.x = Math.sin(time * 8) * 0.1
+        groupRef.current.scale.x = 1 + Math.sin(time * 10) * 0.03
+      } else {
+        groupRef.current.rotation.x = 0
+        groupRef.current.scale.x = 1
+      }
+      
+      // HEAD BONE
+      if (headBoneRef.current) {
+        if (isSpeaking) {
+          headBoneRef.current.rotation.z = Math.sin(time * 2) * 0.1
+          headBoneRef.current.rotation.x = Math.sin(time * 1.5) * 0.08
+        } else {
+          headBoneRef.current.rotation.z = Math.sin(time * 0.5) * 0.03
+          headBoneRef.current.rotation.x = 0
+        }
+      }
+      
+      // JAW BONE
+      if (jawBoneRef.current) {
+        if (isSpeaking) {
+          jawBoneRef.current.rotation.x = Math.abs(Math.sin(time * 10)) * 0.4
+        } else {
+          jawBoneRef.current.rotation.x = 0
+        }
+      }
+      
+      // MORPH TARGETS (lip sync)
       morphTargetMeshes.forEach((mesh) => {
         if (!mesh.morphTargetInfluences || !mesh.morphTargetDictionary) return
         
-        const mouthTargets = ['mouthOpen', 'mouth_open', 'MouthOpen', 'jawOpen', 'jaw_open', 'JawOpen', 'viseme_aa', 'viseme_O']
-        
-        mouthTargets.forEach((targetName) => {
-          const index = mesh.morphTargetDictionary?.[targetName]
-          if (index !== undefined && mesh.morphTargetInfluences) {
-            mesh.morphTargetInfluences[index] = Math.abs(Math.sin(time * 10)) * 0.8
+        if (isSpeaking) {
+          const jawIndex = mesh.morphTargetDictionary['jawOpen']
+          if (jawIndex !== undefined) {
+            mesh.morphTargetInfluences[jawIndex] = Math.abs(Math.sin(time * 10)) * 0.8
           }
-        })
-      })
-    } else if (morphTargetMeshes.length > 0) {
-      morphTargetMeshes.forEach((mesh) => {
-        if (mesh.morphTargetInfluences) {
+        } else {
+          // Reset all morph targets when not speaking
           mesh.morphTargetInfluences.fill(0)
         }
       })
+      
+      invalidate() // Tell Three.js to re-render
+      frameId = requestAnimationFrame(animate)
     }
-  })
+    
+    frameId = requestAnimationFrame(animate)
+    
+    return () => {
+      console.log('🛑 Stopping RAF animation loop')
+      cancelAnimationFrame(frameId)
+    }
+  }, []) // Empty deps - only run once!
   
   return (
     <group ref={groupRef} position={[0, -1.2, 0]}>
@@ -161,11 +199,22 @@ useGLTF.preload('/avatar.glb')
 
 // Main Avatar Component
 export default function AvatarTeacher({ speaking = false }: { speaking: boolean }) {
+  useEffect(() => {
+    console.log('🎬 AvatarTeacher mounted, speaking:', speaking)
+  }, [])
+  
+  useEffect(() => {
+    console.log('🎤 Speaking prop changed:', speaking)
+  }, [speaking])
+  
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Canvas
         camera={{ position: [0, 0.8, 2.5], fov: 50 }}
         style={{ background: 'transparent' }}
+        gl={{ antialias: true, alpha: true }}
+        dpr={[1, 2]}
+        frameloop="always"
       >
         <ambientLight intensity={0.8} />
         <directionalLight position={[5, 5, 5]} intensity={1.2} />
@@ -185,6 +234,11 @@ export default function AvatarTeacher({ speaking = false }: { speaking: boolean 
           maxPolarAngle={Math.PI / 2}
         />
       </Canvas>
+      
+      {/* Debug overlay */}
+      <div className="absolute top-2 left-2 bg-black/50 text-white text-xs p-2 rounded">
+        Speaking: {speaking ? 'YES' : 'NO'}
+      </div>
     </div>
   )
 }
