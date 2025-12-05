@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     try {
       // Use Ollama backend for reaction analysis
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      console.log('Backend URL:', backendUrl)
       
       // Prepare the prompt
       const chemicalsList = experiment.chemicals
@@ -28,14 +29,15 @@ export async function POST(request: NextRequest) {
       const stirrer = experiment.equipment?.find(eq => eq.name === 'magnetic-stirrer')
       
       if (bunsenBurner) {
-        const burnerTemp = bunsenBurner.value || 0
+        const burnerTemp = bunsenBurner.settings?.temperature || 0
         reactionTemperature = 25 + (burnerTemp / 1000) * 275 // 0-1000°C burner → 25-300°C solution
       } else if (hotPlate) {
-        reactionTemperature = Math.max(reactionTemperature, hotPlate.value || 25)
+        const plateTemp = hotPlate.settings?.temperature || 25
+        reactionTemperature = Math.max(reactionTemperature, plateTemp)
       }
       
       if (stirrer) {
-        const rpm = stirrer.value || 0
+        const rpm = stirrer.settings?.rpm || 0
         reactionTemperature += (rpm / 1500) * 2 // Friction heat
       }
       
@@ -49,50 +51,66 @@ export async function POST(request: NextRequest) {
       
       // Include equipment information with calculated effects
       const equipmentInfo = experiment.equipment && experiment.equipment.length > 0
-        ? `\n\nLab Equipment Active:\n${experiment.equipment.map(eq => `- ${eq.name}: ${eq.value} ${eq.unit}`).join('\n')}\n\nCALCULATED EFFECTS:\n- Reaction Temperature: ${reactionTemperature.toFixed(1)}°C\n- Reaction Rate Multiplier: ${speedMultiplier}x (Arrhenius equation)\n- ${reactionTemperature > 100 ? 'WARNING: High temperature may cause decomposition, evaporation, or side reactions' : reactionTemperature > 50 ? 'Elevated temperature accelerates reaction significantly' : 'Room temperature - normal reaction kinetics'}`
+        ? `\n\nLab Equipment Active:\n${experiment.equipment.map(eq => {
+            const settings = eq.settings || {}
+            const settingsStr = Object.entries(settings)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(', ')
+            return `- ${eq.name}: ${settingsStr}`
+          }).join('\n')}\n\nCALCULATED EFFECTS:\n- Reaction Temperature: ${reactionTemperature.toFixed(1)}°C\n- Reaction Rate Multiplier: ${speedMultiplier}x (Arrhenius equation)\n- ${reactionTemperature > 100 ? 'WARNING: High temperature may cause decomposition, evaporation, or side reactions' : reactionTemperature > 50 ? 'Elevated temperature accelerates reaction significantly' : 'Room temperature - normal reaction kinetics'}`
         : '\n\nNo lab equipment active (room temperature 25°C, no stirring, no heating, rate multiplier: 1.0x)'
 
-      const prompt = `You are an expert chemistry assistant analyzing a chemical reaction. 
-
-Chemicals being mixed:
-${chemicalsList}${equipmentInfo}
-
-CRITICAL: Temperature DIRECTLY affects reaction outcomes:
-- Higher temperatures (>50°C): Faster reactions, may cause decomposition, evaporation, color changes
-- Very high temperatures (>100°C): Water evaporates, organic compounds may decompose, equilibrium shifts
-- Stirring: Better mixing leads to faster, more complete reactions
-- Use the calculated rate multiplier to determine reaction speed and completeness
-
-Analyze this chemical reaction and provide a detailed response in the following JSON format:
-{
-  "color": "describe the final solution color (e.g., 'blue', 'colorless', 'light green')",
-  "smell": "describe any smell (e.g., 'pungent', 'sweet', 'none')",
-  "precipitate": true or false,
-  "precipitateColor": "color of precipitate if any (e.g., 'white', 'blue', 'brown')",
-  "products": ["list", "of", "product", "formulas"],
-  "balancedEquation": "complete balanced chemical equation with states and arrows",
-  "reactionType": "type of reaction (e.g., 'precipitation', 'acid-base', 'redox', 'complexation', 'no reaction')",
-  "observations": ["detailed", "observation", "points"],
-  "safetyNotes": ["important", "safety", "warnings"],
-  "temperature": "increased" or "decreased" or "unchanged",
-  "gasEvolution": true or false,
-  "confidence": 0.0 to 1.0
-}
-
-Provide ONLY the JSON response, no additional text. Ensure all field names match exactly.`
-
-      // Call Ollama backend
-      const response = await fetch(`${backendUrl}/chat`, {
+      // Try to call the analyze-reaction endpoint first, fall back to /chat if it doesn't exist
+      let response = await fetch(`${backendUrl}/analyze-reaction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: prompt,
+          message: 'Analyze reaction',
           context: 'Chemical reaction analysis',
-          chemicals: experiment.chemicals.map(c => c.chemical.name)
+          chemicals: experiment.chemicals.map(c => c.chemical.name),
+          equipment: experiment.equipment?.map(eq => eq.name) || []
         })
       })
+
+      // If analyze-reaction doesn't exist (404), try the /chat endpoint
+      if (response.status === 404) {
+        console.log('analyze-reaction endpoint not found, trying /chat endpoint')
+        const prompt = `You are an expert chemistry assistant. Analyze this chemical reaction and provide ONLY a valid JSON response (no markdown, no extra text):
+
+Chemicals: ${experiment.chemicals.map(c => `${c.chemical.name} (${c.chemical.formula}): ${c.amount} ${c.unit}`).join(', ')}
+${experiment.equipment && experiment.equipment.length > 0 ? `Equipment: ${experiment.equipment.map(eq => eq.name).join(', ')}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "color": "final solution color",
+  "smell": "smell or 'none'",
+  "precipitate": true/false,
+  "precipitateColor": "color or null",
+  "products": ["product1", "product2"],
+  "balancedEquation": "balanced equation",
+  "reactionType": "reaction type",
+  "observations": ["observation1", "observation2"],
+  "safetyNotes": ["note1", "note2"],
+  "temperature": "increased/decreased/unchanged",
+  "gasEvolution": true/false,
+  "confidence": 0.5
+}`
+
+        response = await fetch(`${backendUrl}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: prompt,
+            context: 'Chemical reaction analysis',
+            chemicals: experiment.chemicals.map(c => c.chemical.name),
+            equipment: experiment.equipment?.map(eq => eq.name) || []
+          })
+        })
+      }
 
       if (!response.ok) {
         throw new Error(`Backend returned ${response.status}`)
@@ -130,28 +148,36 @@ Provide ONLY the JSON response, no additional text. Ensure all field names match
       // Clean up the response
       let text = fullText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
       
-      // Try to extract JSON from the response
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        reactionResult = JSON.parse(jsonMatch[0])
+      // Try to extract JSON from the response - find the first { and last }
+      const firstBrace = text.indexOf('{')
+      const lastBrace = text.lastIndexOf('}')
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const jsonStr = text.substring(firstBrace, lastBrace + 1)
+        try {
+          reactionResult = JSON.parse(jsonStr)
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError, 'JSON string:', jsonStr)
+          throw new Error(`Failed to parse JSON response: ${parseError}`)
+        }
       } else {
-        throw new Error('Invalid JSON response from AI')
+        throw new Error('No valid JSON found in AI response')
       }
 
       // Validate and ensure all required fields are present
       const validatedResult: ReactionResult = {
-        color: reactionResult.color,
-        smell: reactionResult.smell,
-        precipitate: reactionResult.precipitate,
-        precipitateColor: reactionResult.precipitateColor,
-        products: reactionResult.products,
-        balancedEquation: reactionResult.balancedEquation,
-        reactionType: reactionResult.reactionType,
-        observations: reactionResult.observations,
-        safetyNotes: reactionResult.safetyNotes,
-        temperature: reactionResult.temperature,
-        gasEvolution: reactionResult.gasEvolution,
-        confidence: reactionResult.confidence
+        color: reactionResult.color || 'unknown',
+        smell: reactionResult.smell || 'none',
+        precipitate: Boolean(reactionResult.precipitate),
+        precipitateColor: reactionResult.precipitateColor || undefined,
+        products: Array.isArray(reactionResult.products) ? reactionResult.products : ['Unknown'],
+        balancedEquation: reactionResult.balancedEquation || 'Reaction equation unknown',
+        reactionType: reactionResult.reactionType || 'unknown',
+        observations: Array.isArray(reactionResult.observations) ? reactionResult.observations : ['Reaction occurred'],
+        safetyNotes: Array.isArray(reactionResult.safetyNotes) ? reactionResult.safetyNotes : ['Handle with care'],
+        temperature: reactionResult.temperature || 'unchanged',
+        gasEvolution: Boolean(reactionResult.gasEvolution),
+        confidence: typeof reactionResult.confidence === 'number' ? Math.min(1, Math.max(0, reactionResult.confidence)) : 0.5
       }
 
       console.log('Ollama Analysis successful:', validatedResult)

@@ -17,6 +17,7 @@ interface StreamingChatProps {
   onPhonemeChange?: (phoneme: string) => void
   onEmotionChange?: (emotion: string) => void
   currentChemicals?: string[]
+  currentEquipment?: string[]  // Equipment being used in the lab
   experimentContext?: string
 }
 
@@ -26,6 +27,7 @@ export default function StreamingChat({
   onPhonemeChange,
   onEmotionChange,
   currentChemicals = [],
+  currentEquipment = [],
   experimentContext = ''
 }: StreamingChatProps) {
   const [messages, setMessages] = useState<Message[]>([
@@ -716,12 +718,17 @@ export default function StreamingChat({
     currentResponseRef.current = ''  // Clear previous response
     onSpeakingChange?.(true)
     
-    // Send via WebSocket
+    // Send via WebSocket with full chat history
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         message: userMessage,
         context: experimentContext,
-        chemicals: currentChemicals
+        chemicals: currentChemicals,
+        equipment: currentEquipment,  // Include equipment in the request
+        history: messages.map(m => ({
+          role: m.role,
+          content: m.content
+        }))  // Include full chat history for context
       }))
     } else {
       // Fallback to HTTP if WebSocket not available
@@ -734,7 +741,12 @@ export default function StreamingChat({
           body: JSON.stringify({
             message: userMessage,
             context: experimentContext,
-            chemicals: currentChemicals
+            chemicals: currentChemicals,
+            equipment: currentEquipment,  // Include equipment in the request
+            history: messages.map(m => ({
+              role: m.role,
+              content: m.content
+            }))  // Include full chat history for context
           })
         })
         

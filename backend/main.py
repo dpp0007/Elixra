@@ -40,10 +40,16 @@ except Exception as e:
     rag = None
 
 # Models
+class MessageHistory(BaseModel):
+    role: str
+    content: str
+
 class ChatRequest(BaseModel):
     message: str
     context: Optional[str] = None
     chemicals: Optional[List[str]] = None
+    equipment: Optional[List[str]] = None  # Equipment being used in the lab
+    history: Optional[List[MessageHistory]] = None  # Chat history for context
 
 class ChatResponse(BaseModel):
     token: str
@@ -76,14 +82,83 @@ async def health_check():
             "error": str(e)
         }
 
-async def generate_stream(query: str, context: str = "", chemicals: List[str] = None):
-    """Generate streaming response from Ollama with RAG context"""
+async def generate_json_reaction(chemicals: List[str], equipment: List[str] = None):
+    """Generate JSON reaction analysis from Ollama"""
+    
+    # Build the prompt for JSON response
+    chemicals_str = ', '.join(chemicals)
+    equipment_str = f" using {', '.join(equipment)}" if equipment else ""
+    
+    json_prompt = f"""Analyze the chemical reaction between {chemicals_str}{equipment_str}.
+
+Provide ONLY a valid JSON response with this exact structure (no other text):
+{{
+  "color": "describe the final solution color",
+  "smell": "describe any smell or 'none'",
+  "precipitate": true or false,
+  "precipitateColor": "color if precipitate forms or null",
+  "products": ["list", "of", "product", "formulas"],
+  "balancedEquation": "complete balanced equation with states",
+  "reactionType": "type like precipitation, acid-base, redox, etc",
+  "observations": ["observation 1", "observation 2"],
+  "safetyNotes": ["safety note 1", "safety note 2"],
+  "temperature": "increased, decreased, or unchanged",
+  "gasEvolution": true or false,
+  "confidence": 0.0 to 1.0
+}}
+
+CRITICAL: Return ONLY valid JSON, no markdown, no extra text."""
+
+    try:
+        stream = ollama.chat(
+            model='gpt-oss',
+            messages=[
+                {'role': 'user', 'content': json_prompt}
+            ],
+            stream=True,
+            options={
+                'temperature': 0.3,  # Lower temperature for more consistent JSON
+                'top_p': 0.9,
+                'top_k': 40,
+                'num_predict': 1024,
+            }
+        )
+        
+        full_response = ''
+        for chunk in stream:
+            if 'message' in chunk and 'content' in chunk['message']:
+                token = chunk['message']['content']
+                full_response += token
+                yield json.dumps({"token": token}) + "\n"
+                await asyncio.sleep(0.01)
+        
+        # Validate the response is valid JSON
+        try:
+            json.loads(full_response)
+        except json.JSONDecodeError as e:
+            print(f"Invalid JSON from model: {e}")
+            print(f"Response was: {full_response}")
+            
+    except Exception as e:
+        error_msg = f"Error: Could not connect to Ollama. Make sure Ollama is running. Details: {str(e)}"
+        yield json.dumps({"token": error_msg, "error": True}) + "\n"
+
+async def generate_stream(query: str, context: str = "", chemicals: List[str] = None, equipment: List[str] = None, history: List[dict] = None):
+    """Generate streaming response from Ollama with RAG context, equipment awareness, and chat history"""
     
     # Retrieve relevant chemistry context (if RAG is available)
     if rag:
         rag_context = rag.retrieve_context(query, k=2)
     else:
         rag_context = "Chemistry knowledge base not loaded. Providing general chemistry assistance."
+    
+    # Build conversation history for context
+    conversation_context = ""
+    if history and len(history) > 0:
+        conversation_context = "\n\nPrevious conversation:\n"
+        for msg in history[-6:]:  # Include last 6 messages for context (3 exchanges)
+            role = "Student" if msg.get('role') == 'user' else "ERA"
+            conversation_context += f"{role}: {msg.get('content', '')}\n"
     
     # Build enhanced prompt
     system_prompt = """You are ERA (ELIXRA Reaction Avatar), a knowledgeable chemistry teacher. 
@@ -140,6 +215,10 @@ Keep responses focused and educational. Answer the question directly without re-
 
 {f"Chemicals Being Used: {', '.join(chemicals)}" if chemicals else ""}
 
+{f"Equipment Available: {', '.join(equipment)}" if equipment else ""}
+
+{conversation_context}
+
 Relevant Chemistry Knowledge:
 {rag_context}
 
@@ -176,8 +255,9 @@ Please provide a clear, educational response as a chemistry teacher would."""
 @app.post("/chat")
 async def chat(request: ChatRequest):
     """HTTP endpoint for streaming chat"""
+    history = [h.dict() if hasattr(h, 'dict') else h for h in (request.history or [])]
     return StreamingResponse(
-        generate_stream(request.message, request.context, request.chemicals),
+        generate_stream(request.message, request.context, request.chemicals, request.equipment, history),
         media_type="application/x-ndjson"
     )
 
@@ -196,11 +276,15 @@ async def websocket_endpoint(websocket: WebSocket):
             query = message_data.get('message', '')
             context = message_data.get('context', '')
             chemicals = message_data.get('chemicals', [])
+            equipment = message_data.get('equipment', [])  # Get equipment from client
+            history = message_data.get('history', [])  # Get chat history from client
             
             print(f"Received query: {query}")
+            print(f"Equipment: {equipment}")
+            print(f"Chat history messages: {len(history)}")
             
             # Stream response back to client
-            async for token_data in generate_stream(query, context, chemicals):
+            async for token_data in generate_stream(query, context, chemicals, equipment, history):
                 await websocket.send_text(token_data)
             
             # Send completion signal
@@ -214,15 +298,12 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.post("/analyze-reaction")
 async def analyze_reaction(request: ChatRequest):
-    """Specialized endpoint for reaction analysis"""
+    """Specialized endpoint for reaction analysis - returns JSON"""
     if not request.chemicals or len(request.chemicals) < 2:
         raise HTTPException(status_code=400, detail="At least 2 chemicals required")
     
-    # Build reaction-specific query
-    query = f"Analyze the reaction between {' and '.join(request.chemicals)}. Explain what happens, the mechanism, observations, and safety considerations."
-    
     return StreamingResponse(
-        generate_stream(query, request.context, request.chemicals),
+        generate_json_reaction(request.chemicals, request.equipment),
         media_type="application/x-ndjson"
     )
 
