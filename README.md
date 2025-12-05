@@ -6,7 +6,6 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![AI Powered](https://img.shields.io/badge/AI-Gemini-orange?style=flat-square&logo=google)](https://ai.google.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
