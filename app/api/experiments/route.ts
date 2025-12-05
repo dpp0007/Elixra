@@ -6,6 +6,9 @@ import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 
+// Mark as dynamic route (uses session)
+export const dynamic = 'force-dynamic'
+
 const experimentSchema = z.object({
   name: z.string().min(1, 'Experiment name is required'),
   chemicals: z.array(z.object({

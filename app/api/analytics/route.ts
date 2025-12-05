@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { getDatabase } from '@/lib/mongodb'
 import { authOptions } from '@/lib/auth'
 
+// Mark as dynamic route (uses headers/session)
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

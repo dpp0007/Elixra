@@ -26,6 +26,7 @@ export interface EquipmentSettings {
   
   // Analytical Balance
   weight?: number // 0-200g
+  tareOffset?: number // Tare offset in grams
   
   // Lab Timer
   timeRemaining?: number // 0-120 min (in seconds)
