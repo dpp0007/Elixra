@@ -7,7 +7,7 @@
 /mds
 # Testing
 /coverage
-*.md
+
 # Next.js
 /.next/
 /out/
