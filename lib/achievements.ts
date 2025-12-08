@@ -7,7 +7,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'First Steps',
     description: 'Complete your first experiment',
     icon: '🧪',
-    category: 'experimenhts',
+    category: 'experiments',
     requirement: 1,
     unlocked: false
   },
