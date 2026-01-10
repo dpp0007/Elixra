@@ -1,6 +1,6 @@
 """
 Simplified FastAPI Backend for Chemistry Teaching Avatar
-Works without RAG dependencies - just Ollama streaming
+Uses Ollama for chat and Google Gemini for reaction analysis
 """
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,8 +10,20 @@ from typing import List, Optional
 import ollama
 import json
 import asyncio
+import os
+import httpx
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(title="Chemistry Avatar API", version="1.0.0")
+
+# Get Gemini API key from environment
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = "gemini-2.5-flash"  # Latest fast model for quick analysis
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # CORS configuration for Next.js frontend
 app.add_middleware(
@@ -53,9 +65,11 @@ async def health_check():
     try:
         # Try to list models
         models = ollama.list()
+        gemini_status = "connected" if GEMINI_API_KEY else "not_configured"
         return {
             "status": "healthy",
             "ollama": "connected",
+            "gemini": gemini_status,
             "models": [m['name'] for m in models.get('models', [])]
         }
     except Exception as e:
@@ -65,34 +79,126 @@ async def health_check():
             "error": str(e)
         }
 
-async def generate_json_reaction(chemicals: List[str], equipment: List[str] = None):
-    """Generate JSON reaction analysis from Ollama"""
+async def analyze_reaction_with_gemini(chemicals: List[str], equipment: List[str] = None):
+    """Analyze chemical reaction using Google Gemini API with Ollama fallback"""
     
-    chemicals_str = ', '.join(chemicals)
-    equipment_str = f" using {', '.join(equipment)}" if equipment else ""
+    if not GEMINI_API_KEY:
+        print("⚠️ Gemini API key not configured, using Ollama")
+        async for response in generate_json_reaction(chemicals, equipment):
+            yield response
+        return
     
-    json_prompt = f"""Analyze the chemical reaction between {chemicals_str}{equipment_str}.
+    chemicals_str = ', '.join(chemicals[:3])
+    equipment_str = f" using {', '.join(equipment[:2])}" if equipment else ""
+    
+    # Optimized prompt for Gemini
+    prompt = f"""Analyze this chemical reaction: {chemicals_str}{equipment_str}
 
-Provide ONLY a valid JSON response with this exact structure (no other text, no markdown):
+Return ONLY valid JSON (no markdown, no explanation):
 {{
-  "color": "describe the final solution color",
-  "smell": "describe any smell or 'none'",
+  "color": "final solution color or 'colorless'",
   "precipitate": true or false,
-  "precipitateColor": "color if precipitate forms or null",
-  "products": ["list", "of", "product", "formulas"],
-  "balancedEquation": "complete balanced equation with states",
-  "reactionType": "type like precipitation, acid-base, redox, etc",
-  "observations": ["observation 1", "observation 2"],
-  "safetyNotes": ["safety note 1", "safety note 2"],
-  "temperature": "increased, decreased, or unchanged",
+  "precipitateColor": "color if forms or null",
+  "products": ["product1", "product2"],
+  "balancedEquation": "balanced equation with states",
+  "reactionType": "precipitation/acid-base/redox/combustion/etc",
+  "observations": ["observation1", "observation2"],
+  "temperature": "increased/decreased/unchanged",
   "gasEvolution": true or false,
-  "confidence": 0.0 to 1.0
-}}
-
-CRITICAL: Return ONLY valid JSON, no markdown, no extra text."""
+  "confidence": 0.95
+}}"""
 
     try:
-        print(f"Generating JSON reaction for: {chemicals_str}{equipment_str}")
+        print(f"🔵 Gemini: Analyzing {chemicals_str}{equipment_str}")
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{GEMINI_URL}/{GEMINI_MODEL}:generateContent",
+                params={"key": GEMINI_API_KEY},
+                json={
+                    "contents": [
+                        {
+                            "parts": [
+                                {"text": prompt}
+                            ]
+                        }
+                    ],
+                    "generationConfig": {
+                        "temperature": 0.2,
+                        "maxOutputTokens": 500,
+                        "topP": 0.8,
+                        "topK": 20,
+                    }
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for API errors in response
+                if "error" in data:
+                    error_detail = data.get("error", {}).get("message", "Unknown error")
+                    print(f"✗ Gemini API error: {error_detail}")
+                    print(f"⚠️ Falling back to Ollama")
+                    async for result in generate_json_reaction(chemicals, equipment):
+                        yield result
+                    return
+                
+                if "candidates" in data and len(data["candidates"]) > 0:
+                    content = data["candidates"][0]["content"]["parts"][0]["text"]
+                    
+                    # Clean up markdown if present
+                    if content.startswith("```"):
+                        content = content.split("```")[1]
+                        if content.startswith("json"):
+                            content = content[4:]
+                    content = content.strip()
+                    
+                    # Stream the response
+                    for char in content:
+                        yield json.dumps({"token": char}) + "\n"
+                        await asyncio.sleep(0.001)
+                    
+                    print(f"✓ Gemini analysis complete")
+                else:
+                    print(f"✗ No response from Gemini, falling back to Ollama")
+                    async for result in generate_json_reaction(chemicals, equipment):
+                        yield result
+            else:
+                # Non-200 status code - fallback to Ollama
+                error_text = response.text[:200] if response.text else "No error details"
+                print(f"✗ Gemini API error {response.status_code}: {error_text}")
+                print(f"⚠️ Falling back to Ollama")
+                async for result in generate_json_reaction(chemicals, equipment):
+                    yield result
+                
+    except asyncio.TimeoutError:
+        print(f"✗ Gemini request timeout, falling back to Ollama")
+        async for result in generate_json_reaction(chemicals, equipment):
+            yield result
+    except httpx.ConnectError as e:
+        print(f"✗ Gemini connection error: {str(e)}, falling back to Ollama")
+        async for result in generate_json_reaction(chemicals, equipment):
+            yield result
+    except Exception as e:
+        print(f"✗ Gemini error: {str(e)}, falling back to Ollama")
+        async for result in generate_json_reaction(chemicals, equipment):
+            yield result
+
+async def generate_json_reaction(chemicals: List[str], equipment: List[str] = None):
+    """Generate JSON reaction analysis from Ollama - optimized for speed"""
+    
+    chemicals_str = ', '.join(chemicals[:3])  # Max 3 chemicals
+    equipment_str = f" using {', '.join(equipment[:2])}" if equipment else ""  # Max 2 equipment
+    
+    # Minimal JSON prompt for faster processing
+    json_prompt = f"""Analyze: {chemicals_str}{equipment_str}
+
+Return ONLY valid JSON (no markdown):
+{{"color":"color","precipitate":true/false,"products":["product1"],"equation":"balanced equation","type":"reaction type","temp":"increased/decreased/unchanged"}}"""
+
+    try:
+        print(f"Analyzing: {chemicals_str}{equipment_str}")
         
         stream = ollama.chat(
             model='llama3.2:3b-instruct-q4_K_M',
@@ -101,10 +207,11 @@ CRITICAL: Return ONLY valid JSON, no markdown, no extra text."""
             ],
             stream=True,
             options={
-                'temperature': 0.3,  # Lower temperature for consistent JSON
-                'top_p': 0.9,
-                'top_k': 40,
-                'num_predict': 1024,
+                'temperature': 0.2,  # Very low for consistent JSON
+                'top_p': 0.7,
+                'top_k': 20,
+                'num_predict': 512,  # Reduced for speed
+                'num_thread': 4,
             }
         )
         
@@ -115,109 +222,76 @@ CRITICAL: Return ONLY valid JSON, no markdown, no extra text."""
                 if token:
                     full_response += token
                     yield json.dumps({"token": token}) + "\n"
-                    await asyncio.sleep(0.01)
         
-        # Validate the response is valid JSON
+        # Validate JSON
         try:
             json.loads(full_response)
-            print(f"✓ Valid JSON response generated")
-        except json.JSONDecodeError as e:
-            print(f"✗ Invalid JSON from model: {e}")
-            print(f"Response was: {full_response}")
+            print(f"✓ Valid JSON response")
+        except json.JSONDecodeError:
+            print(f"✗ Invalid JSON from model")
             
     except Exception as e:
-        error_msg = f"Error: Could not connect to Ollama. Make sure Ollama is running. Details: {str(e)}"
+        error_msg = f"Error: Could not connect to Ollama."
         print(f"✗ Error: {error_msg}")
         yield json.dumps({"token": error_msg, "error": True}) + "\n"
 
 async def generate_stream(query: str, context: str = "", chemicals: List[str] = None, equipment: List[str] = None, history: List[dict] = None):
     """Generate streaming response from Ollama with chat history context"""
     
-    # Build enhanced prompt
-    system_prompt = """You are ERA (ELIXRA Reaction Avatar), a friendly and knowledgeable chemistry teacher for high school students (grades 9-12).
+    # Optimized system prompt - shorter for faster processing
+    system_prompt = """You are ERA, a chemistry teacher. Keep responses short and clear.
+- Use bullet points with dashes (-)
+- 2-3 bullets max per response
+- Keep each bullet to 1-2 sentences
+- Be friendly and educational"""
 
-CRITICAL FORMATTING RULES:
-- Format ALL responses as bullet points using ONLY the dash symbol (-)
-- NEVER use asterisks (*) for bullets or emphasis
-- NEVER use ** for bold text
-- NEVER use * for italic text
-- ONLY use dash (-) for bullet points
-- Each bullet should contain ONE key concept or important point
-- Keep bullets concise and focused (1-2 sentences max per bullet)
-- Use sub-bullets with spaces and dash (  -) for additional details
-- NO long paragraphs - break everything into digestible bullet points
-- NO asterisks anywhere in your response
-
-Your teaching style:
-- Explain concepts step-by-step in simple terms
-- Use analogies and real-world examples
-- Be encouraging and patient
-- Ask follow-up questions to check understanding
-- Break down complex mechanisms into digestible parts
-- Always prioritize safety and proper lab techniques
-- Remember previous topics discussed in this conversation and build upon them
-- Reference earlier explanations when relevant
-
-When explaining reactions:
-- Start with what's happening overall
-- Explain the mechanism step-by-step
-- Describe what students would observe
-- Mention any safety considerations
-- Connect to real-world applications
-
-Keep responses conversational, engaging, and educational."""
-
-    # Build conversation history for context
+    # Build minimal conversation history for context
     conversation_context = ""
-    if history and len(history) > 0:
-        conversation_context = "\n\nPrevious conversation:\n"
-        for msg in history[-6:]:  # Include last 6 messages for context (3 exchanges)
-            role = "Student" if msg.get('role') == 'user' else "ERA"
-            conversation_context += f"{role}: {msg.get('content', '')}\n"
+    if history and len(history) > 2:
+        # Only include last 2 exchanges (4 messages) for speed
+        conversation_context = "\nRecent: "
+        for msg in history[-4:]:
+            role = "Q" if msg.get('role') == 'user' else "A"
+            content = msg.get('content', '')[:100]  # Truncate to 100 chars
+            conversation_context += f"{role}: {content}... "
 
-    user_prompt = f"""Student Question: {query}
-
-{f"Current Lab Context: {context}" if context else ""}
-
-{f"Chemicals Being Used: {', '.join(chemicals)}" if chemicals else ""}
-
-{f"Equipment Available: {', '.join(equipment)}" if equipment else ""}
-
-{conversation_context}
-
-Please provide a clear, educational response as a chemistry teacher would. Remember the context of our previous discussion and build upon it."""
+    # Minimal user prompt for faster processing
+    user_prompt = f"{query}"
+    if context:
+        user_prompt += f" (Lab: {context})"
+    if chemicals:
+        user_prompt += f" (Chemicals: {', '.join(chemicals[:3])})"  # Max 3 chemicals
+    if conversation_context:
+        user_prompt += conversation_context
 
     try:
-        # Stream from Ollama using Llama 3.2 model (smaller, faster)
         print(f"Generating response for: {query[:50]}...")
         
         stream = ollama.chat(
-            model='llama3.2:3b-instruct-q4_K_M',  # Smaller, faster model
+            model='llama3.2:3b-instruct-q4_K_M',
             messages=[
                 {'role': 'system', 'content': system_prompt},
                 {'role': 'user', 'content': user_prompt}
             ],
             stream=True,
             options={
-                'temperature': 0.7,
-                'top_p': 0.9,
-                'top_k': 40,
-                'num_predict': 512,
+                'temperature': 0.5,  # Lower = faster, more consistent
+                'top_p': 0.8,
+                'top_k': 30,
+                'num_predict': 256,  # Reduced from 512 for faster responses
+                'num_thread': 4,  # Use 4 threads for faster processing
             }
         )
         
         for chunk in stream:
-            # Debug: print the chunk structure
-            print(f"Chunk: {chunk}")
-            
             if 'message' in chunk and 'content' in chunk['message']:
                 token = chunk['message']['content']
-                if token:  # Only send non-empty tokens
+                if token:
                     yield json.dumps({"token": token}) + "\n"
-                    await asyncio.sleep(0.01)  # Small delay for smooth streaming
+                    # Removed sleep delay for faster streaming
                 
     except Exception as e:
-        error_msg = f"Error: Could not connect to Ollama. Make sure Ollama is running. Details: {str(e)}"
+        error_msg = f"Error: Could not connect to Ollama. Make sure Ollama is running."
         print(f"Error: {error_msg}")
         yield json.dumps({"token": error_msg, "error": True}) + "\n"
 
@@ -232,13 +306,14 @@ async def chat(request: ChatRequest):
 
 @app.post("/analyze-reaction")
 async def analyze_reaction(request: ChatRequest):
-    """Specialized endpoint for reaction analysis - returns JSON"""
+    """Specialized endpoint for reaction analysis - uses Gemini API"""
     if not request.chemicals or len(request.chemicals) < 2:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="At least 2 chemicals required")
     
+    # Use Gemini for analysis (faster and more accurate)
     return StreamingResponse(
-        generate_json_reaction(request.chemicals, request.equipment),
+        analyze_reaction_with_gemini(request.chemicals, request.equipment),
         media_type="application/x-ndjson"
     )
 
@@ -282,7 +357,11 @@ if __name__ == "__main__":
     print("=" * 60)
     print("🧪 Chemistry Avatar API Starting...")
     print("=" * 60)
-    print("✓ Using model: llama3.2:3b-instruct-q4_K_M")
+    print("✓ Using model: llama3.2:3b-instruct-q4_K_M (Chat)")
+    if GEMINI_API_KEY:
+        print("✓ Using Gemini 2.5 Flash (Reaction Analysis)")
+    else:
+        print("⚠️ Gemini API key not configured (using Ollama fallback)")
     print("✓ Backend URL: http://localhost:8000")
     print("✓ API Docs: http://localhost:8000/docs")
     print("✓ Health Check: http://localhost:8000/health")

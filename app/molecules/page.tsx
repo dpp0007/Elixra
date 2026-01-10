@@ -9,6 +9,7 @@ import MoleculeDropZone from '@/components/MoleculeDropZone'
 import ElementDragSource from '@/components/ElementDragSource'
 import { AtomMenu, BondMenu } from '@/components/InteractionMenu'
 import AtomBondDialog from '@/components/AtomBondDialog'
+import { BondExplanation } from '@/components/BondExplanation'
 import { useRef } from 'react'
 import { Atom, Bond, Element } from '@/types/molecule'
 import {
@@ -466,6 +467,18 @@ export default function MoleculesPage() {
                     <div className="text-xs text-purple-200 font-semibold uppercase tracking-wide">Elements</div>
                   </div>
                 </div>
+
+                {/* Bond Explanation */}
+                {atoms.length > 0 && (
+                  <div className="mb-6">
+                    <BondExplanation
+                      moleculeName={moleculeName}
+                      atoms={atoms}
+                      bonds={bonds}
+                      selectedBondId={selectedBondId}
+                    />
+                  </div>
+                )}
 
                 {/* AI Analysis Results */}
                 {analysis && (

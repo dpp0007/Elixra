@@ -1,129 +1,162 @@
 # 🧪 ELIXRA - Virtual Chemistry Lab with AI Avatar Teacher
 
-> An interactive, AI-powered virtual chemistry laboratory with a 3D avatar teacher, real-time lip-sync, and scientifically accurate reactions.
+> An interactive, AI-powered virtual chemistry laboratory with 3D molecule visualization, AI-powered reaction analysis, and an intelligent avatar teacher.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-blue?style=flat-square&logo=google)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
 ## 🎯 Overview
 
-ELIXRA is a comprehensive virtual chemistry laboratory platform that combines interactive 3D visualization, AI-powered reaction analysis, and an intelligent avatar teacher. Perfect for students, educators, and researchers who want to explore chemistry safely and interactively.
+ELIXRA is a comprehensive virtual chemistry laboratory platform combining interactive 3D visualization, AI-powered reaction analysis, and an intelligent avatar teacher. Perfect for students and educators exploring chemistry safely and interactively.
 
 ### Key Features
 
-- **🎨 Interactive 3D Visualization** - Drag-and-drop chemistry with real-time reactions
-- **🤖 AI-Powered Analysis** - Gemini API (online) or Ollama (offline) for reaction predictions
-- **🎭 3D Avatar Teacher** - ERA (ELIXRA Reaction Avatar) with real-time lip-sync and animations
-- **🧪 8 Lab Equipment Types** - Bunsen burner, hot plate, stirrer, centrifuge, balance, pH meter, thermometer, timer
-- **📱 Fully Responsive** - Works on desktop, tablet, and mobile devices
-- **🔐 Secure Authentication** - NextAuth.js with OAuth support
-- **☁️ Cloud Sync** - Save and access experiments from anywhere
-- **🌡️ Physics Engine** - Temperature-aware reactions with Arrhenius equation
-- **⚖️ Scientific Accuracy** - 0.0001g precision measurements
+- **🎨 3D Molecule Visualization** - Interactive drag-and-drop molecule builder with real-time bonding
+- **🤖 AI Reaction Analysis** - Google Gemini 2.5 Flash (primary) with Ollama fallback
+- **🎭 Avatar Teacher** - ERA (ELIXRA Reaction Avatar) with chemistry explanations
+- **📊 Spectroscopy Tools** - UV-Vis, IR, and NMR spectrum analysis
+- **🧪 Lab Equipment** - Bunsen burner, hot plate, stirrer, centrifuge, balance, pH meter, thermometer, timer
+- **📱 Responsive Design** - Desktop, tablet, and mobile support
+- **🔐 Authentication** - NextAuth.js with secure session management
+- **⚡ Fast Backend** - FastAPI with streaming responses
+- **🔄 Automatic Fallback** - Seamless Gemini → Ollama fallback on errors
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
-- MongoDB Atlas account (or local MongoDB)
-- Gemini API key (for online mode) OR Ollama (for offline mode)
+- Python 3.8+
+- Ollama (for offline mode)
+- Google Gemini API key (for online mode)
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/elixra-chem-lab.git
-cd elixra-chem-lab
+# Clone repository
+git clone https://github.com/yourusername/elixra.git
+cd elixra/build-o-thon
 
-# Install dependencies
+# Install frontend dependencies
 npm install
 
 # Create environment file
 cp .env.example .env.local
 
-# Start development server
-npm run dev
+# Update .env.local with your API keys
+```
 
+### Run Frontend Only
+
+```bash
+npm run dev
 # Open http://localhost:3000
 ```
 
-### Environment Setup
+### Run Full Stack (Frontend + Backend)
 
-Create `.env.local`:
-
-```env
-# Database
-MONGODB_URI=mongodb+srv://your-connection-string
-
-# AI (choose one)
-# Online mode with Gemini
-GEMINI_API_KEY=your-gemini-api-key
-
-# OR Offline mode with Ollama
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
-
-# Authentication
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-super-secret-key
-
-# OAuth (optional)
-GOOGLE_CLIENT_ID=your-google-id
-GOOGLE_CLIENT_SECRET=your-google-secret
-```
-
-## 🔌 Offline Setup with Ollama
-
-### Step 1: Install Ollama
-
-```bash
-# macOS
-brew install ollama
-
-# Windows
-# Download from https://ollama.ai/download
-
-# Linux
-curl https://ollama.ai/install.sh | sh
-```
-
-### Step 2: Pull the Model
-
-```bash
-ollama pull llama3.2:3b-instruct-q4_K_M
-```
-
-### Step 3: Start Ollama
+#### 1. Start Ollama (for chat)
 
 ```bash
 ollama serve
+# In another terminal:
+ollama pull llama3.2:3b-instruct-q4_K_M
 ```
 
-### Step 4: Start Backend
+#### 2. Start Backend
 
 ```bash
 cd backend
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux
+source venv/bin/activate
+
 pip install -r requirements.txt
 python main_simple.py
 ```
 
-### Step 5: Start Frontend
+#### 3. Start Frontend
 
 ```bash
 npm run dev
+# Open http://localhost:3000
 ```
 
-## 🎮 How to Use
+## 🔧 Configuration
 
-1. **Sign Up** - Create your account
-2. **Enter Lab** - Click "Lab" in the navbar
-3. **Add Chemicals** - Drag chemicals from the sidebar
-4. **Use Equipment** - Select lab tools to affect reactions
-5. **Perform Reaction** - Click "Perform Reaction" to analyze
-6. **Save & Share** - Export results as PDF
+### Environment Variables
+
+Create `.env.local`:
+
+```env
+# Frontend
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+
+# Database (optional)
+MONGODB_URI=mongodb+srv://your-connection-string
+
+# AI - Choose one:
+# Option 1: Online with Gemini
+GEMINI_API_KEY=your-gemini-api-key
+
+# Option 2: Offline with Ollama (no key needed)
+# Just run: ollama serve
+
+# Authentication
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-change-in-production
+```
+
+### Backend Configuration
+
+Backend uses `.env` file in `backend/` directory:
+
+```env
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+## 🎮 Features
+
+### 3D Molecule Builder
+- Drag-and-drop atoms
+- Create single, double, triple bonds
+- Real-time 3D visualization
+- Bond angle calculations
+
+### Reaction Analysis
+- **Primary**: Google Gemini 2.5 Flash (fast, accurate)
+- **Fallback**: Ollama (offline, reliable)
+- JSON response with reaction details
+- Automatic fallback on errors
+
+### Avatar Teacher (ERA)
+- Chemistry explanations
+- Real-time streaming responses
+- Conversation history context
+- Equipment-aware guidance
+
+### Spectroscopy Tools
+- UV-Vis spectrum analysis
+- IR spectrum with functional groups
+- NMR multiplicity visualization
+- Spectrum comparison
+
+### Lab Equipment
+- Bunsen Burner (0-1000°C)
+- Hot Plate (25-300°C)
+- Magnetic Stirrer (0-1500 RPM)
+- Centrifuge (0-5000 RPM)
+- Analytical Balance (0.0001g precision)
+- pH Meter (0-14 range)
+- Thermometer (-50°C to 300°C)
+- Lab Timer (countdown/countup)
 
 ## 🛠️ Tech Stack
 
@@ -131,130 +164,118 @@ npm run dev
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
+- **3D Graphics**: Three.js + React Three Fiber
 - **Animations**: Framer Motion
-- **3D**: Three.js
-- **Drag & Drop**: React DnD
+- **State**: React Context + Hooks
 
 ### Backend
-- **Runtime**: Node.js
-- **API**: Next.js API Routes + FastAPI
-- **Database**: MongoDB Atlas
-- **AI (Online)**: Google Gemini API
-- **AI (Offline)**: Ollama + Llama 3.2
-- **Auth**: NextAuth.js
+- **Runtime**: Python 3.8+
+- **Framework**: FastAPI
+- **AI (Primary)**: Google Gemini 2.5 Flash
+- **AI (Fallback)**: Ollama + Llama 3.2
+- **Server**: Uvicorn
+- **Async**: asyncio + httpx
 
 ## 📁 Project Structure
 
 ```
-elixra-chem-lab/
-├── app/
-│   ├── page.tsx              # Landing page
-│   ├── layout.tsx            # Root layout
-│   ├── auth/                 # Authentication pages
-│   ├── lab/                  # Main lab interface
-│   ├── molecules/            # 3D molecule viewer
-│   ├── spectroscopy/         # Spectroscopy tools
-│   ├── quiz/                 # Daily challenges
-│   └── api/                  # API routes
-├── components/               # React components
-├── lib/                      # Utilities and helpers
-├── types/                    # TypeScript definitions
-├── backend/                  # Python FastAPI backend
-└── public/                   # Static assets
+build-o-thon/
+├── app/                          # Next.js pages
+│   ├── page.tsx                  # Landing page
+│   ├── lab/                      # Lab interface
+│   ├── molecules/                # 3D molecule viewer
+│   ├── spectroscopy/             # Spectroscopy tools
+│   └── api/                      # API routes
+├── components/                   # React components
+│   ├── Molecule3DViewer.tsx      # 3D molecule visualization
+│   ├── SpectrumGraph.tsx         # Spectrum visualization
+│   ├── BondExplanation.tsx       # AI bond explanations
+│   └── ...
+├── lib/                          # Utilities
+│   ├── bondingLogic.ts           # Bond calculations
+│   ├── spectrumData.ts           # Spectrum datasets
+│   ├── aiBondReasoning.ts        # AI reasoning
+│   └── spectrumHandlers.ts       # Spectrum analysis
+├── types/                        # TypeScript types
+├── backend/                      # Python FastAPI
+│   ├── main_simple.py            # Main backend
+│   ├── requirements.txt          # Python dependencies
+│   └── .env                      # Backend config
+├── public/                       # Static assets
+├── .env.example                  # Environment template
+├── .env.local                    # Local config (git ignored)
+├── package.json                  # Frontend dependencies
+├── tsconfig.json                 # TypeScript config
+├── tailwind.config.js            # Tailwind config
+└── README.md                     # This file
 ```
 
-## 🧪 Lab Equipment
+## 🔄 API Endpoints
 
-### Heating Equipment
-- **Bunsen Burner** - 0-1000°C with visual flame
-- **Hot Plate** - 25-300°C with precise control
-
-### Motion Equipment
-- **Magnetic Stirrer** - 0-1500 RPM with vortex animation
-- **Centrifuge** - 0-5000 RPM with layer separation
-
-### Measurement Tools
-- **Analytical Balance** - 0.0001g precision, 0-200g capacity
-- **pH Meter** - 0-14 pH range with auto-calculation
-- **Thermometer** - -50°C to 300°C range
-- **Lab Timer** - Countdown/countup with visual progress
-
-## 🤖 AI Avatar Teacher
-
-### Features
-- ✅ 3D avatar with realistic animations
-- ✅ Real-time lip-sync with phoneme detection
-- ✅ Facial expressions based on emotion
-- ✅ Full conversation history context
-- ✅ Equipment-aware reaction analysis
-- ✅ Text-to-speech with natural voice
-- ✅ Speech recognition (voice input)
-- ✅ Works offline with Llama model
-
-### Offline vs Online
-
-| Feature | Offline (Ollama) | Online (Gemini) |
-|---------|------------------|-----------------|
-| Internet Required | ❌ No | ✅ Yes |
-| API Key | ❌ No | ✅ Yes |
-| Response Time | ~100-200ms | ~500ms |
-| Privacy | ✅ Complete | ⚠️ Cloud-based |
-| Cost | Free | Pay-per-use |
-
-## 📊 API Reference
-
-### Authentication
-```bash
-POST /api/auth/register
-POST /api/auth/signin
+### Chat (Ollama)
 ```
+POST /chat
+Content-Type: application/json
 
-### Experiments
-```bash
-GET /api/experiments
-POST /api/experiments
-GET /api/experiments/:id
-PUT /api/experiments/:id
-DELETE /api/experiments/:id
-```
-
-### Reactions
-```bash
-POST /api/react
 {
-  "chemicals": [
-    { "name": "NaCl", "amount": 2, "unit": "g" },
-    { "name": "AgNO₃", "amount": 1, "unit": "g" }
-  ]
+  "message": "What is NaCl?",
+  "chemicals": ["NaCl"],
+  "history": []
 }
 ```
 
-## 🎨 Design System
+### Reaction Analysis (Gemini + Fallback)
+```
+POST /analyze-reaction
+Content-Type: application/json
 
-### Color Palette
-- **Primary**: #8b5cf6 (Purple)
-- **Secondary**: #3b82f6 (Blue)
-- **Accent**: #ec4899 (Pink)
-- **Background**: #0f172a (Dark Space)
+{
+  "chemicals": ["NaCl", "AgNO3"],
+  "equipment": ["Beaker"]
+}
+```
 
-### Typography
-- **Headings**: Inter, 700 weight
-- **Body**: Inter, 400 weight
-- **Code**: JetBrains Mono
+### WebSocket (Real-time Chat)
+```
+WS ws://localhost:8000/ws
+```
+
+### Health Check
+```
+GET /health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "ollama": "connected",
+  "gemini": "connected",
+  "models": ["llama3.2:3b-instruct-q4_K_M"]
+}
+```
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Vercel (Frontend)
 ```bash
 npm run build
 vercel deploy
 ```
 
-### Docker
+### Docker (Backend)
 ```bash
-docker build -t elixra .
-docker run -p 3000:3000 elixra
+cd backend
+docker build -t elixra-backend .
+docker run -p 8000:8000 elixra-backend
 ```
+
+## 📊 Performance
+
+- **Frontend**: Lighthouse 98/100
+- **Backend**: 500-800ms response time
+- **Gemini**: 1-2s with automatic Ollama fallback
+- **Bundle Size**: 365 kB (First Load JS)
 
 ## 🤝 Contributing
 
@@ -278,19 +299,10 @@ We welcome contributions! Please follow these steps:
 ### Ollama Connection Issues
 ```bash
 # Check if Ollama is running
-curl http://localhost:11434/api/tags
+ollama list
 
 # Start Ollama
 ollama serve
-```
-
-### Model Not Found
-```bash
-# List installed models
-ollama list
-
-# Pull the model
-ollama pull llama3.2:3b-instruct-q4_K_M
 ```
 
 ### Backend Not Starting
@@ -305,29 +317,31 @@ pip install -r requirements.txt
 python main_simple.py
 ```
 
-## 📈 Performance
+### Frontend Build Issues
+```bash
+# Clear Next.js cache
+rm -rf .next
 
-- **Lighthouse Score**: 98/100
-- **First Paint**: 0.8s
-- **Time to Interactive**: 1.2s
-- **Bundle Size**: 245kb
-- **Uptime**: 99.9%
+# Reinstall dependencies
+npm install
+
+# Start dev server
+npm run dev
+```
 
 ## 🔒 Security & Privacy
 
-- End-to-end encryption
+- End-to-end encryption for sensitive data
 - Secure password hashing (bcrypt)
 - JWT token authentication
-- HTTPS only
-- GDPR & CCPA compliant
+- HTTPS only in production
 - No data selling (ever)
+- API keys stored in environment variables
 
 ## 📞 Support
 
-- **Email**: support@elixra.com
-- **Discord**: [Join our community](https://discord.gg/elixra)
-- **Twitter**: [@elixra_lab](https://twitter.com/elixra_lab)
-- **Docs**: [docs.elixra.com](https://docs.elixra.com)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/elixra/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/elixra/discussions)
 
 ## 📜 License
 
@@ -336,32 +350,11 @@ MIT License - See [LICENSE](LICENSE) file for details
 ## 🙏 Acknowledgments
 
 - Google Gemini for AI capabilities
-- MongoDB for database infrastructure
-- Vercel for hosting and deployment
+- Ollama for offline AI
 - Next.js team for the amazing framework
+- Three.js for 3D graphics
 - Tailwind CSS for styling utilities
-- Framer Motion for animations
-- Open source community for inspiration
-
-## 🎯 Roadmap
-
-### Completed ✅
-- [x] Core lab interface
-- [x] 8 lab equipment types
-- [x] AI reaction analysis
-- [x] 3D avatar teacher
-- [x] Offline mode with Ollama
-- [x] Cloud synchronization
-- [x] Mobile optimization
-
-### Planned 🗓️
-- [ ] AR mode for real-world integration
-- [ ] VR support
-- [ ] Mobile app (iOS/Android)
-- [ ] Advanced spectroscopy tools
-- [ ] Multiplayer lab sessions
-- [ ] Teacher dashboard
-- [ ] Gamification system
+- FastAPI for the backend framework
 
 ---
 
