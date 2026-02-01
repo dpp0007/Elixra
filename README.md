@@ -1,763 +1,680 @@
-# 🧪 Virtual Chemistry Lab
+# 🧪 Elixra - The AI-Powered Chemistry Lab
 
 <div align="center">
-
-![Virtual Chemistry Lab](https://img.shields.io/badge/Virtual%20Chemistry%20Lab-v2.0-blue?style=for-the-badge&logo=react)
-![Next.js](https://img.shields.io/badge/Next.js-14.0-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=for-the-badge&logo=mongodb)
-![AI Powered](https://img.shields.io/badge/AI%20Powered-Gemini-orange?style=for-the-badge&logo=google)
-![Authentication](https://img.shields.io/badge/Auth-NextAuth.js-purple?style=for-the-badge&logo=auth0)
-
-**A professional interactive web-based chemistry laboratory with authentication and cloud sync**
-
-[🚀 Live Demo](#) • [📖 Documentation](#features) • [🛠️ Installation](#installation) • [🤝 Contributing](#contributing)
-
+  <img src="public/Assets/Main Logo.svg" alt="Elixra Logo" width="200" />
+  <br />
+  <h3>Immersive Chemistry Education Platform</h3>
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+  [![Gemini AI](https://img.shields.io/badge/AI-Gemini%202.0-blue?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Three.js](https://img.shields.io/badge/Three.js-3D-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 </div>
 
 ---
 
-## 📋 Table of Contents
-
-- [✨ Features](#-features)
-- [🎯 Overview](#-overview)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [⚡ Installation](#-installation)
-- [🚀 Usage](#-usage)
-- [🧪 How It Works](#-how-it-works)
-- [🎨 UI Components](#-ui-components)
-- [🤖 AI Integration](#-ai-integration)
-- [💾 Data Storage](#-data-storage)
-- [📱 Responsive Design](#-responsive-design)
-- [🔧 API Endpoints](#-api-endpoints)
-- [🌟 Key Features Explained](#-key-features-explained)
-- [📊 Project Structure](#-project-structure)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-
----
-
-## ✨ Features
-
-### 🔐 **Authentication & Security**
-
-- **User Authentication** - Secure login/registration system
-- **Session Management** - Persistent user sessions with JWT
-- **Protected Routes** - Middleware-protected lab access
-- **User Profiles** - Personal experiment statistics and history
-- **Cloud Sync** - Automatic experiment synchronization across devices
-
-### 🔬 **Core Laboratory Features**
-
-- **Drag & Drop Interface** - Intuitive chemical and glassware manipulation
-- **Real-time Reactions** - AI-powered chemical reaction simulation
-- **Visual Effects** - Realistic precipitation, color changes, and gas evolution
-- **Multiple Glassware** - Test tubes, beakers with accurate volume measurements
-- **Quantity Control** - Precise chemical amount selection with multiple units
-- **Click-to-Add** - Quick chemical addition with single clicks
-
-### 🤖 **AI-Powered Analysis**
-
-- **Reaction Prediction** - Gemini AI predicts reaction outcomes
-- **Color Changes** - Realistic visual representation of chemical reactions
-- **Precipitate Formation** - Accurate precipitation simulation in beakers only
-- **Safety Analysis** - AI-generated safety notes and hazard warnings
-- **Confidence Scoring** - AI confidence levels for predictions
-- **Balanced Equations** - Automatically generated chemical equations
-
-### 💾 **Advanced Data Management**
-
-- **Hybrid Storage** - Local storage + MongoDB cloud backup
-- **Export to PDF** - Professional experiment reports with jsPDF
-- **Share Results** - Native sharing and clipboard integration
-- **Experiment History** - Comprehensive experiment management
-- **Search & Filter** - Advanced experiment search capabilities
-- **Data Validation** - Zod schema validation for all data
-
-### 🎨 **Premium User Experience**
-
-- **Beautiful Landing Page** - Professional marketing homepage
-- **Modern Authentication UI** - Sleek sign-in/sign-up pages
-- **Glass Morphism Design** - Modern UI with backdrop blur effects
-- **Gradient Animations** - Smooth color transitions and hover effects
-- **Responsive Design** - Optimized for all devices and screen sizes
-- **Professional Header** - Clean navigation with back button
-- **Enhanced Chemical Cards** - Visually appealing chemical selection
+## 📑 Table of Contents
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Project Structure](#-project-structure)
+- [Installation & Setup](#-installation--setup)
+- [Configuration](#-configuration)
+- [Scripts & Commands](#-scripts--commands)
+- [API Documentation](#-api-documentation)
+- [Core Modules](#-core-modules)
+- [Avatar Voice Configuration](#-avatar-voice-configuration)
+- [Development Workflow](#-development-workflow)
+- [Troubleshooting](#-troubleshooting)
+- [AWS Services Migration](#-aws-services-migration)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## 🎯 Overview
+## 🔭 Overview
 
-Virtual Chemistry Lab is a comprehensive web application that simulates a real chemistry laboratory environment. Students and educators can perform qualitative inorganic salt analysis experiments through an intuitive drag-and-drop interface, with AI-powered reaction predictions and realistic visual effects.
+**Elixra** is a next-generation educational platform that bridges the gap between theoretical chemistry and practical application. By leveraging **Google's Gemini 2.0 Flash AI**, 3D visualization technologies, voice interaction, and gamified learning paths, Elixra provides students with a safe, interactive, and intelligent environment to master complex chemical concepts.
 
-### 🎓 **Educational Purpose**
-
-- **Safe Learning Environment** - No physical chemicals or equipment needed
-- **Unlimited Experiments** - Practice without material constraints
-- **Instant Feedback** - AI analysis provides immediate results
-- **Documentation** - Automatic experiment logging and reporting
-
----
-
-## 🛠️ Tech Stack
-
-### **Frontend**
-
-- **Framework**: Next.js 14 (React 18+)
-- **Styling**: Tailwind CSS with custom components
-- **Animations**: Framer Motion for smooth interactions
-- **Drag & Drop**: React DnD with touch support
-- **Icons**: Lucide React icon library
-- **PDF Generation**: jsPDF for professional reports
-- **Authentication**: NextAuth.js integration ready
-
-### **Backend**
-
-- **Runtime**: Node.js with TypeScript
-- **API**: Next.js API Routes with middleware
-- **Database**: MongoDB Atlas with connection pooling
-- **AI Integration**: Google Gemini API
-- **Validation**: Zod schema validation
-- **Security**: bcryptjs password hashing
-
-### **Development & Deployment**
-
-- **Language**: TypeScript with strict mode
-- **Package Manager**: npm with lock file
-- **Version Control**: Git with conventional commits
-- **Deployment**: Vercel optimized
-- **Environment**: Multiple environment support
+### Value Proposition
+- **Safe Experimentation**: Perform dangerous or costly reactions in a risk-free virtual environment with realistic physics simulation.
+- **Personalized AI Tutoring**: **ERA (Elixra Reactive Assistant)** provides real-time, context-aware guidance with voice interaction and avatar animation.
+- **Visual Learning**: Interact with 3D molecular structures, spectroscopy data, and simulated lab equipment to build intuitive understanding.
+- **Collaborative Learning**: Real-time collaboration features for group experiments and peer learning.
+- **Gamified Progress**: Achievements, challenges, and progress tracking to maintain engagement.
 
 ---
 
-## ⚡ Installation
+## 🚀 Key Features
 
-### **Prerequisites**
-
-- Node.js 18+ (LTS recommended)
-- npm or yarn package manager
-- MongoDB Atlas account (for cloud features)
-- Google Gemini API key (for AI analysis)
-
-### **Quick Start**
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/virtual-chemistry-lab.git
-   cd virtual-chemistry-lab
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Install authentication dependencies**
-
-   ```bash
-   npm install next-auth @auth/mongodb-adapter bcryptjs zod
-   npm install @types/bcryptjs --save-dev
-   ```
-
-4. **Environment Setup**
-
-   Create `.env.local` file:
-
-   ```env
-   # MongoDB Connection
-   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/chemlab-online
-
-   # Gemini AI API Key
-   GEMINI_API_KEY=your_gemini_api_key_here
-
-   # NextAuth Configuration
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-secret-key-here
-
-   # OAuth Providers (Optional)
-   GOOGLE_CLIENT_ID=your-google-client-id
-   GOOGLE_CLIENT_SECRET=your-google-client-secret
-   GITHUB_ID=your-github-client-id
-   GITHUB_SECRET=your-github-client-secret
-   ```
-
-5. **Run the development server**
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-6. **Open your browser**
-   Navigate to `http://localhost:3000`
-
-### **First Time Setup**
-
-1. Visit the homepage and create an account
-2. Sign in to access the virtual laboratory
-3. Start experimenting with chemical reactions!
+| Feature | Description |
+|:---:|:---|
+| <img src="public/Assets/Cards/Virtual Lab.svg" width="50" /> <br> **Virtual Lab** | Interactive workbench with realistic equipment physics, chemical reaction simulations, and drag-and-drop interface. |
+| <img src="public/Assets/Cards/Ai Teacher.svg" width="50" /> <br> **AI Tutor (ERA)** | Intelligent assistant with streaming chat, voice interaction, avatar animation, and context-aware explanations. |
+| <img src="public/Assets/Cards/Quize.svg" width="50" /> <br> **Adaptive Quizzes** | Dynamic question generation (MCQ, Reactions, Explanations) with detailed performance analysis and difficulty scaling. |
+| <img src="public/Assets/Cards/Molecule.svg" width="50" /> <br> **3D Molecules** | Interactive 3D viewer for atomic structures, bonding visualization, molecular geometry, and template library. |
+| <img src="public/Assets/Cards/Collabrate.svg" width="50" /> <br> **Collaboration** | Real-time collaborative features for group experiments, shared workspaces, and peer learning. |
+| 🔬 **Spectroscopy** | NMR, IR, and Mass Spectrometry analysis tools with interactive visualization and interpretation guidance. |
+| 🎤 **Voice Interaction** | Voice commands, avatar voice synthesis with customizable voices, and speech-to-text transcription. |
+| 🏆 **Gamification** | Achievement system, challenges, leaderboards, and progress tracking to maintain engagement. |
+| 📓 **Notebook** | Experiment documentation, note-taking, and PDF export for lab reports. |
+| ⚠️ **Safety System** | Chemical safety guidelines, hazard warnings, and best practices for each experiment. |
 
 ---
 
-## 🚀 Usage
+## 🏗 Architecture
 
-### **Getting Started**
+Elixra follows a modern **Service-Oriented Architecture (SOA)** with real-time streaming capabilities:
 
-1. **Authentication**
-
-   - Visit the homepage at `http://localhost:3000`
-   - Click "Get Started" to create a new account
-   - Or "Sign In" if you already have an account
-   - Authentication is required to access the laboratory
-
-2. **Laboratory Access**
-
-   - After signing in, you'll be redirected to the lab interface
-   - Use the back arrow (←) to return to the homepage anytime
-   - Your experiments are automatically saved to your account
-
-3. **Select Chemicals**
-
-   - Browse the enhanced chemical reagents panel on the left
-   - Click on any chemical card to add it to the first test tube
-   - Or drag chemicals to specific glassware for precise placement
-   - Each chemical card shows state, hazards, and concentration
-
-4. **Add Glassware**
-
-   - Use the "Test Tube" and "Beaker" buttons to add equipment
-   - Each piece shows accurate capacity and current contents
-   - Visual liquid levels correspond to actual volumes
-
-5. **Specify Quantities**
-
-   - When adding chemicals, a modal appears for quantity selection
-   - Choose from preset amounts or enter custom values
-   - Select appropriate units (ml, g, drops, mg)
-   - Real-time validation ensures accurate measurements
-
-6. **Perform Reactions**
-
-   - Click "Perform Reaction" when ready
-   - AI analyzes the chemical combination using Gemini API
-   - View comprehensive results in the Reaction Analysis panel
-   - See balanced equations, reaction types, and safety notes
-
-7. **Manage Experiments**
-   - **Save**: Experiments auto-save to your account
-   - **Load**: Access your experiment history
-   - **Export**: Generate professional PDF reports
-   - **Share**: Share results via native sharing or clipboard
-   - **Clear**: Reset the workspace for new experiments
-
----
-
-## 🧪 How It Works
-
-### **Chemical Database**
-
-The app includes a comprehensive database of common laboratory chemicals:
-
-- **Inorganic Salts**: NaCl, AgNO₃, CuSO₄, etc.
-- **Acids & Bases**: HCl, NaOH, H₂SO₄, etc.
-- **Properties**: Formula, state, color, concentration, hazards
-
-### **Reaction Engine**
-
-1. **Input Processing**: Collects all chemicals and quantities
-2. **AI Analysis**: Sends data to Gemini API for reaction prediction
-3. **Result Processing**: Parses AI response for visual effects
-4. **Visual Updates**: Updates glassware with new colors, precipitates, etc.
-
-### **Visual Effects System**
-
-- **Color Changes**: Dynamic liquid color updates
-- **Precipitation**: Realistic settling particles and layers
-- **Gas Evolution**: Bubble animations for gas-producing reactions
-- **Temperature Effects**: Visual indicators for heat changes
-
----
-
-## 🎨 UI Components
-
-### **Application Architecture**
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  ← Back    Header (Gradient + Glass Morphism)           │
-│            Load | Clear | Save | Share | Export         │
-├──────────────┬─────────────────────┬───────────────────┤
-│   Enhanced   │     Lab Bench       │    Advanced       │
-│   Chemical   │   (Sticky Panel)    │    Reaction       │
-│   Cards      │                     │    Analysis       │
-│              │                     │                   │
-│  - Beautiful │  - Test Tubes       │  - AI Results     │
-│  - Gradients │  - Beakers          │  - Equations      │
-│  - Click/Drag│  - Precipitation    │  - Observations   │
-│  - Hazard    │  - Visual Effects   │  - Safety Notes   │
-│  - Info      │  - Perform Reaction │  - Confidence     │
-└──────────────┴─────────────────────┴───────────────────┘
+```mermaid
+graph TD
+    Client[Next.js Client<br/>React + Three.js] -->|HTTP/REST| API[FastAPI Backend<br/>Python + Async]
+    Client -->|WebSocket| WS[Real-time Streaming<br/>NDJSON Format]
+    API -->|Prompting| AI[Google Gemini 2.0<br/>LLM]
+    API -->|Auth/Data| DB[(MongoDB<br/>User Data)]
+    Client -->|3D Rendering| Three[Three.js/Fiber<br/>3D Graphics]
+    Client -->|Voice| Voice[Web Speech API<br/>TTS/STT]
+    Client -->|Auth| OAuth[Google OAuth<br/>Authentication]
 ```
 
-### **Enhanced Components**
+### Technology Stack
 
-- **Landing Page**: Professional homepage with authentication
-- **Authentication Pages**: Beautiful sign-in/sign-up interfaces
-- **Enhanced Header**: Glass morphism with gradient effects
-- **Chemical Cards**: Visually appealing with color-coded backgrounds
-- **AuthButton**: User menu with profile and logout options
-- **Protected Routes**: Middleware-based access control
-- **Experiment Controls**: Full CRUD operations with cloud sync
-- **PDF Reports**: Professional document generation
-- **Responsive Design**: Optimized for all screen sizes
+**Frontend:**
+- **Framework**: Next.js 14 (App Router) with React 18.2
+- **Language**: TypeScript 5.2
+- **3D Graphics**: Three.js 0.169, React Three Fiber 8.17, React Three Drei 9.113
+- **Styling**: Tailwind CSS 3.3, Framer Motion 10.16
+- **State**: React Context + Hooks
+- **Auth**: NextAuth 4.24 with MongoDB adapter
+- **Testing**: Vitest 4.0, Testing Library
+
+**Backend:**
+- **Framework**: FastAPI 0.115 with Uvicorn 0.30
+- **Language**: Python 3.10+
+- **AI/LLM**: Google Generative AI (Gemini 2.0 Flash)
+- **Real-time**: WebSockets 13.1 with streaming
+- **Validation**: Pydantic 2.9
+- **Async**: Python async/await
+
+**Database & Services:**
+- **Database**: MongoDB 6.0 (user data, progress, experiments)
+- **Authentication**: Google OAuth 2.0
+- **Voice**: Agora SDK (TTS/ASR)
+- **Deployment**: Elixra.in (production)
 
 ---
 
-## 🤖 AI Integration
+## 📂 Project Structure
 
-### **Gemini API Integration**
+```bash
+build-o-thon/
+├── 📁 app/                          # Next.js App Router
+│   ├── 📁 api/                      # Serverless API routes
+│   │   ├── analytics/               # User analytics
+│   │   ├── auth/                    # Authentication endpoints
+│   │   ├── challenges/              # Challenge management
+│   │   ├── collaboration/           # Real-time collaboration
+│   │   ├── experiments/             # Experiment data
+│   │   ├── gamification/            # Achievements & rewards
+│   │   ├── inventory/               # Equipment inventory
+│   │   ├── marketplace/             # Content marketplace
+│   │   ├── molecules/               # Molecule generation
+│   │   ├── notebook/                # Experiment notes
+│   │   ├── quiz/                    # Quiz generation
+│   │   ├── reactions/               # Reaction analysis
+│   │   ├── safety/                  # Safety guidelines
+│   │   ├── spectroscopy/            # Spectroscopy analysis
+│   │   ├── user/                    # User management
+│   │   └── voice/                   # Voice synthesis
+│   ├── 📁 lab/                      # Virtual lab page
+│   ├── 📁 quiz/                     # Quiz module
+│   ├── 📁 molecules/                # Molecule viewer
+│   ├── 📁 spectroscopy/             # Spectroscopy tools
+│   ├── 📁 experiments/              # Experiment templates
+│   ├── 📁 equipment/                # Equipment catalog
+│   ├── 📁 avatar/                   # AI tutor interface
+│   ├── 📁 collaborate/              # Collaboration features
+│   ├── 📁 auth/                     # Auth pages
+│   ├── layout.tsx                   # Root layout
+│   └── page.tsx                     # Home page
+│
+├── 📁 components/                   # Reusable React components
+│   ├── StreamingChat.tsx            # Real-time chat with AI
+│   ├── AvatarTeacher.tsx            # Avatar animation & lip-sync
+│   ├── VoiceChatTeacher.tsx         # Voice interaction
+│   ├── VoiceCommandSystem.tsx       # Voice commands
+│   ├── EnhancedMolecule3DViewer.tsx # 3D molecule viewer
+│   ├── SpectrumGraph.tsx            # Spectroscopy visualization
+│   ├── PeriodicTable.tsx            # Interactive periodic table
+│   ├── LabTable.tsx                 # Virtual lab workbench
+│   ├── 📁 equipment-effects/        # Lab equipment effects
+│   ├── 📁 collaborative/            # Collaboration components
+│   └── ...
+│
+├── 📁 lib/                          # Utility functions
+│   ├── bondingLogic.ts              # Chemical bonding calculations
+│   ├── chemicalValidation.ts        # Molecular validation
+│   ├── spectrumHandlers.ts          # Spectroscopy processing
+│   ├── geometryGenerator.ts         # 3D geometry generation
+│   ├── molecularTemplates.ts        # Molecule templates
+│   ├── periodicTable.ts             # Periodic table data
+│   ├── ph-calculator.ts             # pH calculations
+│   ├── pdfExport.ts                 # PDF report generation
+│   ├── mongodb.ts                   # Database connection
+│   ├── auth.ts                      # Auth utilities
+│   ├── achievements.ts              # Gamification logic
+│   └── curriculum.ts                # Learning curriculum
+│
+├── 📁 types/                        # TypeScript definitions
+│   ├── chemistry.ts                 # Chemistry domain types
+│   ├── molecule.ts                  # Molecule structure types
+│   ├── spectroscopy.ts              # Spectroscopy types
+│   ├── features.ts                  # Feature types
+│   └── next-auth.d.ts               # NextAuth extensions
+│
+├── 📁 contexts/                     # React Context providers
+├── 📁 hooks/                        # Custom React hooks
+├── 📁 public/                       # Static assets
+│   └── 📁 Assets/                   # SVGs, icons, images
+│
+├── 📁 backend/                      # FastAPI Python backend
+│   ├── main.py                      # FastAPI app & endpoints
+│   ├── requirements.txt             # Python dependencies
+│   ├── setup.ps1                    # Windows setup script
+│   ├── start.ps1                    # Windows startup script
+│   └── .env                         # Backend environment config
+│
+├── 📁 .kiro/                        # Kiro IDE configuration
+│   └── 📁 specs/                    # Project specifications
+│       └── 📁 aws-services-replacement/
+│           ├── README.md            # Spec overview
+│           ├── INTEGRATION_SUMMARY.md
+│           ├── CODEBASE_ANALYSIS.md
+│           ├── requirements.md
+│           ├── design.md
+│           └── tasks.md
+│
+├── package.json                     # Node.js dependencies
+├── tsconfig.json                    # TypeScript config
+├── next.config.js                   # Next.js config
+├── tailwind.config.js               # Tailwind config
+├── postcss.config.js                # PostCSS config
+├── vitest.config.ts                 # Vitest config
+├── .eslintrc.json                   # ESLint config
+├── .env.example                     # Environment template
+└── README.md                         # This file
+```
 
-The app uses Google's Gemini AI for intelligent reaction analysis:
+---
+
+## ⚙ Installation & Setup
+
+### Prerequisites
+- **Node.js** (v18+)
+- **Python** (v3.10+)
+- **MongoDB** (Local or Atlas)
+- **Google Cloud API Key** (for Gemini)
+- **Agora App ID & Certificate** (for voice features)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/dpp0007/build-o-thon.git
+cd build-o-thon
+```
+
+### 2. Frontend Setup
+```bash
+# Install Node dependencies
+npm install
+
+# Create .env.local file with required variables (see Configuration section)
+cp .env.example .env.local
+
+# Start Development Server
+npm run dev
+# > Ready on http://localhost:3000
+```
+
+### 3. Backend Setup
+```bash
+cd backend
+
+# Option A: Windows PowerShell
+.\setup.ps1          # Creates virtual environment and installs dependencies
+.\start.ps1          # Starts FastAPI server
+
+# Option B: Manual setup (all platforms)
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+
+pip install -r requirements.txt
+python main.py
+# > Chemistry Avatar API Starting...
+# > Backend URL: http://localhost:8000
+```
+
+### 4. Verify Installation
+- Frontend: Open http://localhost:3000 in your browser
+- Backend API Docs: Open http://localhost:8000/docs
+- Backend Health: Open http://localhost:8000/health
+
+---
+
+## 🔧 Configuration
+
+Create a `.env.local` file in the root directory for frontend configuration:
+
+| Variable | Description | Required |
+|:---|:---|:---:|
+| `NEXT_PUBLIC_BACKEND_URL` | Backend API URL (e.g., http://localhost:8000) | ✅ |
+| `GEMINI_API_KEY` | Google Gemini API Key | ✅ |
+| `MONGODB_URI` | MongoDB connection string | ✅ |
+| `NEXTAUTH_SECRET` | Secret key for session encryption | ✅ |
+| `NEXTAUTH_URL` | Base URL (e.g., http://localhost:3000) | ✅ |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | ✅ |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | ✅ |
+| `AGORA_APP_ID` | Agora SDK App ID | ✅ |
+| `AGORA_CERTIFICATE` | Agora SDK Certificate | ✅ |
+| `NODE_ENV` | Environment (development/production) | ❌ |
+
+Create a `backend/.env` file for backend configuration:
+
+| Variable | Description | Default |
+|:---|:---|:---|
+| `GEMINI_API_KEY` | Google Gemini API Key | Required |
+| `MONGODB_URI` | MongoDB connection string | Required |
+| `BACKEND_URL` | Backend URL | http://localhost:8000 |
+| `FRONTEND_URL` | Frontend URL for CORS | http://localhost:3000 |
+| `AGORA_APP_ID` | Agora App ID | Required |
+| `AGORA_CERTIFICATE` | Agora Certificate | Required |
+
+### Environment Setup Example
+
+**.env.local (Frontend)**
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/elixra
+NEXTAUTH_SECRET=your_secret_key_here
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+AGORA_APP_ID=your_agora_app_id
+AGORA_CERTIFICATE=your_agora_certificate
+NODE_ENV=development
+```
+
+**backend/.env (Backend)**
+```bash
+GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/elixra
+BACKEND_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+AGORA_APP_ID=your_agora_app_id
+AGORA_CERTIFICATE=your_agora_certificate
+```
+
+---
+
+## 📜 Scripts & Commands
+
+### Frontend Scripts
+
+```bash
+npm run dev      # Start development server (http://localhost:3000)
+npm run build    # Create optimized production build
+npm run start    # Start production server
+npm run lint     # Run ESLint checks
+```
+
+### Backend Scripts
+
+**Windows PowerShell:**
+```bash
+cd backend
+.\setup.ps1      # Create venv and install dependencies
+.\start.ps1      # Start FastAPI server
+```
+
+**Manual (All Platforms):**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Mac/Linux
+# or
+venv\Scripts\activate     # Windows
+
+pip install -r requirements.txt
+python main.py
+```
+
+### Testing & Validation
+
+```bash
+# Frontend linting
+npm run lint
+
+# Frontend type checking
+npx tsc --noEmit
+
+# Frontend tests (if configured)
+npx vitest
+
+# Backend API documentation
+# Open http://localhost:8000/docs (Swagger UI)
+# Open http://localhost:8000/redoc (ReDoc)
+```
+
+---
+
+## 📡 API Documentation
+
+The backend exposes comprehensive endpoints for all features. Full Swagger documentation available at `http://localhost:8000/docs`.
+
+### Key Endpoints
+
+**Chat & AI Tutor:**
+- `POST /chat` - Streaming chat with AI tutor
+- `POST /analyze-reaction` - Chemical reaction analysis
+- `POST /analyze-molecule` - Molecular structure analysis
+- `POST /generate-molecule` - AI-generated molecule creation
+- `WebSocket /ws` - Real-time WebSocket communication
+
+**Quiz & Learning:**
+- `POST /quiz/generate` - Dynamic quiz generation
+- `POST /quiz/generate-mcq` - Multiple choice questions
+- `POST /quiz/generate-reaction` - Reaction-based questions
+- `POST /quiz/generate-explanation` - Explanation questions
+
+**Spectroscopy:**
+- `POST /spectroscopy/analyze` - Spectroscopy data analysis
+- `POST /spectroscopy/interpret` - Spectrum interpretation
+
+**Voice & Audio:**
+- `POST /synthesize` - Text-to-speech synthesis (Polly - planned)
+- `WebSocket /transcribe` - Speech-to-text transcription (Transcribe - planned)
+
+**User & Progress:**
+- `GET /user/profile` - User profile data
+- `GET /user/progress` - Learning progress
+- `POST /user/achievements` - Achievement tracking
+
+### Example Requests
+
+**Quiz Generation:**
+```json
+POST /quiz/generate
+{
+  "difficulty": "medium",
+  "num_questions": 5,
+  "question_types": ["mcq", "explanation"],
+  "include_timer": true
+}
+```
+
+**AI Chat:**
+```json
+POST /chat
+{
+  "message": "Explain covalent bonding",
+  "context": "User is looking at a Carbon atom",
+  "history": []
+}
+```
+
+---
+
+## 🧪 Core Modules
+
+### Virtual Lab (`app/lab/`)
+Interactive chemistry workbench with:
+- Drag-and-drop equipment placement
+- Real-time reaction simulation
+- Physics-based interactions
+- Safety warnings and guidelines
+
+### Quiz System (`app/quiz/`)
+Adaptive learning with:
+- Dynamic question generation via Gemini AI
+- Multiple question types (MCQ, Reactions, Explanations)
+- Performance tracking and analytics
+- Difficulty scaling based on user performance
+
+### Molecule Viewer (`app/molecules/`)
+3D molecular visualization featuring:
+- Interactive 3D structure viewer (Three.js)
+- Bonding logic and validation
+- Molecular templates library
+- Periodic table integration
+
+### Spectroscopy (`app/spectroscopy/`)
+Advanced analysis tools for:
+- NMR spectrum interpretation
+- IR spectrum analysis
+- Mass spectrometry data
+- Interactive visualization with tooltips
+
+### Collaboration (`app/collaborate/`)
+Real-time features including:
+- Shared experiment workspaces
+- Live chat and annotations
+- Synchronized state management
+- Peer learning support
+
+---
+
+## 🎤 Avatar Voice Configuration
+
+### Available Voice Options
+
+The avatar uses the **Web Speech API** with platform-specific voices:
+
+**Windows:**
+- Microsoft Zira (Female) - Default, natural
+- Microsoft David (Male) - Professional
+- Microsoft Hazel (Female) - Warm, engaging
+- Microsoft Aria (Female) - Modern
+
+**macOS:**
+- Samantha (Female) - Default
+- Victoria (Female) - British accent
+- Moira (Female) - Irish accent
+- Alex (Male) - Professional
+
+### Customizing Avatar Voice
+
+**Option 1: Browser Settings (Easiest)**
+1. Chrome/Edge: Settings → Advanced → Accessibility → Text-to-speech
+2. Select your preferred voice
+3. Avatar will use this voice automatically
+
+**Option 2: Code Modification**
+
+Edit `components/StreamingChat.tsx`:
 
 ```typescript
-// Example API call structure
-const reactionData = {
-  chemicals: [
-    { name: "Sodium Chloride", formula: "NaCl", amount: 2, unit: "g" },
-    { name: "Silver Nitrate", formula: "AgNO₃", amount: 1, unit: "g" }
-  ]
-}
+const voices = synthRef.current.getVoices()
+const selectedVoice = voices.find(voice => 
+  voice.name.includes('Zira')  // Change to: David, Hazel, Aria
+)
 
-// AI Response includes:
-{
-  balancedEquation: "NaCl + AgNO₃ → AgCl↓ + NaNO₃",
-  reactionType: "precipitation",
-  color: "white precipitate",
-  precipitate: true,
-  precipitateColor: "white",
-  products: ["AgCl", "NaNO₃"],
-  observations: ["White precipitate forms immediately"],
-  safetyNotes: ["Handle silver compounds with care"],
-  confidence: 0.95
+if (selectedVoice) {
+  utterance.voice = selectedVoice
+  utterance.rate = 1.1        // Speed: 0.1-2.0
+  utterance.pitch = 1.0       // Pitch: 0.0-2.0
+  utterance.volume = 1.0      // Volume: 0.0-1.0
 }
 ```
 
-### **Fallback System**
+**Option 3: Add Voice Selection UI**
 
-For testing and offline use, the app includes deterministic reactions:
+Create a dropdown selector in the chat interface to let users choose voices dynamically.
 
-- **AgNO₃ + NaCl** → White precipitate (AgCl)
-- **CuSO₄ + NaOH** → Blue precipitate (Cu(OH)₂)
-- **Generic mixing** → Basic color blending
-
----
-
-## 💾 Data Storage
-
-### **Dual Storage System**
-
-#### **Client-Side (localStorage)**
-
-- Quick access to recent experiments
-- Offline functionality
-- No server dependency
-- Immediate save/load
-
-#### **Server-Side (MongoDB)**
-
-- Persistent cloud storage
-- Cross-device synchronization
-- Experiment sharing
-- Analytics and tracking
-
-### **Data Structure**
+### Voice Properties
 
 ```typescript
-interface ExperimentLog {
-  userId: string;
-  experimentName: string;
-  chemicals: ChemicalContent[];
-  reactionDetails: ReactionResult;
-  timestamp: Date;
-}
+utterance.rate = 1.1        // Speed (0.1 slow to 2.0 fast)
+utterance.pitch = 1.0       // Pitch (0.0 low to 2.0 high)
+utterance.volume = 1.0      // Volume (0.0 silent to 1.0 loud)
 ```
 
 ---
 
-## 📱 Responsive Design
+## 🔄 Development Workflow
 
-### **Breakpoint Strategy**
+### Git Workflow
+- **main** — Stable production branch
+- **feature branches** — e.g., `feature/spectroscopy`, `feature/lab-equipment`
 
-- **Mobile** (< 768px): Stacked layout, touch-optimized
-- **Tablet** (768px - 1024px): Flexible grid, hybrid interactions
-- **Desktop** (> 1024px): Full three-panel layout
+### Development Process
+1. Create a feature branch from `main`
+2. Implement changes with proper TypeScript types
+3. Run `npm run lint` to check code quality
+4. Run `npm run build` to verify production build
+5. Open a Pull Request with clear description
+6. Code review and merge to `main`
 
-### **Adaptive Features**
-
-- **Touch Support**: Enhanced drag areas for mobile
-- **Gesture Recognition**: Pinch, zoom, swipe gestures
-- **Flexible Layouts**: Components reflow based on screen size
-- **Optimized Performance**: Reduced animations on mobile
-
----
-
-## 🔧 API Endpoints
-
-### **Reaction Analysis**
-
-```http
-POST /api/react
-Content-Type: application/json
-
-{
-  "name": "Experiment Name",
-  "chemicals": [...],
-  "glassware": [...]
-}
-```
-
-### **Authentication**
-
-```http
-# User registration
-POST /api/auth/register
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "securepassword"
-}
-
-# NextAuth.js endpoints
-GET/POST /api/auth/[...nextauth]
-```
-
-### **Experiment Management**
-
-```http
-# Save experiment (authenticated)
-POST /api/experiments
-Authorization: Bearer <session-token>
-{
-  "name": "Silver Chloride Precipitation",
-  "chemicals": [...],
-  "reactionDetails": {...}
-}
-
-# Get user experiments
-GET /api/experiments?limit=20&skip=0&search=precipitation
-
-# Get specific experiment
-GET /api/experiments/[id]
-
-# Update experiment
-PUT /api/experiments/[id]
-
-# Delete experiment
-DELETE /api/experiments/[id]
-```
-
-### **User Profile**
-
-```http
-# Get user profile with statistics
-GET /api/user/profile
-
-# Update user preferences
-PUT /api/user/profile
-{
-  "name": "Updated Name",
-  "preferences": {
-    "theme": "dark",
-    "autoSave": true
-  }
-}
-```
+### Code Standards
+- **Frontend**: ESLint rules, functional components, React Hooks
+- **Backend**: Type hints (Pydantic), PEP 8 compliance, async/await patterns
 
 ---
 
-## 🌟 Key Features Explained
+## 🧰 Troubleshooting
 
-### **🎯 Drag & Drop System**
+### Frontend Issues
 
-- **React DnD**: Professional drag and drop implementation
-- **Visual Feedback**: Hover states, drop zones, animations
-- **Multi-target**: Drag to specific containers or general areas
-- **Touch Support**: Works on mobile devices
+**ChunkLoadError or outdated client files:**
+```bash
+# Stop dev server, clear cache, restart
+rm -rf .next
+npm run dev
+```
 
-### **⚗️ Realistic Glassware**
+**ESLint warnings:**
+- `@next/next/no-img-element`: Use `next/image` for optimized loading
+- `react-hooks/exhaustive-deps`: Include all dependencies in useEffect
 
-- **Accurate Volumes**: Test tubes (10ml), Beakers (50ml)
-- **Visual Liquid Levels**: Height corresponds to actual volume
-- **Measurement Marks**: Graduated markings on glassware
-- **Proper Scaling**: Realistic proportions and sizes
+**TypeScript errors:**
+- Check type definitions in `types/` directory
+- Ensure all imports are properly typed
 
-### **🎨 Advanced Animations**
+### Backend Issues
 
-- **Liquid Pouring**: Smooth height transitions
-- **Precipitation**: Particle settling effects
-- **Gas Evolution**: Bubble animations
-- **Color Mixing**: Gradient transitions
+**ModuleNotFoundError:**
+```bash
+# Reinstall dependencies
+pip install -r requirements.txt
+```
 
-### **📊 Professional Reports**
+**Connection errors:**
+- Verify MongoDB URI in `.env`
+- Check Gemini API key validity
+- Ensure backend is running on port 8000
 
-- **PDF Generation**: Comprehensive experiment documentation
-- **Structured Layout**: Professional formatting with sections
-- **Complete Data**: All experiment details and results
-- **Print Ready**: Optimized for printing and sharing
+**CORS errors:**
+- Verify `FRONTEND_URL` in backend `.env`
+- Check CORS configuration in `main.py`
+
+### Voice Issues
+
+**No voice playing:**
+```javascript
+console.log(window.speechSynthesis.getVoices())
+```
+
+**Voice sounds robotic:**
+- Reduce rate to 0.9-1.0
+- Adjust pitch to 0.9-1.1
+- Try different voice options
 
 ---
 
-## 📊 Project Structure
+## ☁️ AWS Services Migration
 
-```
-virtual-chemistry-lab/
-├── 📁 app/                      # Next.js App Router
-│   ├── 📄 page.tsx             # Landing Page
-│   ├── 📁 api/                 # API Routes
-│   │   ├── 📁 auth/            # Authentication
-│   │   │   ├── 📁 [...nextauth]/ # NextAuth.js
-│   │   │   └── 📁 register/    # User Registration
-│   │   ├── 📁 experiments/     # Experiment CRUD
-│   │   │   └── 📁 [id]/        # Individual Experiment
-│   │   ├── 📁 user/            # User Management
-│   │   │   └── 📁 profile/     # User Profile
-│   │   └── 📁 react/           # AI Reaction Analysis
-│   ├── 📁 auth/                # Authentication Pages
-│   │   ├── 📁 signin/          # Sign In Page
-│   │   └── 📁 signup/          # Sign Up Page
-│   └── 📁 lab/                 # Protected Lab Interface
-├── 📁 components/              # React Components
-│   ├── 🏠 HomePage.tsx         # Landing Page Components
-│   ├── 🔐 AuthButton.tsx       # User Authentication Menu
-│   ├── 🧪 ChemicalShelf.tsx    # Enhanced Chemical Selection
-│   ├── ⚗️ LabTable.tsx         # Main Workspace
-│   ├── 🧪 TestTube.tsx         # Test Tube with Effects
-│   ├── 🥽 Beaker.tsx           # Beaker with Precipitation
-│   ├── 📊 ReactionPanel.tsx    # Advanced Results Display
-│   ├── 🎛️ ExperimentControls.tsx # Full CRUD Controls
-│   ├── 🎨 ThemeProvider.tsx    # Theme Management
-│   ├── 🖱️ DndWrapper.tsx       # Drag & Drop Context
-│   └── 🔄 Providers.tsx        # App Providers
-├── 📁 contexts/                # React Contexts
-│   └── 🔐 AuthContext.tsx      # Authentication State
-├── 📁 lib/                     # Utilities & Configuration
-│   ├── 🗄️ mongodb.ts          # Database Connection
-│   └── 🔐 auth.ts              # NextAuth Configuration
-├── 📁 types/                   # TypeScript Definitions
-│   ├── 🧬 chemistry.ts         # Chemical & Experiment Types
-│   └── 🔐 next-auth.d.ts       # NextAuth Type Extensions
-├── 📁 hooks/                   # Custom Hooks
-│   └── 🖱️ useDragScroll.ts     # Enhanced Drag Behavior
-├── 📄 middleware.ts            # Route Protection
-└── 📁 styles/                  # Global Styles
-    └── 🎨 globals.css          # Enhanced Tailwind & Effects
-```
+Elixra is planning to migrate from Google Gemini and Agora SDK to AWS services for enhanced scalability and cost optimization.
+
+### Planned AWS Integration
+
+**Amazon Bedrock** (replaces Gemini):
+- Claude 3 Sonnet for LLM tasks
+- Same streaming/JSON patterns
+- Minimal code changes required
+
+**Amazon Polly** (replaces Agora TTS):
+- Neural voices for avatar synthesis
+- Real-time audio streaming
+- Phoneme data for lip-sync
+
+**Amazon Transcribe** (replaces Agora STT):
+- Streaming speech-to-text
+- Chemistry vocabulary support
+- Real-time transcription
+
+### Migration Timeline
+- **Phase 1-2**: AWS setup and Bedrock integration (Weeks 1-4)
+- **Phase 3-4**: Polly and Transcribe integration (Weeks 5-8)
+- **Phase 5-8**: Testing, optimization, and deployment (Weeks 9-16)
+
+For detailed migration information, see `.kiro/specs/aws-services-replacement/`:
+- `INTEGRATION_SUMMARY.md` - Quick reference
+- `design.md` - Architecture and implementation
+- `tasks.md` - Detailed implementation tasks
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions to Elixra! Please follow these guidelines:
 
-### **🐛 Bug Reports**
+1. **Fork** the repository
+2. Create a **Feature Branch** (`git checkout -b feature/YourFeature`)
+3. **Commit** your changes (`git commit -m 'Add YourFeature'`)
+4. **Push** to the branch (`git push origin feature/YourFeature`)
+5. Open a **Pull Request** with clear description
 
-- Use GitHub Issues
-- Include steps to reproduce
-- Provide browser/device info
-- Add screenshots if applicable
-
-### **✨ Feature Requests**
-
-- Describe the feature clearly
-- Explain the use case
-- Consider implementation complexity
-- Check existing issues first
-
-### **🔧 Development**
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-### **📝 Documentation**
-
-- Improve README sections
-- Add code comments
-- Create tutorials
-- Fix typos and grammar
-
----
-
-## 🚀 Deployment
-
-### **Vercel (Recommended)**
-
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Deploy to production**
-   ```bash
-   vercel --prod
-   ```
-
-3. **Set environment variables in Vercel dashboard**
-
-### **Docker Deployment**
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-RUN npm ci --only=production
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Expose port
-EXPOSE 3000
-
-# Start the application
-CMD ["npm", "start"]
-```
-
-### **Environment Variables for Production**
-
-Required environment variables:
-
-```env
-# Database
-MONGODB_URI=mongodb+srv://...
-
-# AI Integration
-GEMINI_API_KEY=your_gemini_api_key
-
-# Authentication
-NEXTAUTH_URL=https://yourdomain.com
-NEXTAUTH_SECRET=your_production_secret
-
-# OAuth (Optional)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_ID=your_github_client_id
-GITHUB_SECRET=your_github_client_secret
-```
-
-### **Production Checklist**
-
-- ✅ Set all environment variables
-- ✅ Configure MongoDB Atlas IP whitelist
-- ✅ Set up OAuth providers (if using)
-- ✅ Test authentication flow
-- ✅ Verify AI integration
-- ✅ Check responsive design
-- ✅ Test PDF generation
-- ✅ Validate experiment saving
-
----
-
-## 📈 Performance
-
-### **Optimization Features**
-
-- **Code Splitting**: Automatic route-based splitting
-- **Image Optimization**: Next.js Image component
-- **Caching**: API response caching
-- **Lazy Loading**: Component lazy loading
-- **Bundle Analysis**: Webpack bundle analyzer
-
-### **Performance Metrics**
-
-- **First Contentful Paint**: < 1.5s
-- **Largest Contentful Paint**: < 2.5s
-- **Cumulative Layout Shift**: < 0.1
-- **First Input Delay**: < 100ms
-
----
-
-## 🔒 Security
-
-### **Data Protection**
-
-- **Environment Variables**: Sensitive data in env files
-- **API Rate Limiting**: Prevents abuse
-- **Input Validation**: Sanitized user inputs
-- **HTTPS Only**: Secure connections required
-
-### **Privacy**
-
-- **Anonymous Usage**: No personal data required
-- **Local Storage**: Data stays on device when possible
-- **Optional Cloud**: MongoDB usage is optional
-
----
-
-## 🧪 Testing
-
-### **Test Coverage**
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test suite
-npm run test:components
-```
-
-### **Test Types**
-
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: API endpoint testing
-- **E2E Tests**: Full user workflow testing
-- **Visual Tests**: Screenshot comparison testing
+### Contribution Areas
+- New experiment templates
+- Enhanced 3D visualizations
+- Additional spectroscopy tools
+- Improved AI tutor responses
+- Performance optimizations
+- Documentation improvements
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## 📞 Support & Resources
 
-- **Google Gemini AI** - For intelligent reaction analysis
-- **MongoDB Atlas** - For cloud database services
-- **Vercel** - For hosting and deployment
-- **Open Source Community** - For the amazing tools and libraries
+### Documentation
+- [Next.js Documentation](https://nextjs.org/docs)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Three.js Documentation](https://threejs.org/docs/)
+- [MongoDB Documentation](https://docs.mongodb.com/)
 
----
+### Chemistry Resources
+- [IUPAC Nomenclature](https://www.iupac.org/)
+- [Chemical Reaction Types](https://www.britannica.com/science/chemical-reaction)
+- [Spectroscopy Guide](https://www.chem.ucla.edu/~bacher/General/Spectroscopy/)
 
-## 📞 Support
-
-- **📧 Email**: support@virtualchemlab.com
-- **💬 Discord**: [Join our community](https://discord.gg/virtualchemlab)
-- **🐛 Issues**: [GitHub Issues](https://github.com/yourusername/virtual-chemistry-lab/issues)
-- **📖 Docs**: [Full Documentation](https://docs.virtualchemlab.com)
+### AWS Services (Planned)
+- [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)
+- [Amazon Polly](https://docs.aws.amazon.com/polly/)
+- [Amazon Transcribe](https://docs.aws.amazon.com/transcribe/)
 
 ---
 
 <div align="center">
-
-**Made with ❤️ for chemistry education**
-
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/virtual-chemistry-lab?style=social)](https://github.com/yourusername/virtual-chemistry-lab)
-[![Twitter Follow](https://img.shields.io/twitter/follow/virtualchemlab?style=social)](https://twitter.com/virtualchemlab)
-
+  <sub>Built with ❤️ for the Future of Science Education</sub>
+  <br />
+  <sub>Elixra © 2024 - Making Chemistry Education Immersive & Interactive</sub>
 </div>

@@ -1,0 +1,27 @@
+{
+  "name": "Elixra Virtual Chem Lab",
+  "short_name": "Elixra",
+  "description": "Interactive virtual chemistry laboratory for experiments and learning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "icons": [],
+  "categories": ["education", "science"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Lab",
+      "short_name": "Lab",
+      "description": "Open the virtual lab",
+      "url": "/lab"
+    },
+    {
+      "name": "Quiz",
+      "short_name": "Quiz",
+      "description": "Daily reaction quiz",
+      "url": "/quiz"
+    }
+  ]
+}

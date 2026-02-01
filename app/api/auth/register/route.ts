@@ -16,17 +16,26 @@ export async function POST(request: NextRequest) {
 
     const db = await getDatabase()
     
-    // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ email })
-    if (existingUser) {
+    // Check if email already exists
+    const existingEmail = await db.collection('users').findOne({ email })
+    if (existingEmail) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'Email already exists' },
         { status: 400 }
       )
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Select random avatar
+    const avatars = [
+      '/Assets/Profile/Female 2.svg',
+      '/Assets/Profile/Female1.svg',
+      '/Assets/Profile/Male1.svg',
+      '/Assets/Profile/Male2.svg'
+    ]
+    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)]
 
     // Create user
     const result = await db.collection('users').insertOne({
@@ -35,7 +44,9 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       createdAt: new Date(),
       emailVerified: null,
-      image: null,
+      image: randomAvatar,
+      experiments: [], // Initialize empty experiments array
+      savedExperiments: [] // Initialize empty saved experiments array
     })
 
     return NextResponse.json({

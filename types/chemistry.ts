@@ -33,27 +33,85 @@ export interface ChemicalContent {
   unit: 'ml' | 'g' | 'mol' | 'drops'
 }
 
+export interface EquipmentSetting {
+  name: string
+  value: number
+  unit: string
+}
+
 export interface Experiment {
   id?: string
   name: string
   chemicals: ChemicalContent[]
   glassware: Glassware[]
+  equipment?: EquipmentSetting[]
   timestamp?: Date
   userId?: string
 }
 
+export interface InstrumentEffect {
+  name: string
+  intensity: string // e.g. "High heat", "300 RPM"
+  change: string // Physical/chemical change explanation
+  outcomeDifference: string // How result differs
+  counterfactual: string // What if not used
+}
+
+export interface ProductInfo {
+  name: string
+  state: string // solid/liquid/gas/aqueous
+  color: string
+  characteristics: string
+  commonUses: string
+  safetyHazards: string
+}
+
+export interface ReactionExplanation {
+  mechanism: string
+  bondBreaking: string
+  electronTransfer?: string
+  energyProfile: string
+  atomicLevel: string
+  keyConcept: string
+}
+
+export interface SafetyInfo {
+  riskLevel: string
+  precautions: string
+  disposal: string
+  firstAid: string
+  generalHazards: string
+}
+
 export interface ReactionResult {
+  // Core
+  balancedEquation: string
+  reactionType: string
+  visualObservation: string // Summarized visual observation
+
+  // Observable Info
   color: string
   smell: string
+  temperatureChange: 'exothermic' | 'endothermic' | 'none'
+  gasEvolution: string | null // "None" or gas name
+  emission: string | null // Light or sound
+  stateChange: string | null
+  phChange: string | null
+  ph?: number // Added optional number field
+
+  // Complex Objects
+  instrumentAnalysis?: InstrumentEffect
+  productsInfo: ProductInfo[]
+  explanation: ReactionExplanation
+  safety: SafetyInfo
+
+  // Legacy fields for backward compatibility
   precipitate: boolean
   precipitateColor?: string
   products: string[]
-  balancedEquation: string
-  reactionType: string
   observations: string[]
   safetyNotes?: string[]
-  temperature?: 'increased' | 'decreased' | 'unchanged'
-  gasEvolution?: boolean
+  temperature?: 'increased' | 'decreased' | 'unchanged' // Deprecated in favor of temperatureChange
   confidence: number
 }
 
@@ -66,6 +124,7 @@ export interface ExperimentLog {
   timestamp: Date
   updatedAt?: Date
   notes?: string
+  isSaved?: boolean
   metadata?: {
     userAgent?: string | null
     ip?: string | null

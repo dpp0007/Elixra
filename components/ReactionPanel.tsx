@@ -2,15 +2,30 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Experiment, ReactionResult } from '@/types/chemistry'
-import { 
-  Atom, 
-  Eye, 
-  Wind as SmellIcon, 
-  Thermometer, 
-  AlertTriangle, 
+import { generateExperimentPDF } from '@/lib/pdfExport'
+import { useState } from 'react'
+import {
+  Atom,
+  Eye,
+  Wind as SmellIcon,
+  Thermometer,
+  AlertTriangle,
   Beaker,
   Zap,
-  Wind
+  Wind,
+  Info,
+  BookOpen,
+  Shield,
+  Activity,
+  Flame,
+  Droplets,
+  Volume2,
+  Lightbulb,
+  FlaskConical,
+  Microscope,
+  Scale,
+  FileText,
+  Download
 } from 'lucide-react'
 
 interface ReactionPanelProps {
@@ -20,9 +35,33 @@ interface ReactionPanelProps {
 }
 
 export default function ReactionPanel({ experiment, result, isLoading }: ReactionPanelProps) {
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExportPDF = async () => {
+    if (!experiment || !result) return
+    
+    setIsExporting(true)
+    try {
+      // Create a report object
+      const report = {
+        experiment,
+        result,
+        date: new Date(),
+        author: 'Student Researcher' // Could be dynamic if user profile exists
+      }
+      
+      generateExperimentPDF(report)
+    } catch (error) {
+      console.error('Failed to export PDF:', error)
+      alert('Failed to generate PDF report. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   if (!experiment && !result && !isLoading) {
     return (
-      <div className="lab-container reaction-panel-container p-4 sm:p-6 h-auto lg:h-[calc(100vh-140px)] max-h-[500px] lg:max-h-none overflow-y-auto flex items-center justify-center" style={{
+      <div className="p-4 sm:p-6 h-full flex items-center justify-center" style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b'
       }}>
@@ -38,19 +77,10 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
   }
 
   return (
-    <div className="lab-container reaction-panel-container p-4 sm:p-6 h-auto lg:h-[calc(100vh-140px)] max-h-[600px] lg:max-h-none overflow-y-auto" style={{
+    <div className="p-3 sm:p-4 space-y-4 sm:space-y-6" style={{
       scrollbarWidth: 'thin',
       scrollbarColor: '#475569 #1e293b'
     }}>
-      <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-        <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-          <Atom className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-        </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-          Reaction Analysis
-        </h2>
-      </div>
-
       <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div
@@ -61,9 +91,9 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
             className="space-y-4"
           >
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-elixra-bunsen"></div>
             </div>
-            <p className="text-center text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm sm:text-base text-elixra-text-secondary">
               AI is analyzing the reaction...
             </p>
           </motion.div>
@@ -73,226 +103,308 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
-            {/* Reaction Equation */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center space-x-2 mb-3">
-                <div className="p-1.5 bg-blue-500 rounded-lg">
-                  <Atom className="h-4 w-4 text-white" />
+            {/* Instrument Analysis */}
+            {result.instrumentAnalysis && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white/50 dark:bg-white/5 rounded-xl p-4 sm:p-6 border border-elixra-copper/20 shadow-lg group"
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 bg-elixra-bunsen/10 rounded-lg animate-pulse">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-elixra-bunsen" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-elixra-text-primary">
+                    Instrument Analysis: {result.instrumentAnalysis.name}
+                  </h3>
                 </div>
-                <h3 className="font-bold text-blue-900 dark:text-blue-100">
-                  Balanced Equation
-                </h3>
-              </div>
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700 shadow-inner">
-                <p className="font-mono text-lg text-gray-900 dark:text-white font-medium">
-                  {result.balancedEquation}
-                </p>
-              </div>
-            </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg border border-elixra-copper/10">
+                    <p className="text-[10px] sm:text-xs text-elixra-text-secondary uppercase font-bold mb-1">Setting / Intensity</p>
+                    <p className="text-sm sm:text-base text-elixra-text-primary font-medium">{result.instrumentAnalysis.intensity}</p>
+                  </div>
+                  <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg border border-elixra-copper/10">
+                    <p className="text-[10px] sm:text-xs text-elixra-text-secondary uppercase font-bold mb-1">Effect & Change</p>
+                    <p className="text-sm sm:text-base text-elixra-text-primary font-medium">{result.instrumentAnalysis.change}</p>
+                  </div>
+                  <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg border border-elixra-copper/10">
+                    <p className="text-[10px] sm:text-xs text-elixra-text-secondary uppercase font-bold mb-1">Outcome Difference</p>
+                    <p className="text-sm sm:text-base text-elixra-text-primary font-medium">{result.instrumentAnalysis.outcomeDifference}</p>
+                  </div>
+                  <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg border border-elixra-copper/10">
+                    <p className="text-[10px] sm:text-xs text-elixra-text-secondary uppercase font-bold mb-1">Counterfactual (Without Instrument)</p>
+                    <p className="text-sm sm:text-base text-elixra-text-primary font-medium italic">{result.instrumentAnalysis.counterfactual}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-            {/* Reaction Type */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <Zap className="h-5 w-5 text-white" />
+            {/* Core Details & Equation */}
+            <div className="relative overflow-hidden bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-xl text-elixra-text-primary border border-elixra-copper/20 group transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10">
+              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity">
+                <Atom className="h-24 w-24 sm:h-32 sm:w-32 text-elixra-bunsen" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-elixra-bunsen/10 backdrop-blur-md rounded-lg shadow-sm border border-elixra-bunsen/20">
+                      <Atom className="h-4 w-4 sm:h-5 sm:w-5 text-elixra-bunsen" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-elixra-text-primary text-base sm:text-lg tracking-tight">Reaction Analysis</h3>
+                      <p className="text-xs sm:text-sm text-elixra-text-secondary font-medium opacity-90">{result.reactionType}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Export Button */}
+                  <button
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 px-4 py-2 bg-elixra-bunsen hover:bg-elixra-bunsen-dark text-white rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                  >
+                    {isExporting ? (
+                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                    )}
+                    <span className="text-sm font-semibold">Export Research PDF</span>
+                  </button>
                 </div>
-                <div>
-                  <span className="text-sm text-purple-700 dark:text-purple-300 font-medium uppercase tracking-wide">
-                    Reaction Type
-                  </span>
-                  <p className="text-xl text-purple-900 dark:text-purple-100 font-bold capitalize">
-                    {result.reactionType}
+                
+                <div className="bg-elixra-bunsen/5 backdrop-blur-md p-4 sm:p-5 rounded-xl border border-elixra-bunsen/10 shadow-inner">
+                  <p className="text-[10px] sm:text-xs font-bold text-elixra-bunsen uppercase tracking-wider mb-2">Balanced Equation</p>
+                  <p className={`text-lg sm:text-xl font-medium text-elixra-text-primary leading-relaxed font-mono ${result.balancedEquation.length > 50 ? 'break-words' : 'break-all'}`}>
+                    {result.balancedEquation}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Visual Observations */}
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="p-1.5 bg-gray-600 rounded-lg">
-                  <Eye className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-900 dark:text-white">
-                  Visual Observations
-                </h3>
+            {/* Primary Observation Card */}
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-xl p-4 sm:p-5 flex items-start gap-4 shadow-lg border border-elixra-copper/20 text-elixra-text-primary relative overflow-hidden group transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10">
+              <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                <Eye className="h-16 w-16 sm:h-24 sm:w-24 text-elixra-bunsen" />
               </div>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">Solution Color:</span>
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner relative flex-shrink-0"
-                        style={{ 
-                          backgroundColor: result.color === 'colorless' || result.color === 'transparent' 
-                            ? 'transparent' 
-                            : result.color 
-                        }}
-                      >
-                        {(result.color === 'colorless' || result.color === 'transparent') && (
-                          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-full opacity-50"></div>
-                        )}
-                      </div>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
-                        {result.color === 'colorless' ? 'Clear' : result.color}
-                      </span>
-                    </div>
+              <div className="p-2 sm:p-2.5 bg-elixra-bunsen/10 rounded-lg backdrop-blur-sm shrink-0">
+                <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-elixra-bunsen" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-[10px] sm:text-xs font-bold text-elixra-bunsen uppercase tracking-wider mb-1">Primary Observation</p>
+                <p className="text-base sm:text-lg font-bold text-elixra-text-primary leading-snug">{result.visualObservation}</p>
+              </div>
+            </div>
+
+            {/* Observable Properties Block */}
+            <div className="bg-white/50 dark:bg-white/5 rounded-xl border border-elixra-copper/20 overflow-hidden shadow-lg">
+              <div className="divide-y divide-elixra-copper/10">
+                {/* Color */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-elixra-copper/50`} style={{ backgroundColor: result.color === 'colorless' ? 'transparent' : result.color }}></div>
+                    <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">Color</p>
                   </div>
+                  <p className="text-sm sm:text-base font-bold text-elixra-text-primary text-left sm:text-right leading-tight w-full sm:max-w-[60%]">
+                    {(result.visualObservation && (result.visualObservation.includes('Precipitate') || result.visualObservation.includes('Solution')))
+                      ? result.visualObservation 
+                      : (result.color ? `${result.color.charAt(0).toUpperCase() + result.color.slice(1)}` : 'Unknown')}
+                  </p>
                 </div>
 
-                {result.precipitate && (
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Precipitate:</span>
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner flex-shrink-0"
-                          style={{ backgroundColor: result.precipitateColor || '#ffffff' }}
-                        ></div>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize text-sm">
-                          {result.precipitateColor || 'White'}
-                        </span>
-                      </div>
+                {/* Smell */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <SmellIcon className="w-4 h-4 sm:w-5 sm:h-5 text-elixra-bunsen" />
+                    <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">Smell</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-elixra-text-primary capitalize text-left sm:text-right">{result.smell || 'None'}</p>
+                </div>
+
+                {/* Temperature */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-elixra-bunsen" />
+                    <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">Temp</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-elixra-text-primary capitalize text-left sm:text-right">{result.temperatureChange || 'No Change'}</p>
+                </div>
+
+                {/* pH Change */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Droplets className="w-4 h-4 sm:w-5 sm:h-5 text-elixra-bunsen" />
+                    <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">pH Change</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-elixra-text-primary text-left sm:text-right">{result.phChange || 'None'}</p>
+                </div>
+
+                {/* Gas Evolution */}
+                {result.gasEvolution && result.gasEvolution !== 'None' && (
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Wind className="w-4 h-4 sm:w-5 sm:h-5 text-elixra-bunsen" />
+                      <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">Gas</p>
                     </div>
+                    <p className="text-sm sm:text-base font-bold text-elixra-text-primary text-left sm:text-right">{result.gasEvolution}</p>
                   </div>
                 )}
 
-                {result.gasEvolution && (
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Gas Evolution:</span>
-                      <div className="flex items-center space-x-2">
-                        <Wind className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
-                          Yes
-                        </span>
-                      </div>
+                {/* Emission */}
+                {result.emission && result.emission !== 'None' && (
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-elixra-bunsen/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-elixra-bunsen" />
+                      <p className="text-xs sm:text-sm font-bold text-elixra-text-secondary uppercase tracking-wider">Emission</p>
                     </div>
+                    <p className="text-sm sm:text-base font-bold text-elixra-text-primary text-left sm:text-right">{result.emission}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Smell */}
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-yellow-500 rounded-lg">
-                  <SmellIcon className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <span className="text-sm text-yellow-700 dark:text-yellow-300 font-medium uppercase tracking-wide">
-                    Smell
-                  </span>
-                  <p className="text-lg text-yellow-900 dark:text-yellow-100 font-semibold capitalize">
-                    {result.smell}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Temperature Change */}
-            {result.temperature && result.temperature !== 'unchanged' && (
-              <div className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                <Thermometer className="h-5 w-5 text-orange-600" />
-                <div>
-                  <span className="text-sm text-orange-800 dark:text-orange-200 font-medium">
-                    Temperature:
-                  </span>
-                  <p className="text-orange-900 dark:text-orange-100 capitalize">
-                    Temperature {result.temperature}
-                  </p>
+            {/* Explanation Section */}
+            {result.explanation && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-elixra-text-primary flex items-center gap-2">
+                  <div className="p-1.5 bg-elixra-bunsen/10 rounded-lg">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-elixra-bunsen" />
+                  </div>
+                  Reaction Explanation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-white/50 dark:bg-white/5 p-3 sm:p-4 rounded-2xl border border-elixra-copper/20 hover:border-elixra-copper/40 transition-colors shadow-lg group">
+                    <h4 className="font-bold text-elixra-text-primary text-base sm:text-lg leading-tight mb-3 sm:mb-4">Mechanism<br /><span className="text-elixra-bunsen">& Energy</span></h4>
+                    <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-elixra-text-secondary uppercase tracking-widest block">Mechanism</span>
+                        <p className="text-elixra-text-primary font-medium leading-relaxed">{result.explanation.mechanism}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-elixra-text-secondary uppercase tracking-widest block">Bond Breaking</span>
+                        <p className="text-elixra-text-primary font-medium leading-relaxed">{result.explanation.bondBreaking}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-elixra-text-secondary uppercase tracking-widest block">Energy Profile</span>
+                        <p className="text-elixra-text-primary font-medium leading-relaxed">{result.explanation.energyProfile}</p>
+                      </div>
+                      {result.explanation.electronTransfer && (
+                         <div className="space-y-1">
+                           <span className="text-[10px] font-bold text-elixra-text-secondary uppercase tracking-widest block">Electron Transfer</span>
+                           <p className="text-elixra-text-primary font-medium leading-relaxed">{result.explanation.electronTransfer}</p>
+                         </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/50 dark:bg-white/5 p-3 sm:p-4 rounded-2xl border border-elixra-copper/20 hover:border-elixra-copper/40 transition-colors shadow-lg group">
+                    <h4 className="font-bold text-elixra-text-primary text-base sm:text-lg leading-tight mb-3 sm:mb-4">Atomic<br /><span className="text-elixra-bunsen">Insight</span></h4>
+                    <div className="flex flex-col h-[calc(100%-3rem)] sm:h-[calc(100%-4rem)]">
+                      <div className="flex-1 text-xs sm:text-sm text-elixra-text-primary leading-relaxed space-y-3 sm:space-y-4">
+                        <p>{result.explanation.atomicLevel}</p>
+                      </div>
+                      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-elixra-copper/20">
+                        <span className="text-[10px] font-bold text-elixra-text-secondary uppercase tracking-widest block mb-2">Key Concept</span>
+                        <div className="bg-elixra-bunsen/10 rounded-xl p-2 sm:p-3 border border-elixra-bunsen/20">
+                          <span className="text-xs sm:text-sm font-medium text-elixra-text-primary italic leading-relaxed block">
+                            {result.explanation.keyConcept}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Products */}
-            {result.products && Array.isArray(result.products) && result.products.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
-                  <Beaker className="h-4 w-4 mr-2" />
+            {/* Products Info */}
+            {result.productsInfo && result.productsInfo.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-elixra-text-primary flex items-center gap-2">
+                  <div className="p-1.5 bg-elixra-bunsen/10 rounded-lg">
+                    <FlaskConical className="h-4 w-4 sm:h-5 sm:w-5 text-elixra-bunsen" />
+                  </div>
                   Products Formed
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {result.products.map((product, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium"
-                    >
-                      {product}
-                    </span>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  {result.productsInfo.map((product, idx) => (
+                    <div key={idx} className="bg-white/50 dark:bg-white/5 p-4 sm:p-5 rounded-2xl border border-elixra-copper/20 hover:border-elixra-copper/40 transition-colors shadow-lg group">
+                      <div className="flex justify-between items-start mb-3 sm:mb-4">
+                        <div>
+                          <h4 className="font-bold text-elixra-text-primary text-lg sm:text-xl">{product.name}</h4>
+                          <div className="flex gap-2 mt-2">
+                            <span className="text-[10px] sm:text-xs font-semibold bg-elixra-bunsen/10 text-elixra-bunsen px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-elixra-bunsen/20">
+                              {product.state}
+                            </span>
+                            <span className="text-[10px] sm:text-xs font-semibold bg-elixra-copper/10 text-elixra-copper px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-elixra-copper/20">
+                              {product.color}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs sm:text-sm text-elixra-text-secondary mb-4 sm:mb-5 leading-relaxed font-medium">{product.characteristics}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+                        <div className="bg-emerald-500/10 dark:bg-emerald-950/30 p-3 sm:p-4 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 block mb-2 uppercase text-[10px] sm:text-xs tracking-wider">Common Uses</span>
+                          <p className="text-emerald-700 dark:text-emerald-100/90 leading-relaxed">{product.commonUses}</p>
+                        </div>
+                        <div className="bg-rose-500/10 dark:bg-rose-950/30 p-3 sm:p-4 rounded-xl border border-rose-500/20 hover:bg-rose-500/20 transition-colors">
+                          <span className="font-bold text-rose-600 dark:text-rose-400 block mb-2 uppercase text-[10px] sm:text-xs tracking-wider">Hazards</span>
+                          <p className="text-rose-700 dark:text-rose-100/90 leading-relaxed">{product.safetyHazards}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Detailed Observations */}
-            {result.observations && Array.isArray(result.observations) && result.observations.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Detailed Observations
-                </h3>
-                <ul className="space-y-1">
-                  {result.observations.map((observation, index) => (
-                    <li
-                      key={index}
-                      className="text-sm text-gray-700 dark:text-gray-300 flex items-start space-x-2"
-                    >
-                      <span className="text-blue-500 mt-1">•</span>
-                      <span>{observation}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Safety Notes */}
-            {result.safetyNotes && Array.isArray(result.safetyNotes) && result.safetyNotes.length > 0 && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                <h3 className="font-semibold text-red-900 dark:text-red-100 flex items-center mb-2">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Safety Notes
-                </h3>
-                <ul className="space-y-1">
-                  {result.safetyNotes.map((note, index) => (
-                    <li
-                      key={index}
-                      className="text-sm text-red-800 dark:text-red-200 flex items-start space-x-2"
-                    >
-                      <span className="text-red-500 mt-1">⚠</span>
-                      <span>{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Confidence Score */}
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="p-1.5 bg-indigo-500 rounded-lg">
-                    <Beaker className="h-4 w-4 text-white" />
+            {/* Safety Section */}
+            {result.safety && (
+              <div className="bg-white/50 dark:bg-white/5 p-4 sm:p-5 rounded-2xl border border-red-500/30 hover:border-red-500/50 transition-colors shadow-lg group">
+                <h3 className="font-bold text-base sm:text-lg text-elixra-text-primary flex items-center gap-2 mb-4 sm:mb-5">
+                  <div className="p-1.5 bg-red-500/10 rounded-lg">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                   </div>
-                  <span className="font-bold text-indigo-900 dark:text-indigo-100">
-                    AI Confidence
-                  </span>
+                  Safety Information
+                </h3>
+                
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="bg-red-500/5 p-3 sm:p-4 rounded-xl border border-red-500/20 flex items-start gap-3 sm:gap-4">
+                    <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg shrink-0 mt-0.5">
+                      <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-red-700 dark:text-red-100 text-base sm:text-lg mb-1">Risk Level: {result.safety.riskLevel}</p>
+                      <p className="text-xs sm:text-sm text-red-600/80 dark:text-red-200/80 leading-relaxed">{result.safety.generalHazards}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                      <span className="text-[10px] sm:text-xs font-bold text-red-500 uppercase tracking-wider block mb-2">Precautions</span>
+                      <p className="text-xs sm:text-sm text-elixra-text-secondary leading-relaxed font-medium">{result.safety.precautions}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] sm:text-xs font-bold text-red-500 uppercase tracking-wider block mb-2">First Aid</span>
+                      <p className="text-xs sm:text-sm text-elixra-text-secondary leading-relaxed font-medium">{result.safety.firstAid}</p>
+                    </div>
+                    <div className="col-span-1 sm:col-span-2 pt-3 sm:pt-4 border-t border-red-500/20">
+                      <span className="text-[10px] sm:text-xs font-bold text-red-500 uppercase tracking-wider block mb-2">Disposal</span>
+                      <p className="text-xs sm:text-sm text-elixra-text-secondary leading-relaxed font-medium">{result.safety.disposal}</p>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">
-                  {result.confidence && !isNaN(result.confidence) ? Math.round(result.confidence * 100) : 50}%
-                </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 shadow-inner">
-                <motion.div
-                  className="bg-gradient-to-r from-indigo-500 to-blue-500 h-3 rounded-full shadow-sm"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${result.confidence && !isNaN(result.confidence) ? result.confidence * 100 : 50}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                />
-              </div>
+            )}
+
+            {/* Disclaimer */}
+            <div className="text-center pt-4 border-t border-elixra-copper/20">
+              <p className="text-[10px] text-elixra-text-muted">
+                This analysis is generated by an AI model and may not be 100% accurate. Please verify critical information independently.
+              </p>
             </div>
           </motion.div>
         ) : null}

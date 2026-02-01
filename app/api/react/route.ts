@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { Experiment, ReactionResult } from '@/types/chemistry'
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,105 +12,92 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if API key is configured
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Gemini API key not configured. Please set GEMINI_API_KEY in environment variables.' },
-        { status: 503 }
-      )
-    }
-
-    try {
-      // Use Gemini AI for reaction analysis
-      // Using the latest Gemini 2.5 Flash model (as of Oct 2025)
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash-exp',
-        // Disable thinking to prioritize speed for chemistry analysis
-        generationConfig: {
-          temperature: 0.7,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 2048,
-        }
+    // Use Gemini backend for reaction analysis
+    // Default to 127.0.0.1 to avoid localhost resolution issues
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'
+    
+    // Prepare equipment data
+    const equipmentData = experiment.equipment?.map(eq => eq.name) || []
+    
+    // Call the analyze-reaction endpoint
+    const response = await fetch(`${backendUrl}/analyze-reaction`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: 'Analyze reaction',
+        context: 'Chemical reaction analysis',
+        chemicals: experiment.chemicals.map(c => c.chemical.name),
+        equipment: equipmentData
       })
+    })
 
-      // Prepare the prompt for Gemini
-      const chemicalsList = experiment.chemicals
-        .map(c => `${c.chemical.name} (${c.chemical.formula}): ${c.amount} ${c.unit}`)
-        .join('\n')
-
-      const prompt = `You are an expert chemistry assistant analyzing a chemical reaction. 
-
-Chemicals being mixed:
-${chemicalsList}
-
-Analyze this chemical reaction and provide a detailed response in the following JSON format:
-{
-  "color": "describe the final solution color (e.g., 'blue', 'colorless', 'light green')",
-  "smell": "describe any smell (e.g., 'pungent', 'sweet', 'none')",
-  "precipitate": true or false,
-  "precipitateColor": "color of precipitate if any (e.g., 'white', 'blue', 'brown')",
-  "products": ["list", "of", "product", "formulas"],
-  "balancedEquation": "complete balanced chemical equation with states and arrows",
-  "reactionType": "type of reaction (e.g., 'precipitation', 'acid-base', 'redox', 'complexation', 'no reaction')",
-  "observations": ["detailed", "observation", "points"],
-  "safetyNotes": ["important", "safety", "warnings"],
-  "temperature": "increased" or "decreased" or "unchanged",
-  "gasEvolution": true or false,
-  "confidence": 0.0 to 1.0
-}
-
-Provide ONLY the JSON response, no additional text. Ensure all field names match exactly.`
-
-      const result = await model.generateContent(prompt)
-      const response = await result.response
-      const text = response.text()
-
-      // Parse the JSON response
-      let reactionResult: ReactionResult
-      
-      // Try to extract JSON from the response
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        reactionResult = JSON.parse(jsonMatch[0])
-      } else {
-        throw new Error('Invalid JSON response from AI')
-      }
-
-      // Validate and ensure all required fields are present
-      const validatedResult: ReactionResult = {
-        color: reactionResult.color,
-        smell: reactionResult.smell ,
-        precipitate: reactionResult.precipitate,
-        precipitateColor: reactionResult.precipitateColor,
-        products: reactionResult.products ,
-        balancedEquation: reactionResult.balancedEquation ,
-        reactionType: reactionResult.reactionType ,
-        observations: reactionResult.observations ,
-        safetyNotes: reactionResult.safetyNotes ,
-        temperature: reactionResult.temperature ,
-        gasEvolution: reactionResult.gasEvolution ,
-        confidence: reactionResult.confidence 
-      }
-
-      console.log('AI Analysis successful:', validatedResult)
-      return NextResponse.json(validatedResult)
-
-    } catch (aiError) {
-      console.error('Gemini AI error:', aiError)
-      return NextResponse.json(
-        { 
-          error: 'AI analysis failed. Please check your API key or try again later.',
-          details: aiError instanceof Error ? aiError.message : 'Unknown error'
-        },
-        { status: 503 }
-      )
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('text/html')) {
+        const text = await response.text()
+        // Check if this looks like a Next.js 404 page
+        if (text.includes('This page could not be found') || text.includes('Next.js')) {
+            throw new Error(`Backend URL (${backendUrl}) appears to be pointing to the frontend application. Please ensure the Python backend is running on port 8000 and not the Next.js app.`)
+        }
+        throw new Error(`Backend returned HTML instead of JSON. Status: ${response.status}`)
     }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Backend error:', response.status, errorText)
+      throw new Error(`Backend returned ${response.status}: ${errorText}`)
+    }
+
+    // Parse the JSON response directly
+    const reactionData = await response.json()
+
+    // Validate and ensure all required fields are present
+    const validatedResult: ReactionResult = {
+      color: reactionData.color || 'unknown',
+      smell: reactionData.smell || 'none',
+      precipitate: Boolean(reactionData.precipitate),
+      precipitateColor: reactionData.precipitateColor || undefined,
+      products: Array.isArray(reactionData.products) ? reactionData.products : ['Unknown'],
+      balancedEquation: reactionData.balancedEquation || 'Reaction equation unknown',
+      reactionType: reactionData.reactionType || 'unknown',
+      visualObservation: reactionData.visualObservation || 'No observation details provided',
+      observations: Array.isArray(reactionData.observations) ? reactionData.observations : ['Reaction occurred'],
+      safetyNotes: Array.isArray(reactionData.safetyNotes) ? reactionData.safetyNotes : ['Handle with care'],
+      temperature: reactionData.temperature || 'unchanged',
+      temperatureChange: reactionData.temperatureChange || (reactionData.temperature === 'increased' ? 'exothermic' : reactionData.temperature === 'decreased' ? 'endothermic' : 'none'),
+      gasEvolution: reactionData.gasEvolution || null,
+      confidence: typeof reactionData.confidence === 'number' ? Math.min(1, Math.max(0, reactionData.confidence)) : 0.5,
+      
+      // New structured data fields
+      instrumentAnalysis: reactionData.instrumentAnalysis || undefined,
+      productsInfo: Array.isArray(reactionData.productsInfo) ? reactionData.productsInfo : [],
+      explanation: reactionData.explanation || {
+        mechanism: 'Analysis not available',
+        bondBreaking: 'Analysis not available',
+        energyProfile: 'Analysis not available',
+        atomicLevel: 'Analysis not available',
+        keyConcept: 'Analysis not available'
+      },
+      safety: reactionData.safety || {
+        riskLevel: 'Low',
+        precautions: 'Standard lab safety protocols apply',
+        disposal: 'Dispose according to local regulations',
+        firstAid: 'Rinse with water if contact occurs',
+        generalHazards: 'None identified'
+      },
+      phChange: reactionData.phChange || null,
+      ph: reactionData.phChange ? parseFloat(reactionData.phChange) : undefined, // backend sends phChange string/number
+      emission: reactionData.emission || null,
+      stateChange: reactionData.stateChange || null
+    }
+
+    return NextResponse.json(validatedResult)
 
   } catch (error) {
     console.error('Reaction analysis error:', error)
     return NextResponse.json(
-      { error: 'Failed to analyze reaction' },
+      { error: `Failed to analyze reaction: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }

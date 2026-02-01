@@ -1,86 +1,53 @@
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { getDatabase } from '@/lib/mongodb'
-import { ExperimentLog } from '@/types/chemistry'
 import { authOptions } from '@/lib/auth'
-import { z } from 'zod'
+import { ExperimentLog } from '@/types/chemistry'
 import { ObjectId } from 'mongodb'
-
-const experimentSchema = z.object({
-  name: z.string().min(1, 'Experiment name is required'),
-  chemicals: z.array(z.object({
-    chemical: z.object({
-      id: z.string(),
-      name: z.string(),
-      formula: z.string(),
-      color: z.string(),
-      state: z.enum(['solid', 'liquid', 'gas']),
-    }),
-    amount: z.number().positive(),
-    unit: z.enum(['ml', 'g', 'mol']),
-  })),
-  reactionDetails: z.object({
-    color: z.string(),
-    smell: z.string(),
-    precipitate: z.boolean(),
-    precipitateColor: z.string().optional(),
-    products: z.array(z.string()),
-    balancedEquation: z.string(),
-    reactionType: z.string(),
-    observations: z.array(z.string()),
-    safetyNotes: z.array(z.string()).optional(),
-    temperature: z.enum(['increased', 'decreased', 'unchanged']).optional(),
-    gasEvolution: z.boolean().optional(),
-    confidence: z.number().min(0).max(1),
-  }).optional(),
-})
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const skip = parseInt(searchParams.get('skip') || '0')
-    const search = searchParams.get('search')
     
-    // Allow anonymous users to fetch their own experiments
-    const userId = session?.user?.id || 'anonymous'
-    
-    const db = await getDatabase()
-    
-    // Build query
-    const query: any = { userId }
-    if (search) {
-      query.$or = [
-        { experimentName: { $regex: search, $options: 'i' } },
-        { 'chemicals.chemical.name': { $regex: search, $options: 'i' } },
-        { 'reactionDetails.reactionType': { $regex: search, $options: 'i' } }
-      ]
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
-    
-    const experiments = await db
-      .collection<ExperimentLog>('experiments')
-      .find(query)
+
+    const db = await getDatabase()
+    const collection = db.collection('experiments')
+
+    // retention policy: delete unsaved experiments older than 30 days
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    await collection.deleteMany({
+      userId: session.user.id,
+      isSaved: { $ne: true },
+      timestamp: { $lt: thirtyDaysAgo }
+    })
+
+    // Fetch experiments
+    const experiments = await collection
+      .find({ userId: session.user.id })
       .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit)
       .toArray()
 
-    const total = await db.collection<ExperimentLog>('experiments').countDocuments(query)
-
-    return NextResponse.json({
-      experiments,
-      pagination: {
-        total,
-        limit,
-        skip,
-        hasMore: skip + limit < total
-      }
+    return NextResponse.json({ 
+      experiments: experiments.map(exp => ({
+        ...exp,
+        _id: exp._id.toString()
+      }))
     })
   } catch (error) {
     console.error('Failed to fetch experiments:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch experiments' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -89,56 +56,131 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    const body = await request.json()
     
-    // Validate the experiment data
-    const validatedData = experimentSchema.parse(body)
-    
-    const experimentLog: ExperimentLog = {
-      userId: session?.user?.id || 'anonymous',
-      experimentName: validatedData.name,
-      chemicals: validatedData.chemicals,
-      reactionDetails: validatedData.reactionDetails!,
-      timestamp: new Date(),
-      // Add metadata
-      metadata: {
-        userAgent: request.headers.get('user-agent'),
-        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
-        sessionId: session?.user?.id ? undefined : 'anonymous-session'
-      }
-    }
-
-    const db = await getDatabase()
-    const result = await db.collection<ExperimentLog>('experiments').insertOne(experimentLog)
-
-    // Update user statistics if authenticated (fixed ObjectId conversion)
-    if (session?.user?.id) {
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(session.user.id as string) },
-        { 
-          $inc: { 'stats.experimentsCount': 1 },
-          $set: { 'stats.lastExperiment': new Date() }
-        },
-        { upsert: true }
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      experimentId: result.insertedId,
-      message: 'Experiment saved successfully'
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid experiment data', details: error.issues },
+    const body = await request.json()
+    // Basic validation
+    if (!body.experimentName || !body.chemicals) {
+       return NextResponse.json(
+        { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
+    const experiment: ExperimentLog = {
+      ...body,
+      userId: session.user.id,
+      timestamp: new Date(),
+      // Ensure isSaved is set if provided, default to false
+      isSaved: body.isSaved || false
+    }
+
+    const db = await getDatabase()
+    const { _id, ...experimentData } = experiment
+    const result = await db.collection('experiments').insertOne(experimentData)
+
+    return NextResponse.json({ 
+      success: true, 
+      experiment: { ...experiment, _id: result.insertedId.toString() } 
+    })
+  } catch (error) {
     console.error('Failed to save experiment:', error)
     return NextResponse.json(
-      { error: 'Failed to save experiment' },
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.id) {
+       return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Missing experiment ID' },
+        { status: 400 }
+      )
+    }
+
+    const db = await getDatabase()
+    const result = await db.collection('experiments').deleteOne({
+      _id: new ObjectId(id),
+      userId: session.user.id
+    })
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { error: 'Experiment not found or unauthorized' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to delete experiment:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.id) {
+       return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { id, isSaved } = body
+
+    if (!id || typeof isSaved !== 'boolean' || !ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid or missing fields' },
+        { status: 400 }
+      )
+    }
+
+    const db = await getDatabase()
+    const result = await db.collection('experiments').updateOne(
+      { _id: new ObjectId(id), userId: session.user.id },
+      { $set: { isSaved } }
+    )
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { error: 'Experiment not found or unauthorized' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to update experiment:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

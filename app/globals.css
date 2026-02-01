@@ -2,240 +2,305 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 1. TYPOGRAPHY SYSTEM */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/Fonts/IBMPlexSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/Fonts/IBMPlexSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/Fonts/IBMPlexSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/Fonts/IBMPlexSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
-  html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden;
-    -webkit-tap-highlight-color: transparent;
+  :root {
+    /* Background Ecosystem */
+    --bg-cream: #F5F1E8;
+    --bg-warm-gray: #E8E4DC;
+    --bg-white: #FFFFFF;
+    
+    /* Text Colors */
+    --text-charcoal: #1F2937;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    --text-inverted: #F5F1E8;
+    
+    /* Accent Colors (Chemistry-Inspired) */
+    --bunsen-blue: #2E6B6B;
+    --bunsen-blue-dark: #265959;
+    --bunsen-blue-light: #4A9E9E;
+    
+    --copper-flame: #C97B49;
+    --copper-flame-light: #E8A87C;
+    --copper-flame-dark: #A65F3A;
+    
+    --indicator-pink: #C9A9C9;
+    --success-green: #7A9E7E;
+    --error-red: #B85450;
+    
+    /* Utility */
+    --border-subtle: rgba(46, 107, 107, 0.1);
+    --shadow-color: rgba(42, 45, 58, 0.08);
   }
-  
+
+  .dark {
+    /* Dark Mode - Lab Coat Navy */
+    --bg-cream: #1A1D24;
+    --bg-warm-gray: #252830;
+    --bg-white: #2A2D3A;
+    
+    --text-charcoal: #E8E4DC;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --text-inverted: #1F2937;
+    
+    --bunsen-blue: #4A9E9E;
+    --copper-flame: #E8A87C;
+    
+    --border-subtle: rgba(74, 158, 158, 0.15);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+  }
+
   body {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply min-h-screen;
-    overflow-x: hidden;
+    font-family: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+    background-color: var(--bg-cream);
+    color: var(--text-charcoal);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Touch action optimizations */
-  button, a, [role="button"] {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  input, textarea, select {
-    touch-action: manipulation;
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  /* Prevent auto-scrolling during drag operations */
-  body.dragging {
-    overflow-x: hidden !important;
-  }
-  
-  .lab-container {
-    overflow-y: auto !important;
-  }
-  
-  .chemical-shelf-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-    touch-action: pan-y !important;
-  }
-  
-  /* Simplified scrollbar */
-  .chemical-shelf-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-track {
-    background: rgba(30, 41, 59, 0.3);
-    border-radius: 3px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-thumb {
-    background: rgba(71, 85, 105, 0.8);
-    border-radius: 3px;
-  }
-  
-  .chemical-shelf-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.9);
-  }
-  
-  body.dragging .lab-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-  }
-  
-  body.dragging .chemical-shelf-container {
-    overflow-y: auto !important;
-    pointer-events: auto !important;
-    touch-action: pan-y !important;
-  }
-  
-  .chemical-card {
-    z-index: 50 !important;
-    position: relative;
-    pointer-events: auto !important;
-  }
-  
-  .chemical-card.dragging {
-    z-index: 1000 !important;
-    pointer-events: none;
-    position: fixed !important;
-  }
-  
-  body:not(.dragging) .chemical-card {
-    pointer-events: auto !important;
-    cursor: grab !important;
-  }
-  
-  .test-tube, .beaker {
-    z-index: 25;
-    position: relative;
-    pointer-events: auto;
-  }
-  
-  body.dragging .test-tube,
-  body.dragging .beaker {
-    pointer-events: auto !important;
-    z-index: 999 !important;
-  }
-  
-  /* Mobile-specific optimizations */
-  @media (max-width: 640px) {
-    /* Prevent pull-to-refresh */
-    body {
-      overscroll-behavior-y: contain;
-    }
-    
-    /* Optimize touch scrolling */
-    * {
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Hide scrollbars on mobile for cleaner look */
-    ::-webkit-scrollbar {
-      width: 3px;
-      height: 3px;
-    }
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
   }
 }
+
+/* 3. GLOBAL VISUAL EFFECTS */
+/* Global grain effect - 3% opacity light, 5% dark */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.dark .grain-overlay {
+  opacity: 0.07;
+}
+
+/* Perspective grid for hero/workspace sections */
+.grid-perspective {
+  background-color: var(--bg-cream);
+  background-image: 
+    linear-gradient(rgba(46, 107, 107, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 107, 107, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  opacity: 0.6;
+  transform: perspective(1000px) rotateX(60deg);
+  transform-origin: center top;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+}
+
+/* Static grid for cards/containers */
+.grid-static {
+  background-image: 
+    linear-gradient(rgba(46, 107, 107, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 107, 107, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* 4. COMPONENT STYLING SPECIFICATIONS */
 
 @layer components {
-  .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-    @apply shadow-lg rounded-lg;
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center;
+    background-color: var(--bunsen-blue);
+    color: white;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 
+      0 1px 2px var(--shadow-color),
+      0 0 0 1px rgba(255,255,255,0.1) inset;
+    transition: all 200ms ease;
   }
-  
-  .lab-container {
-    @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl;
-    @apply border border-slate-200/60 dark:border-slate-700/60;
-    @apply rounded-xl shadow-xl;
-    position: relative;
+
+  .btn-primary:hover {
+    background-color: var(--bunsen-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 6px var(--shadow-color),
+      0 0 0 1px rgba(255,255,255,0.1) inset;
   }
-  
-  .test-tube {
-    @apply relative bg-gradient-to-b from-white/20 via-white/10 to-white/5;
-    @apply border-2 border-slate-300/60 dark:border-slate-600/60 rounded-b-full;
-    @apply shadow-lg;
-    backdrop-filter: blur(10px);
-    position: relative;
+
+  .btn-primary:active {
+    transform: translateY(0);
   }
-  
-  .beaker {
-    @apply relative bg-gradient-to-b from-white/20 via-white/10 to-white/5;
-    @apply border-2 border-slate-300/60 dark:border-slate-600/60 rounded-b-lg;
-    @apply shadow-lg;
-    backdrop-filter: blur(10px);
-    position: relative;
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center;
+    background-color: transparent;
+    color: var(--copper-flame);
+    border: 2px solid var(--copper-flame);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 
+      0 1px 2px var(--shadow-color);
+    transition: all 200ms ease;
   }
-  
-  .liquid {
-    @apply absolute bottom-0 left-0 right-0;
-    @apply rounded-b-full transition-all duration-700 ease-out;
+
+  .btn-secondary:hover {
+    background-color: var(--copper-flame);
+    color: white;
   }
-  
-  .bubble {
-    @apply absolute rounded-full bg-white/30;
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center;
+    background-color: rgba(245, 241, 232, 0.5);
+    color: var(--text-charcoal);
+    border: 1px solid var(--border-subtle);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 200ms ease;
+  }
+
+  .btn-ghost:hover {
+    background-color: rgba(245, 241, 232, 0.8);
+    border-color: var(--bunsen-blue);
+  }
+
+  /* Cards */
+  .card {
+    background-color: var(--bg-white);
+    border: 1px solid var(--bg-warm-gray);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 
+      0 1px 3px var(--shadow-color),
+      0 0 0 1px rgba(255,255,255,0.5) inset;
+    transition: all 300ms ease;
+  }
+
+  .card:hover {
+    box-shadow: 
+      0 10px 15px -3px var(--shadow-color),
+      0 0 0 1px var(--bunsen-blue) inset;
+    border-color: rgba(46, 107, 107, 0.2);
+  }
+
+  .dark .card {
+    background-color: var(--bg-warm-gray);
+    border-color: var(--border-subtle);
+    box-shadow: 
+      0 1px 3px var(--shadow-color),
+      0 0 0 1px rgba(255,255,255,0.05) inset;
+  }
+
+  /* Glass Panels */
+  .glass-panel {
+    background: rgba(245, 241, 232, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(201, 123, 73, 0.2);
+    box-shadow: 
+      0 4px 6px -1px var(--shadow-color),
+      0 2px 4px -1px var(--shadow-color);
+  }
+
+  .dark .glass-panel {
+    background: rgba(37, 40, 48, 0.8);
+    border-color: rgba(74, 158, 158, 0.2);
+  }
+
+  /* Form Inputs */
+  .input-field {
+    background-color: var(--bg-white);
+    border: 1px solid var(--bg-warm-gray);
+    color: var(--text-charcoal);
+    font-family: 'IBM Plex Sans', sans-serif;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 200ms ease;
+    width: 100%;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--bunsen-blue);
+    box-shadow: 0 0 0 3px rgba(46, 107, 107, 0.1);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
   }
 }
 
-@layer utilities {
-  .drag-over {
-    @apply ring-2 ring-blue-400 ring-opacity-50;
-    @apply bg-blue-50 dark:bg-blue-900/20;
-  }
-  
-  /* Simplified animations - remove heavy glow effects */
-  @keyframes bubble {
-    0% {
-      opacity: 0;
-      transform: translateY(0) scale(0.5);
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-40px) scale(0.8);
-    }
-  }
-  
-  @keyframes smell-wave {
-    0% {
-      opacity: 0;
-      transform: translateY(0);
-    }
-    50% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-50px);
-    }
-  }
-  
-  @keyframes precipitate-settle {
-    0% {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .animate-bubble {
-    animation: bubble 2s ease-out infinite;
-  }
-  
-  .animate-smell {
-    animation: smell-wave 2.5s ease-out infinite;
-  }
-  
-  .animate-precipitate {
-    animation: precipitate-settle 1.5s ease-out forwards;
-  }
-  
-  /* Simple scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgb(209 213 219);
-    border-radius: 3px;
-  }
-  
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgb(75 85 99);
-  }
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Scrollbar - Invisible but scrollable */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

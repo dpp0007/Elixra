@@ -1,4 +1,5 @@
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic' // Mark as dynamic route (uses headers/session)
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
@@ -92,7 +93,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, preferences } = body
+    const { name, preferences, image } = body
 
     // Basic validation
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -104,15 +105,23 @@ export async function PUT(request: NextRequest) {
 
     const db = await getDatabase()
     
+    // Prepare update data
+    const updateData: any = {
+      name: name.trim(),
+      preferences: preferences || {},
+      updatedAt: new Date()
+    }
+
+    // Only update image if provided (allow null to remove image)
+    if (image !== undefined) {
+      updateData.image = image
+    }
+    
     // Update user profile - Convert string ID to ObjectId
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(session.user.id as string) },
       {
-        $set: {
-          name: name.trim(),
-          preferences: preferences || {},
-          updatedAt: new Date()
-        }
+        $set: updateData
       }
     )
 

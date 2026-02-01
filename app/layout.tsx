@@ -1,14 +1,29 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import DndWrapper from '@/components/DndWrapper'
 import Providers from '@/components/Providers'
-
-const inter = Inter({ subsets: ['latin'] })
+import ConditionalFooter from '@/components/ConditionalFooter'
+import PageLoader from '@/components/PageLoader'
+import TopLoadingBar from '@/components/TopLoadingBar'
+import GrainOverlay from '@/components/GrainOverlay'
 
 export const metadata = {
-  title: 'ChemLab Online - Virtual Chemistry Laboratory',
+  title: 'Elixra - Virtual Chem Lab',
   description: 'Interactive virtual chemistry lab for qualitative inorganic salt analysis',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/Assets/Link logo.svg',
+    shortcut: '/Assets/Link logo.svg',
+    apple: '/Assets/Link logo.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Elixra',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 }
 
 export const viewport = {
@@ -25,14 +40,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="flex flex-col min-h-screen overflow-x-hidden font-sans">
         <Providers>
           <ThemeProvider>
             <DndWrapper>
-              {children}
+              <PageLoader>
+                <TopLoadingBar />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <ConditionalFooter />
+              </PageLoader>
             </DndWrapper>
           </ThemeProvider>
         </Providers>
+        <GrainOverlay />
       </body>
     </html>
   )
