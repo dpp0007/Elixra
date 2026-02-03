@@ -124,7 +124,7 @@ const equipment = [
 
 function EquipmentSection() {
   return (
-    <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+    <section className="relative z-10 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <motion.div
@@ -236,7 +236,7 @@ function ChemistryFactsSection() {
   }
 
   return (
-    <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+    <section className="relative z-10 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
