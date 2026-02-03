@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import Image from 'next/image'
+import AuthButton from '@/components/AuthButton'
 
 const navItems = [
   { name: 'Home', path: '/' },
@@ -151,6 +152,9 @@ export default function ModernNavbar() {
                 </Link>
               )
             })}
+            <div className="pt-2">
+              <AuthButton />
+            </div>
           </div>
         </motion.div>
       )}
