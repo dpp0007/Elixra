@@ -10,7 +10,7 @@ import {
 import ModernNavbar from '@/components/ModernNavbar'
 import AuthButton from '@/components/AuthButton'
 import HeroAtom3D from '@/components/HeroAtom3D'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 // Animation variants
 const fadeInUp = {
@@ -79,6 +79,132 @@ const features = [
   }
 ]
 
+const equipment = [
+  {
+    name: 'Analytical Balance',
+    description: 'Measure mass with high precision and accuracy for quantitative analysis.',
+    svgPath: '/Assets/Equipments/Analytical Balance.svg'
+  },
+  {
+    name: 'Bunsen Burner',
+    description: 'Produce a single open gas flame for heating, sterilization, and combustion.',
+    svgPath: '/Assets/Equipments/Busen Burner.svg'
+  },
+  {
+    name: 'Centrifuge',
+    description: 'Separate fluids based on density using high-speed rotation.',
+    svgPath: '/Assets/Equipments/Centrifuge.svg'
+  },
+  {
+    name: 'Hot Plate',
+    description: 'Heat glassware or its contents in a controlled, flameless manner.',
+    svgPath: '/Assets/Equipments/Hot Plate.svg'
+  },
+  {
+    name: 'Magnetic Stirrer',
+    description: 'Mix solutions automatically using a rotating magnetic field.',
+    svgPath: '/Assets/Equipments/Magnetic Stirrer.svg'
+  },
+  {
+    name: 'pH Meter',
+    description: 'Measure the acidity or alkalinity of a solution with digital precision.',
+    svgPath: '/Assets/Equipments/Ph Meter.svg'
+  },
+  {
+    name: 'Thermometer',
+    description: 'Measure temperature changes during chemical reactions.',
+    svgPath: '/Assets/Equipments/Thermometer.svg'
+  },
+  {
+    name: 'Timer',
+    description: 'Track reaction times and experiment durations accurately.',
+    svgPath: '/Assets/Equipments/Timer.svg'
+  }
+]
+
+function EquipmentSection() {
+  return (
+    <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-full text-sm font-medium mb-6 border border-blue-500/20"
+          >
+            <Beaker className="w-4 h-4" />
+            <span>Lab Inventory</span>
+          </motion.div>
+          
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-gray-400 bg-clip-text text-transparent"
+          >
+            State-of-the-Art Equipment
+          </motion.h2>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed"
+          >
+            Access a complete suite of professional-grade laboratory tools. 
+            From precision measurement to reaction control, everything you need is at your fingertips.
+          </motion.p>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {equipment.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+              className="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.3)] hover:border-blue-400/50 overflow-hidden"
+            >
+              {/* Card Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500" />
+              
+              <div className="relative z-10">
+                <div className="h-48 mb-6 flex items-center justify-center p-6 bg-gradient-to-b from-white/5 to-transparent rounded-xl group-hover:from-white/10 transition-colors duration-500 relative overflow-hidden">
+                  {/* Glow effect behind image */}
+                  <div className="absolute inset-0 bg-blue-500/20 blur-[50px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <motion.img 
+                    src={item.svgPath} 
+                    alt={item.name}
+                    className="w-full h-full object-contain drop-shadow-lg filter group-hover:drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] relative z-10"
+                    whileHover={{ 
+                      scale: 1.15,
+                      rotate: [0, -5, 5, 0],
+                      transition: { duration: 0.5 }
+                    }}
+                  />
+                </div>
+                
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors group-hover:translate-x-1 duration-300">
+                  {item.name}
+                </h3>
+                
+                <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors">
+                  {item.description}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const chemistryFacts = [
   "Hot water freezes faster than cold water, known as the Mpemba effect.",
   "Glass is actually a liquid, just a very slow-flowing one.",
@@ -93,54 +219,125 @@ const chemistryFacts = [
 
 function ChemistryFactsSection() {
   const [currentFactIndex, setCurrentFactIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   
+  useEffect(() => {
+    if (isPaused) return
+
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prev) => (prev + 1) % chemistryFacts.length)
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [isPaused])
+
   const nextFact = () => {
     setCurrentFactIndex((prev) => (prev + 1) % chemistryFacts.length)
   }
 
   return (
-    <section className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 bg-slate-950/50">
-      <div className="max-w-4xl mx-auto text-center">
+    <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 relative overflow-hidden shadow-2xl"
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
-          {/* Card Background with Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 opacity-10 z-0" />
+          {/* Main Glass Card */}
+          <div className="relative bg-slate-900/20 backdrop-blur-md border border-white/5 rounded-[3rem] p-8 md:p-16 overflow-hidden shadow-2xl">
+            
+            {/* Animated Gradient Blob Background inside card */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+               <motion.div 
+                 animate={{ 
+                   scale: [1, 1.2, 1],
+                   rotate: [0, 90, 0],
+                 }}
+                 transition={{ 
+                   duration: 20, 
+                   repeat: Infinity,
+                   ease: "linear" 
+                 }}
+                 className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl"
+               />
+               <motion.div 
+                 animate={{ 
+                   scale: [1, 1.5, 1],
+                   rotate: [0, -90, 0],
+                 }}
+                 transition={{ 
+                   duration: 25, 
+                   repeat: Infinity,
+                   ease: "linear" 
+                 }}
+                 className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-pink-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl"
+               />
+            </div>
 
-          <div className="absolute top-0 right-0 p-8 opacity-20">
-            <Atom className="w-24 h-24 md:w-32 md:h-32 text-blue-500 animate-[spin_20s_linear_infinite]" />
+            <div className="relative z-10 flex flex-col items-center text-center">
+              {/* Badge */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-sm font-medium mb-10 text-blue-300 shadow-lg backdrop-blur-sm"
+              >
+                <Lightbulb className="w-4 h-4 text-yellow-400" />
+                <span>Did You Know?</span>
+              </motion.div>
+              
+              {/* Fact Text */}
+              <div className="min-h-[180px] md:min-h-[200px] flex items-center justify-center mb-10">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentFactIndex}
+                    initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+                    transition={{ duration: 0.5 }}
+                    className="max-w-4xl"
+                  >
+                    <h3 className="text-2xl md:text-5xl font-bold text-white leading-tight tracking-tight">
+                      "{chemistryFacts[currentFactIndex]}"
+                    </h3>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              
+              {/* Progress Bar & Controls */}
+              <div className="w-full max-w-md flex flex-col items-center gap-6">
+                {/* Progress Bar */}
+                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
+                  <motion.div 
+                    key={currentFactIndex}
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 30, ease: "linear" }}
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                  />
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={nextFact}
+                    className="group flex items-center space-x-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 hover:scale-105"
+                  >
+                    <RefreshCw className="w-5 h-5 text-gray-400 group-hover:text-white group-hover:rotate-180 transition-all duration-700" />
+                    <span className="text-gray-400 group-hover:text-white font-medium">Next Fact</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div className="relative z-10">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full text-sm font-medium mb-8">
-              <Lightbulb className="w-4 h-4" />
-              <span>Did You Know?</span>
-            </div>
-            
-            <div className="h-48 md:h-32 flex items-center justify-center mb-8">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={currentFactIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="text-xl md:text-4xl font-bold text-white leading-tight"
-                >
-                  "{chemistryFacts[currentFactIndex]}"
-                </motion.p>
-              </AnimatePresence>
-            </div>
-            
-            <button
-              onClick={nextFact}
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors font-medium group"
-            >
-              <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-              <span>Next Fact</span>
-            </button>
+          {/* Decorative Elements around the card */}
+           <div className="absolute -top-12 -right-12 z-0 opacity-20 pointer-events-none">
+            <Atom className="w-48 h-48 text-blue-500 animate-[spin_30s_linear_infinite]" />
+          </div>
+          <div className="absolute -bottom-12 -left-12 z-0 opacity-20 pointer-events-none">
+            <Beaker className="w-40 h-40 text-purple-500 rotate-12" />
           </div>
         </motion.div>
       </div>
@@ -167,7 +364,7 @@ function FeatureCard({ feature, index, range, targetScale, total }: {
     <div ref={container} className="h-screen sticky top-0 flex items-center justify-center overflow-hidden">
       <motion.div 
         style={{ scale, top: `calc(4rem + ${index * 10}px)` }} 
-        className="w-full max-w-[95vw] md:max-w-6xl h-[65vh] md:h-[80vh] relative overflow-hidden shadow-2xl origin-top bg-slate-900/90 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 will-change-transform"
+        className="w-full h-[80vh] relative overflow-hidden shadow-2xl origin-top bg-slate-900/90 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 will-change-transform"
       >
         {/* Card Background with Gradient */}
         <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-10 z-0`} />
@@ -239,9 +436,44 @@ export default function HomePage() {
       {/* Animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div style={{ y, opacity }} className="absolute w-full h-full">
-          <div className="absolute w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] top-0 left-1/4 animate-pulse" />
-          <div className="absolute w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] top-1/3 right-1/4 animate-pulse delay-1000" />
-          <div className="absolute w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] bottom-0 left-1/2 animate-pulse delay-2000" />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3], 
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+            className="absolute w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] top-0 left-1/4 will-change-transform" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.5, 0.3], 
+            }}
+            transition={{ 
+              duration: 10, 
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+            className="absolute w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[100px] top-1/3 right-1/4 will-change-transform" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3], 
+            }}
+            transition={{ 
+              duration: 12, 
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+            className="absolute w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] bottom-0 left-1/2 will-change-transform" 
+          />
         </motion.div>
         
         {/* Particles */}
@@ -269,7 +501,7 @@ export default function HomePage() {
       <ModernNavbar />
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-20 pb-0 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -372,6 +604,9 @@ export default function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Equipment Section */}
+      <EquipmentSection />
 
       {/* Chemistry Facts Section */}
       <ChemistryFactsSection />
