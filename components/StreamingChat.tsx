@@ -569,17 +569,65 @@ export default function StreamingChat({
     // Stop any ongoing speech
     stopSpeaking()
     
-    try {
-      isListeningRef.current = true
-      setIsListening(true)
-      setInput('')  // Clear input when starting
-      console.log('Starting recognition...')
-      recognitionRef.current.start()
-    } catch (e) {
-      console.error('❌ Failed to start recognition:', e)
-      isListeningRef.current = false
-      setIsListening(false)
-      alert('Failed to start microphone. Please check your microphone permissions.')
+    // Send greeting message to ask for user's name
+    const greetingMessage = "Hello! Welcome to the chemistry lab. Before we start, could you please tell me your name so I can personalize our learning session?"
+    
+    // Add greeting to messages
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: greetingMessage,
+      timestamp: new Date()
+    }])
+    
+    // Speak the greeting
+    if (synthRef.current) {
+      const utterance = new SpeechSynthesisUtterance(greetingMessage)
+      utterance.rate = 1.1
+      utterance.pitch = 1.0
+      utterance.volume = 1.0
+      
+      const voices = synthRef.current.getVoices()
+      const femaleVoice = voices.find(voice => 
+        voice.name.includes('Female') || 
+        voice.name.includes('Samantha') ||
+        voice.name.includes('Victoria') ||
+        voice.name.includes('Zira')
+      )
+      if (femaleVoice) {
+        utterance.voice = femaleVoice
+      }
+      
+      utterance.onend = () => {
+        console.log('🎤 Greeting finished, ready for user input')
+        // Start listening after greeting is done
+        try {
+          isListeningRef.current = true
+          setIsListening(true)
+          setInput('')
+          console.log('Starting recognition...')
+          recognitionRef.current.start()
+        } catch (e) {
+          console.error('❌ Failed to start recognition:', e)
+          isListeningRef.current = false
+          setIsListening(false)
+        }
+      }
+      
+      synthRef.current.speak(utterance)
+    } else {
+      // Fallback if speech synthesis not available
+      try {
+        isListeningRef.current = true
+        setIsListening(true)
+        setInput('')
+        console.log('Starting recognition...')
+        recognitionRef.current.start()
+      } catch (e) {
+        console.error('❌ Failed to start recognition:', e)
+        isListeningRef.current = false
+        setIsListening(false)
+        alert('Failed to start microphone. Please check your microphone permissions.')
+      }
     }
   }
 
