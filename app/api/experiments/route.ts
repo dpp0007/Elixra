@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      experiment: { ...experiment, _id: result.insertedId } 
+      experiment: { ...experiment, _id: result.insertedId.toString() } 
     })
   } catch (error) {
     console.error('Failed to save experiment:', error)

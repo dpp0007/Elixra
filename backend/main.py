@@ -162,83 +162,155 @@ async def analyze_reaction(request: ChatRequest):
     else:
         print(f"✓ No equipment specified")
     
-    # Detailed prompt that emphasizes equipment consideration
+    # Detailed prompt requesting JSON structure
     prompt = f"""Analyze this chemical reaction:
 Chemicals: {chemicals_str}{equipment_context}
 
-Respond with EXACTLY these fields (one per line):
-COLOR: [color of solution/products]
-PRECIPITATE: [yes/no]
-PCOLOR: [precipitate color or none]
-PRODUCTS: [product1, product2]
-EQUATION: [balanced chemical equation]
-TYPE: [reaction type]
-OBSERVATION: [detailed observation of what happens]
-TEMP: [unchanged/increases/decreases]
-GAS: [yes/no]
-CONF: [0.5-1.0]"""
+Respond with a valid JSON object containing the following structure. 
+IMPORTANT: 
+1. Do not use Markdown formatting.
+2. Ensure all string values are single-line and properly escaped.
+3. Do not include unescaped newlines or line breaks inside string values.
+4. Keep all descriptions concise and short to avoid truncation.
+
+{{
+  "balancedEquation": "balanced chemical equation",
+  "reactionType": "type of reaction",
+  "visualObservation": "what is visually observed (single sentence summary)",
+  "color": "color of solution/products",
+  "smell": "smell if any, or 'none'",
+  "temperatureChange": "exothermic/endothermic/none",
+  "gasEvolution": "name of gas or null",
+  "emission": "light/sound or null",
+  "stateChange": "description of state change or null",
+  "phChange": "number or description of pH change",
+  "instrumentAnalysis": {{
+    "name": "instrument name",
+    "intensity": "intensity/settings",
+    "change": "physical/chemical change caused",
+    "outcomeDifference": "how outcome differs",
+    "counterfactual": "what would happen without it"
+  }},
+  "productsInfo": [
+    {{
+      "name": "product name",
+      "state": "solid/liquid/gas/aqueous",
+      "color": "color",
+      "characteristics": "key characteristics (concise)",
+      "commonUses": "common uses",
+      "safetyHazards": "specific hazards"
+    }}
+  ],
+  "explanation": {{
+    "mechanism": "reaction mechanism type (concise)",
+    "bondBreaking": "bond breaking details (concise)",
+    "electronTransfer": "electron transfer details (concise)",
+    "energyProfile": "energy profile description (concise)",
+    "atomicLevel": "atomic/molecular level explanation (concise)",
+    "keyConcept": "core chemistry concept demonstrated"
+  }},
+  "safety": {{
+    "riskLevel": "Low/Medium/High",
+    "precautions": "key precautions",
+    "disposal": "disposal instructions",
+    "firstAid": "first aid measures",
+    "generalHazards": "general hazards"
+  }},
+  "precipitate": true/false,
+  "precipitateColor": "color or null",
+  "confidence": 0.9
+}}
+
+If no instrument is used, set instrumentAnalysis to null.
+"""
 
     try:
         model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(
-            prompt,
-            stream=False,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.0,
-                max_output_tokens=2000,
-                top_p=0.8,
-                top_k=20,
-            )
-        )
         
-        if response.text:
-            text = response.text.strip()
-            print(f"✓ Prompt: {chemicals_str}")
-            if request.equipment:
-                print(f"✓ Lab Equipment: {', '.join(request.equipment)}")
-            print(f"✓ Response: {text[:200]}")
-            print(f"✓ Finish reason: {response.candidates[0].finish_reason if response.candidates else 'unknown'}")
+        # Retry logic for robustness
+        for attempt in range(2):
+            try:
+                # Configure generation with JSON enforcement
+                config = genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=4000,
+                    top_p=0.8,
+                    top_k=20,
+                    response_mime_type="application/json"
+                )
+                
+                response = model.generate_content(
+                    prompt,
+                    stream=False,
+                    generation_config=config
+                )
+                
+                if response.text:
+                    text = response.text.strip()
+                    # Clean up markdown if present
+                    if text.startswith("```json"):
+                        text = text[7:]
+                    if text.startswith("```"):
+                        text = text[3:]
+                    if text.endswith("```"):
+                        text = text[:-3]
+                    text = text.strip()
+                
+                    print(f"✓ Prompt: {chemicals_str} (Attempt {attempt+1})")
+                    if request.equipment and attempt == 0:
+                        print(f"✓ Lab Equipment: {', '.join(request.equipment)}")
+                    
+                    data = json.loads(text)
+                    
+                    # Normalize data for frontend
+                    result = {
+                        "balancedEquation": data.get("balancedEquation", "Unknown equation"),
+                        "reactionType": data.get("reactionType", "Unknown"),
+                        "visualObservation": data.get("visualObservation", "Reaction occurred"),
+                        "color": data.get("color", "unknown"),
+                        "smell": data.get("smell", "none"),
+                        "temperatureChange": data.get("temperatureChange", "none"),
+                        "gasEvolution": data.get("gasEvolution"),
+                        "emission": data.get("emission"),
+                        "stateChange": data.get("stateChange"),
+                        "phChange": data.get("phChange"),
+                        "instrumentAnalysis": data.get("instrumentAnalysis"),
+                        "productsInfo": data.get("productsInfo", []),
+                        "explanation": data.get("explanation", {
+                            "mechanism": "Unknown",
+                            "bondBreaking": "Unknown",
+                            "atomicLevel": "Analysis unavailable",
+                            "keyConcept": "Unknown"
+                        }),
+                        "safety": data.get("safety", {
+                            "riskLevel": "Low",
+                            "precautions": "Standard lab safety",
+                            "disposal": "Follow local regulations",
+                            "firstAid": "Consult safety data sheet",
+                            "generalHazards": "Handle with care"
+                        }),
+                        "precipitate": data.get("precipitate", False),
+                        "precipitateColor": data.get("precipitateColor"),
+                        "confidence": data.get("confidence", 0.5),
+                        
+                        # Legacy mapping
+                        "products": [p["name"] for p in data.get("productsInfo", [])],
+                        "observations": [data.get("visualObservation", "")],
+                        "temperature": "increased" if data.get("temperatureChange") == "exothermic" else 
+                                      "decreased" if data.get("temperatureChange") == "endothermic" else "unchanged",
+                        "safetyNotes": [data.get("safety", {}).get("generalHazards", "Handle with care")]
+                    }
+                    
+                    print(f"✓ Parsed JSON successfully")
+                    return result
             
-            # Parse line by line
-            lines = text.split('\n')
-            data = {}
-            for line in lines:
-                if ':' in line:
-                    key, value = line.split(':', 1)
-                    key = key.strip()
-                    value = value.strip().strip('[]')  # Remove brackets
-                    data[key] = value
-            
-            # Extract values
-            color = data.get("COLOR", "unknown")
-            ppt = data.get("PRECIPITATE", "no").lower() in ["yes", "true", "y"]
-            ppt_color = data.get("PCOLOR", "none")
-            products_str = data.get("PRODUCTS", "")
-            equation = data.get("EQUATION", "")
-            reaction_type = data.get("TYPE", "")
-            observation = data.get("OBSERVATION", "")
-            temperature = data.get("TEMP", "unchanged")
-            gas = data.get("GAS", "no").lower() in ["yes", "true", "y"]
-            confidence = data.get("CONF", "0.5")
-            
-            result = {
-                "color": color,
-                "precipitate": ppt,
-                "precipitateColor": ppt_color if ppt_color.lower() != "none" else None,
-                "products": [p.strip() for p in products_str.split(",")] if products_str.strip() else [],
-                "balancedEquation": equation,
-                "reactionType": reaction_type,
-                "observations": [observation] if observation.strip() else [],
-                "temperature": temperature,
-                "gasEvolution": gas,
-                "confidence": float(confidence)
-            }
-            
-            print(f"✓ Parsed successfully")
-            return result
+            except Exception as e:
+                print(f"✗ Attempt {attempt+1} failed: {e}")
+                if attempt == 1: # Last attempt
+                    raise HTTPException(status_code=500, detail=f"Failed to generate valid analysis: {str(e)}")
         
-        raise HTTPException(status_code=500, detail="No response from Gemini")
-        
+        raise HTTPException(status_code=500, detail="No valid response from AI")
+
     except Exception as e:
         print(f"✗ Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

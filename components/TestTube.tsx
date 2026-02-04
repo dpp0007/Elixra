@@ -175,7 +175,10 @@ export default function TestTube({
   }
 
   return (
-    <div className="flex flex-col items-center space-y-3 w-full relative">
+    <div
+      ref={drop as any}
+      className="flex flex-col items-center space-y-3 w-full relative"
+    >
       {/* Tube clip path for masking liquid effects */}
       <svg width="0" height="0" className="absolute">
         <defs>
@@ -189,14 +192,15 @@ export default function TestTube({
 
       <motion.div
         ref={(node) => {
-          drop(node)
           if (node) (tubeRef as any).current = node
         }}
         className={`test-tube relative w-20 h-40 transition-all duration-300 ${isOver && canDrop
           ? 'ring-4 ring-blue-400 ring-opacity-50 shadow-xl shadow-blue-400/30 scale-105'
-          : canDrop
-            ? 'ring-2 ring-blue-300 ring-opacity-30'
-            : ''
+          : (canDrop && contents.length === 0)
+            ? 'ring-4 ring-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.4)] border-purple-400 scale-105'
+            : canDrop
+              ? 'ring-2 ring-blue-300/30'
+              : ''
           } ${isReacting ? 'reaction-glow' : ''}`}
         style={{ zIndex: 120, position: 'relative' }}
         whileHover={{ scale: 1.05 }}
@@ -393,7 +397,7 @@ export default function TestTube({
         }}
       >
         {contents.length === 0 ? (
-          <div className="text-xs text-gray-400 flex flex-col items-center space-y-2 p-4 bg-slate-800/30 rounded-xl border-2 border-dashed border-gray-600 hover:border-blue-400 transition-colors pointer-events-none">
+          <div className="text-xs text-gray-400 flex flex-col items-center space-y-2 p-4 bg-slate-800/30 rounded-xl border-2 border-dashed border-gray-600 hover:border-blue-400 transition-colors">
             <Droplets className="h-6 w-6" />
             <span className="font-medium">Drop chemicals here</span>
           </div>

@@ -1,63 +1,151 @@
 'use client'
- 
- import { useState, useEffect } from 'react'
- import { motion } from 'framer-motion'
- import Image from 'next/image'
+
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 export default function LoadingAnimation() {
-    const [particles, setParticles] = useState<Array<{ left: string; top: string; duration: number; delay: number }>>([])
-
-    useEffect(() => {
-        const newParticles = [...Array(20)].map(() => ({
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            duration: 3 + Math.random() * 2,
-            delay: Math.random() * 2,
-        }))
-        setParticles(newParticles)
-    }, [])
+    // Static bubbles configuration for performance
+    const bubbles = Array.from({ length: 8 }).map((_, i) => ({
+        id: i,
+        r: 1.5 + (i % 3),
+        delay: i * 0.3,
+        duration: 2 + (i % 3) * 0.3,
+        xStart: 80 + (i % 5) * 10, // Distributed across width
+        xEnd: 80 + (i % 5) * 10 + ((i % 2 === 0 ? 1 : -1) * 20) // Slight drift
+    }))
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
-            {/* Animated background particles */}
-            <div className="absolute inset-0 overflow-hidden">
-                {particles.map((particle, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-2 h-2 bg-blue-400/30 rounded-full"
-                        style={{
-                            left: particle.left,
-                            top: particle.top,
-                        }}
-                        animate={{
-                            y: [0, -30, 0],
-                            opacity: [0.3, 0.8, 0.3],
-                            scale: [1, 1.5, 1],
-                        }}
-                        transition={{
-                            duration: particle.duration,
-                            repeat: Infinity,
-                            delay: particle.delay,
-                        }}
-                    />
-                ))}
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#020617] overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-20">
+                <div 
+                    className="absolute inset-0" 
+                    style={{
+                        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.3) 1px, transparent 0)`,
+                        backgroundSize: '40px 40px'
+                    }}
+                />
             </div>
 
-            {/* Main loading content */}
+            {/* Ambient Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 blur-[100px] rounded-full animate-pulse" />
+
             <div className="relative z-10 flex flex-col items-center">
-                {/* Logo with pulse animation */}
-                <motion.div
-                    className="relative mb-8"
-                    animate={{
-                        scale: [1, 1.05, 1],
-                    }}
-                    transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
+                {/* Chemistry Animation Container */}
+                <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
+                    
+                    {/* Orbiting Rings (Electrons) */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        {/* Ring 1 - Path hidden, only electron visible */}
+                        <motion.div 
+                            className="absolute top-1/2 left-1/2 w-56 h-16 rounded-full"
+                            style={{ x: '-50%', y: '-50%' }}
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        >
+                            <div className="absolute top-1/2 right-0 w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_15px_#60a5fa] -translate-y-1/2 translate-x-1/2" />
+                        </motion.div>
+                        
+                        {/* Ring 2 - Path hidden, only electron visible */}
+                        <motion.div 
+                            className="absolute top-1/2 left-1/2 w-56 h-16 rounded-full"
+                            style={{ x: '-50%', y: '-50%' }}
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                        >
+                            <div className="absolute top-1/2 left-0 w-3 h-3 bg-purple-400 rounded-full shadow-[0_0_15px_#a78bfa] -translate-y-1/2 -translate-x-1/2" />
+                        </motion.div>
+                    </div>
+
+                    {/* Flask SVG */}
+                    <svg viewBox="0 0 200 200" className="w-32 h-32 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]">
+                        <defs>
+                            <linearGradient id="liquid-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
+                                <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.8" />
+                                <stop offset="100%" stopColor="#2563eb" stopOpacity="0.9" />
+                            </linearGradient>
+                            
+                            <clipPath id="flask-inner">
+                                <path d="M75,60 L75,30 C75,25 79,20 85,20 L115,20 C121,20 125,25 125,30 L125,60 L160,150 C165,160 160,180 145,180 L55,180 C40,180 35,160 40,150 Z" />
+                            </clipPath>
+                        </defs>
+
+                        {/* Flask Body (Glass) */}
+                        <path 
+                            d="M75,60 L75,30 C75,25 79,20 85,20 L115,20 C121,20 125,25 125,30 L125,60 L160,150 C165,160 160,180 145,180 L55,180 C40,180 35,160 40,150 Z"
+                            fill="rgba(255, 255, 255, 0.03)"
+                            stroke="rgba(255, 255, 255, 0.5)"
+                            strokeWidth="2"
+                        />
+
+                        {/* Liquid with Wave Animation */}
+                        <g clipPath="url(#flask-inner)">
+                            <motion.path
+                                d="M0,180 L200,180 L200,110 Q150,100 100,110 Q50,120 0,110 Z"
+                                fill="url(#liquid-gradient)"
+                                animate={{
+                                    d: [
+                                        "M0,180 L200,180 L200,110 Q150,100 100,110 Q50,120 0,110 Z",
+                                        "M0,180 L200,180 L200,110 Q150,120 100,110 Q50,100 0,110 Z",
+                                        "M0,180 L200,180 L200,110 Q150,100 100,110 Q50,120 0,110 Z"
+                                    ]
+                                }}
+                                transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                            />
+                            
+                            {/* Bubbles - Optimized with CSS-based infinite animation */}
+                            {bubbles.map((bubble) => (
+                                <motion.circle
+                                    key={bubble.id}
+                                    r={bubble.r}
+                                    fill="rgba(255,255,255,0.7)"
+                                    initial={{ cy: 160, opacity: 0, cx: bubble.xStart }}
+                                    animate={{ 
+                                        cy: 90,
+                                        opacity: [0, 1, 0],
+                                        cx: [bubble.xStart, bubble.xEnd]
+                                    }}
+                                    transition={{ 
+                                        duration: bubble.duration,
+                                        repeat: Infinity,
+                                        delay: bubble.delay,
+                                        ease: "easeOut"
+                                    }}
+                                />
+                            ))}
+                        </g>
+
+                        {/* Glass Highlights */}
+                        <path 
+                            d="M50,150 Q45,160 55,160 L65,160"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="2"
+                            fill="none"
+                            strokeLinecap="round"
+                        />
+                        <path 
+                            d="M150,150 Q155,160 145,160 L135,160"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="2"
+                            fill="none"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                </div>
+
+                {/* Logo and Text */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col items-center space-y-4"
                 >
-                    <div className="relative h-20 w-40">
+                    <div className="relative w-40 h-10">
                         <Image
                             src="/Assets/Main Logo.svg"
                             alt="Elixra"
@@ -66,132 +154,28 @@ export default function LoadingAnimation() {
                             priority
                         />
                     </div>
-
-                    {/* Glow effect */}
-                    <motion.div
-                        className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full"
-                        animate={{
-                            opacity: [0.3, 0.6, 0.3],
-                            scale: [1, 1.2, 1],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                        }}
-                    />
-                </motion.div>
-
-                {/* Chemistry beaker animation */}
-                <div className="relative w-32 h-32 mb-6">
-                    {/* Beaker */}
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <defs>
-                            <linearGradient id="liquidGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
-                                <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.8" />
-                            </linearGradient>
-                        </defs>
-
-                        {/* Beaker outline */}
-                        <path
-                            d="M 30 20 L 30 70 Q 30 85 50 85 Q 70 85 70 70 L 70 20 Z"
-                            fill="none"
-                            stroke="rgba(255,255,255,0.3)"
-                            strokeWidth="2"
-                        />
-
-                        {/* Animated liquid */}
-                        <motion.path
-                            d="M 30 70 Q 30 85 50 85 Q 70 85 70 70 L 70 50 L 30 50 Z"
-                            fill="url(#liquidGradient)"
-                            initial={{ opacity: 0 }}
-                            animate={{
-                                opacity: [0.6, 1, 0.6],
-                                d: [
-                                    "M 30 70 Q 30 85 50 85 Q 70 85 70 70 L 70 60 L 30 60 Z",
-                                    "M 30 70 Q 30 85 50 85 Q 70 85 70 70 L 70 40 L 30 40 Z",
-                                    "M 30 70 Q 30 85 50 85 Q 70 85 70 70 L 70 60 L 30 60 Z",
-                                ]
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                            }}
-                        />
-
-                        {/* Bubbles */}
-                        {[...Array(5)].map((_, i) => (
-                            <motion.circle
-                                key={i}
-                                cx={40 + i * 5}
-                                cy={70}
-                                r="2"
-                                fill="rgba(255,255,255,0.6)"
-                                initial={{ cy: 70, opacity: 0 }}
-                                animate={{
-                                    cy: [70, 30, 30],
-                                    opacity: [0, 1, 0],
-                                }}
-                                transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    delay: i * 0.3,
-                                    ease: "easeOut",
-                                }}
+                    
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/20 border border-blue-500/20 backdrop-blur-sm">
+                        <span className="text-blue-200 font-medium text-sm tracking-wider uppercase">Initializing Lab</span>
+                        <div className="flex gap-1">
+                            <motion.div
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                                className="w-1.5 h-1.5 bg-blue-400 rounded-full"
                             />
-                        ))}
-                    </svg>
-                </div>
-
-                {/* Loading text */}
-                <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                >
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                        Preparing Your Lab
-                    </h2>
-                    <div className="flex items-center justify-center space-x-2">
-                        <motion.span
-                            className="text-blue-400"
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
-                        >
-                            •
-                        </motion.span>
-                        <motion.span
-                            className="text-blue-400"
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-                        >
-                            •
-                        </motion.span>
-                        <motion.span
-                            className="text-blue-400"
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
-                        >
-                            •
-                        </motion.span>
+                            <motion.div
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                                className="w-1.5 h-1.5 bg-blue-400 rounded-full"
+                            />
+                            <motion.div
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                                className="w-1.5 h-1.5 bg-blue-400 rounded-full"
+                            />
+                        </div>
                     </div>
                 </motion.div>
-
-                {/* Progress bar */}
-                <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden mt-6">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-                        initial={{ width: "0%" }}
-                        animate={{ width: "100%" }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    />
-                </div>
             </div>
         </div>
     )

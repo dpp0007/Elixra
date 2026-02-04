@@ -6,6 +6,7 @@ import { useDrop } from 'react-dnd'
 import TestTube from './TestTube'
 import Beaker from './Beaker'
 import QuantityModal from './QuantityModal'
+import TestTubeSelectionModal from './TestTubeSelectionModal'
 import { Chemical, ChemicalContent, Experiment, ReactionResult } from '@/types/chemistry'
 import { Plus, Trash2, Atom, X } from 'lucide-react'
 
@@ -51,6 +52,14 @@ export default function LabTable({
     chemical: null,
     glasswareId: null,
     isOpen: false
+  })
+  
+  const [selectionModal, setSelectionModal] = useState<{
+    isOpen: boolean
+    chemical: Chemical | null
+  }>({
+    isOpen: false,
+    chemical: null
   })
 
   const addTestTube = useCallback(() => {
@@ -135,8 +144,8 @@ export default function LabTable({
     setQuantityModal({ chemical: null, glasswareId: null, isOpen: false })
   }, [])
 
-  const handleAddChemicalToFirstTestTube = useCallback((chemical: Chemical) => {
-    console.log('LabTable: handleAddChemicalToFirstTestTube called with:', chemical)
+  const handleInitiateAddChemical = useCallback((chemical: Chemical) => {
+    console.log('LabTable: handleInitiateAddChemical called with:', chemical)
 
     // Validate chemical object
     if (!chemical || typeof chemical !== 'object') {
@@ -149,29 +158,37 @@ export default function LabTable({
       return
     }
 
-    // Find the first test tube
-    const firstTestTube = testTubes[0]
-    console.log('LabTable: First test tube:', firstTestTube)
+    // Open selection modal instead of automatically picking the first tube
+    setSelectionModal({
+      isOpen: true,
+      chemical
+    })
+  }, [])
 
-    if (firstTestTube) {
-      console.log('LabTable: Opening quantity modal for', chemical.name)
-      setQuantityModal({
-        chemical,
-        glasswareId: firstTestTube.id,
-        isOpen: true
-      })
-    } else {
-      console.error('LabTable: No test tubes available!')
-      alert('Please add a test tube first!')
-    }
-  }, [testTubes])
+  const handleContainerSelected = useCallback((containerId: string) => {
+    const { chemical } = selectionModal
+    if (!chemical) return
+
+    setSelectionModal({ isOpen: false, chemical: null })
+    
+    // Open quantity modal for the selected container
+    setQuantityModal({
+      chemical,
+      glasswareId: containerId,
+      isOpen: true
+    })
+  }, [selectionModal])
+
+  const handleSelectionModalClose = useCallback(() => {
+    setSelectionModal({ isOpen: false, chemical: null })
+  }, [])
 
   // Register the function with the parent component
   useEffect(() => {
     if (onAddChemicalToTestTube) {
-      onAddChemicalToTestTube(handleAddChemicalToFirstTestTube)
+      onAddChemicalToTestTube(() => handleInitiateAddChemical)
     }
-  }, [handleAddChemicalToFirstTestTube, onAddChemicalToTestTube])
+  }, [handleInitiateAddChemical, onAddChemicalToTestTube])
 
   // Expose add functions globally for the buttons (fallback)
   useEffect(() => {
@@ -236,6 +253,10 @@ export default function LabTable({
     onReaction(experiment)
   }
 
+  // Calculate if reaction can be performed (at least 2 vessels with chemicals)
+  const activeGlasswareCount = [...testTubes, ...beakers].filter(c => c.contents.length > 0).length
+  const canPerformReaction = activeGlasswareCount >= 2
+
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'chemical',
     drop: (item: Chemical, monitor) => {
@@ -260,7 +281,7 @@ export default function LabTable({
     >
       {/* Glassware Grid - Fixed Layout */}
       <div className="flex-1">
-        <div className="flex flex-wrap justify-center gap-8 min-h-[400px]">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 min-h-[400px]">
           <AnimatePresence>
             {testTubes.map((tube) => (
               <motion.div
@@ -268,7 +289,7 @@ export default function LabTable({
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                className="relative group flex flex-col items-center justify-start w-[180px]"
+                className="relative group flex flex-col items-center justify-start w-[160px] sm:w-[180px]"
               >
                 <TestTube
                   id={tube.id}
@@ -314,7 +335,7 @@ export default function LabTable({
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                className="relative group flex flex-col items-center justify-start w-[180px]"
+                className="relative group flex flex-col items-center justify-start w-[160px] sm:w-[180px]"
               >
                 <Beaker
                   id={beaker.id}
@@ -368,15 +389,15 @@ export default function LabTable({
       </div>
 
       {/* Reaction Button */}
-      <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+      <div className="flex flex-col items-center space-y-3 sm:space-y-4 mt-8">
         <motion.button
           onClick={performReaction}
-          disabled={isReacting}
-          whileHover={!isReacting ? { scale: 1.05 } : {}}
-          whileTap={!isReacting ? { scale: 0.95 } : {}}
-          className={`flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 w-full sm:w-auto touch-manipulation ${isReacting
-            ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-            : 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white shadow-xl hover:shadow-2xl'
+          disabled={isReacting || !canPerformReaction}
+          whileHover={!isReacting && canPerformReaction ? { filter: 'brightness(1.1)', boxShadow: '0 0 25px rgba(37, 99, 235, 0.5)' } : {}}
+          whileTap={!isReacting && canPerformReaction ? { scale: 0.98 } : {}}
+          className={`flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 w-full sm:w-auto touch-manipulation ${isReacting || !canPerformReaction
+            ? 'bg-[#1e293b] cursor-not-allowed text-gray-500 border border-white/10'
+            : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
             }`}
         >
           <Atom className={`h-5 w-5 sm:h-6 sm:w-6 ${isReacting ? 'animate-spin' : ''}`} />
@@ -403,6 +424,15 @@ export default function LabTable({
         isOpen={quantityModal.isOpen}
         onClose={handleModalClose}
         onConfirm={handleQuantityConfirm}
+      />
+
+      {/* Container Selection Modal */}
+      <TestTubeSelectionModal
+        isOpen={selectionModal.isOpen}
+        onClose={handleSelectionModalClose}
+        onSelect={handleContainerSelected}
+        testTubes={testTubes}
+        chemical={selectionModal.chemical}
       />
     </div>
   )

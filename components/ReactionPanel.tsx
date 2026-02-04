@@ -10,7 +10,18 @@ import {
   AlertTriangle,
   Beaker,
   Zap,
-  Wind
+  Wind,
+  Info,
+  BookOpen,
+  Shield,
+  Activity,
+  Flame,
+  Droplets,
+  Volume2,
+  Lightbulb,
+  FlaskConical,
+  Microscope,
+  Scale
 } from 'lucide-react'
 
 interface ReactionPanelProps {
@@ -38,7 +49,7 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
   }
 
   return (
-    <div className="p-4" style={{
+    <div className="p-3 sm:p-4 space-y-4 sm:space-y-6" style={{
       scrollbarWidth: 'thin',
       scrollbarColor: '#475569 #1e293b'
     }}>
@@ -52,9 +63,9 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
             className="space-y-4"
           >
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
             </div>
-            <p className="text-center text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm sm:text-base text-gray-600 dark:text-gray-400">
               AI is analyzing the reaction...
             </p>
           </motion.div>
@@ -64,355 +75,294 @@ export default function ReactionPanel({ experiment, result, isLoading }: Reactio
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
-            {/* Active Equipment */}
-            {experiment?.equipment && experiment.equipment.length > 0 && (
+            {/* Instrument Analysis */}
+            {result.instrumentAnalysis && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-6 border-2 border-orange-300 dark:border-orange-700 shadow-lg"
+                className="bg-[#1e1b4b] dark:bg-[#1e1b4b] rounded-xl p-4 sm:p-6 border border-indigo-500/30 shadow-lg group"
               >
                 <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg animate-pulse">
-                    <Zap className="h-5 w-5 text-white" />
+                  <div className="p-2 bg-indigo-500/20 rounded-lg animate-pulse">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
                   </div>
-                  <h3 className="font-bold text-orange-900 dark:text-orange-100">
-                    Active Lab Equipment
+                  <h3 className="font-bold text-sm sm:text-base text-indigo-100">
+                    Instrument Analysis: {result.instrumentAnalysis.name}
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {experiment.equipment.map((eq, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="relative bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-orange-200 dark:border-orange-700 shadow-sm overflow-hidden"
-                    >
-                      {/* Animated background */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-orange-500/5 animate-pulse"></div>
-                      
-                      <div className="relative flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-block w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                          <span className="font-medium text-gray-900 dark:text-white text-sm">
-                            {eq.name}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-indigo-950/30 p-3 rounded-lg border border-indigo-500/20">
+                    <p className="text-[10px] sm:text-xs text-indigo-300 uppercase font-bold mb-1">Setting / Intensity</p>
+                    <p className="text-sm sm:text-base text-indigo-100 font-medium">{result.instrumentAnalysis.intensity}</p>
+                  </div>
+                  <div className="bg-indigo-950/30 p-3 rounded-lg border border-indigo-500/20">
+                    <p className="text-[10px] sm:text-xs text-indigo-300 uppercase font-bold mb-1">Effect & Change</p>
+                    <p className="text-sm sm:text-base text-indigo-100 font-medium">{result.instrumentAnalysis.change}</p>
+                  </div>
+                  <div className="bg-indigo-950/30 p-3 rounded-lg border border-indigo-500/20">
+                    <p className="text-[10px] sm:text-xs text-indigo-300 uppercase font-bold mb-1">Outcome Difference</p>
+                    <p className="text-sm sm:text-base text-indigo-100 font-medium">{result.instrumentAnalysis.outcomeDifference}</p>
+                  </div>
+                  <div className="bg-indigo-950/30 p-3 rounded-lg border border-indigo-500/20">
+                    <p className="text-[10px] sm:text-xs text-indigo-300 uppercase font-bold mb-1">Counterfactual (Without Instrument)</p>
+                    <p className="text-sm sm:text-base text-indigo-100 font-medium italic">{result.instrumentAnalysis.counterfactual}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Core Details & Equation */}
+            <div className="relative overflow-hidden bg-indigo-950/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-xl text-white border border-indigo-500/30 group transition-all duration-300 hover:bg-indigo-950/50">
+              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity">
+                <Atom className="h-24 w-24 sm:h-32 sm:w-32 text-indigo-400" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-indigo-500/20 backdrop-blur-md rounded-lg shadow-sm border border-indigo-500/10">
+                      <Atom className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-indigo-100 text-base sm:text-lg tracking-tight">Reaction Analysis</h3>
+                      <p className="text-xs sm:text-sm text-indigo-300 font-medium opacity-90">{result.reactionType}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-indigo-950/30 backdrop-blur-md p-4 sm:p-5 rounded-xl border border-indigo-500/20 shadow-inner">
+                  <p className="text-[10px] sm:text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Balanced Equation</p>
+                  <p className={`text-lg sm:text-xl font-medium text-indigo-50 leading-relaxed font-mono ${result.balancedEquation.length > 50 ? 'break-words' : 'break-all'}`}>
+                    {result.balancedEquation}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Observation Card */}
+            <div className="bg-indigo-950/40 backdrop-blur-md rounded-xl p-4 sm:p-5 flex items-start gap-4 shadow-lg border border-indigo-500/30 text-white relative overflow-hidden group transition-all duration-300 hover:bg-indigo-950/50">
+              <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                <Eye className="h-16 w-16 sm:h-24 sm:w-24 text-indigo-400" />
+              </div>
+              <div className="p-2 sm:p-2.5 bg-indigo-500/20 rounded-lg backdrop-blur-sm shrink-0">
+                <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-[10px] sm:text-xs font-bold text-indigo-300 uppercase tracking-wider mb-1">Primary Observation</p>
+                <p className="text-base sm:text-lg font-bold text-indigo-100 leading-snug">{result.visualObservation}</p>
+              </div>
+            </div>
+
+            {/* Observable Properties Block */}
+            <div className="bg-[#1e1b4b] dark:bg-[#1e1b4b] rounded-xl border border-indigo-500/30 overflow-hidden shadow-lg">
+              <div className="divide-y divide-indigo-500/20">
+                {/* Color */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-indigo-400/50`} style={{ backgroundColor: result.color === 'colorless' ? 'transparent' : result.color }}></div>
+                    <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">Color</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-indigo-100 text-left sm:text-right leading-tight w-full sm:max-w-[60%]">
+                    {(result.visualObservation && (result.visualObservation.includes('Precipitate') || result.visualObservation.includes('Solution')))
+                      ? result.visualObservation 
+                      : (result.color ? `${result.color.charAt(0).toUpperCase() + result.color.slice(1)}` : 'Unknown')}
+                  </p>
+                </div>
+
+                {/* Smell */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <SmellIcon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+                    <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">Smell</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-indigo-100 capitalize text-left sm:text-right">{result.smell || 'None'}</p>
+                </div>
+
+                {/* Temperature */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Thermometer className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+                    <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">Temp</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-indigo-100 capitalize text-left sm:text-right">{result.temperatureChange || 'No Change'}</p>
+                </div>
+
+                {/* pH Change */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Droplets className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+                    <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">pH Change</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-indigo-100 text-left sm:text-right">{result.phChange || 'None'}</p>
+                </div>
+
+                {/* Gas Evolution */}
+                {result.gasEvolution && result.gasEvolution !== 'None' && (
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Wind className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+                      <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">Gas</p>
+                    </div>
+                    <p className="text-sm sm:text-base font-bold text-indigo-100 text-left sm:text-right">{result.gasEvolution}</p>
+                  </div>
+                )}
+
+                {/* Emission */}
+                {result.emission && result.emission !== 'None' && (
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 hover:bg-indigo-500/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+                      <p className="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wider">Emission</p>
+                    </div>
+                    <p className="text-sm sm:text-base font-bold text-indigo-100 text-left sm:text-right">{result.emission}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Explanation Section */}
+            {result.explanation && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                  <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                  </div>
+                  Reaction Explanation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-[#1e1b4b] dark:bg-[#1e1b4b] p-3 sm:p-4 rounded-2xl border border-indigo-500/30 hover:border-indigo-500/50 transition-colors shadow-lg group">
+                    <h4 className="font-bold text-indigo-100 text-base sm:text-lg leading-tight mb-3 sm:mb-4">Mechanism<br /><span className="text-indigo-300">& Energy</span></h4>
+                    <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Mechanism</span>
+                        <p className="text-indigo-100/90 font-medium leading-relaxed">{result.explanation.mechanism}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Bond Breaking</span>
+                        <p className="text-indigo-100/90 font-medium leading-relaxed">{result.explanation.bondBreaking}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Energy Profile</span>
+                        <p className="text-indigo-100/90 font-medium leading-relaxed">{result.explanation.energyProfile}</p>
+                      </div>
+                      {result.explanation.electronTransfer && (
+                         <div className="space-y-1">
+                           <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Electron Transfer</span>
+                           <p className="text-indigo-100/90 font-medium leading-relaxed">{result.explanation.electronTransfer}</p>
+                         </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#1e1b4b] dark:bg-[#1e1b4b] p-3 sm:p-4 rounded-2xl border border-indigo-500/30 hover:border-indigo-500/50 transition-colors shadow-lg group">
+                    <h4 className="font-bold text-indigo-100 text-base sm:text-lg leading-tight mb-3 sm:mb-4">Atomic<br /><span className="text-indigo-300">Insight</span></h4>
+                    <div className="flex flex-col h-[calc(100%-3rem)] sm:h-[calc(100%-4rem)]">
+                      <div className="flex-1 text-xs sm:text-sm text-indigo-100/90 leading-relaxed space-y-3 sm:space-y-4">
+                        <p>{result.explanation.atomicLevel}</p>
+                      </div>
+                      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-indigo-500/30">
+                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block mb-2">Key Concept</span>
+                        <div className="bg-indigo-950/50 rounded-xl p-2 sm:p-3 border border-indigo-500/20">
+                          <span className="text-xs sm:text-sm font-medium text-white italic leading-relaxed block">
+                            {result.explanation.keyConcept}
                           </span>
                         </div>
-                        <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 rounded-full text-xs font-bold animate-pulse">
-                          {eq.value} {eq.unit}
-                        </span>
-                      </div>
-                      
-                      {/* Activity bar */}
-                      <div className="relative mt-2 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <motion.div 
-                          className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full"
-                          animate={{ x: ['-100%', '100%'] }}
-                          transition={{ 
-                            duration: 2, 
-                            repeat: Infinity, 
-                            ease: "linear" 
-                          }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="mt-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700">
-                  <p className="text-xs text-orange-800 dark:text-orange-200 font-semibold mb-2">
-                    ⚡ Equipment Effects on Reaction:
-                  </p>
-                  <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
-                    {experiment.equipment.some(eq => eq.name.includes('bunsen') || eq.name.includes('hot')) && (
-                      <li>🔥 Increased temperature accelerates reaction rate</li>
-                    )}
-                    {experiment.equipment.some(eq => eq.name.includes('stirrer')) && (
-                      <li>🔄 Stirring increases contact between reactants</li>
-                    )}
-                    {experiment.equipment.some(eq => eq.name.includes('bunsen')) && (
-                      <li>⚠️ High heat may cause decomposition of products</li>
-                    )}
-                    <li>✓ Reaction conditions have been optimized</li>
-                  </ul>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Reaction Equation */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center space-x-2 mb-3">
-                <div className="p-1.5 bg-blue-500 rounded-lg">
-                  <Atom className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="font-bold text-blue-900 dark:text-blue-100">
-                  Balanced Equation
-                </h3>
-              </div>
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700 shadow-inner">
-                <p className="font-mono text-lg text-gray-900 dark:text-white font-medium">
-                  {result.balancedEquation}
-                </p>
-              </div>
-            </div>
-
-            {/* Reaction Type */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <Zap className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <span className="text-sm text-purple-700 dark:text-purple-300 font-medium uppercase tracking-wide">
-                    Reaction Type
-                  </span>
-                  <p className="text-xl text-purple-900 dark:text-purple-100 font-bold capitalize">
-                    {result.reactionType}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Visual Observations */}
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="p-1.5 bg-gray-600 rounded-lg">
-                  <Eye className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-900 dark:text-white">
-                  Visual Observations
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">Solution Color:</span>
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner relative flex-shrink-0"
-                        style={{
-                          backgroundColor: result.color === 'colorless' || result.color === 'transparent'
-                            ? 'transparent'
-                            : result.color
-                        }}
-                      >
-                        {(result.color === 'colorless' || result.color === 'transparent') && (
-                          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-full opacity-50"></div>
-                        )}
-                      </div>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
-                        {result.color === 'colorless' ? 'Clear' : result.color}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {result.precipitate && (
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Precipitate:</span>
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-inner flex-shrink-0"
-                          style={{ backgroundColor: result.precipitateColor || '#ffffff' }}
-                        ></div>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize text-sm">
-                          {result.precipitateColor || 'White'}
-                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {result.gasEvolution && (
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Gas Evolution:</span>
-                      <div className="flex items-center space-x-2">
-                        <Wind className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
-                          Yes
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Smell */}
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-yellow-500 rounded-lg">
-                  <SmellIcon className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <span className="text-sm text-yellow-700 dark:text-yellow-300 font-medium uppercase tracking-wide">
-                    Smell
-                  </span>
-                  <p className="text-lg text-yellow-900 dark:text-yellow-100 font-semibold capitalize">
-                    {result.smell}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Temperature Change */}
-            {result.temperature && result.temperature !== 'unchanged' && (
-              <div className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                <Thermometer className="h-5 w-5 text-orange-600" />
-                <div>
-                  <span className="text-sm text-orange-800 dark:text-orange-200 font-medium">
-                    Temperature:
-                  </span>
-                  <p className="text-orange-900 dark:text-orange-100 capitalize">
-                    Temperature {result.temperature}
-                  </p>
                 </div>
               </div>
             )}
 
-            {/* Equipment Impact Summary */}
-            {experiment?.equipment && experiment.equipment.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-6 border-2 border-blue-300 dark:border-blue-700"
-              >
-                <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
-                  <Zap className="h-5 w-5 mr-2 text-blue-600" />
-                  How Equipment Changed This Reaction
-                </h3>
-                <div className="space-y-3">
-                  {experiment.equipment.some(eq => eq.name.includes('bunsen-burner')) && (
-                    <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                      <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm mb-1">
-                        🔥 Bunsen Burner Effect:
-                      </p>
-                      <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 ml-4">
-                        <li>• Reaction rate increased significantly</li>
-                        <li>• Solution temperature elevated</li>
-                        <li>• Faster product formation</li>
-                        <li>• May cause thermal decomposition of sensitive products</li>
-                      </ul>
-                    </div>
-                  )}
-                  {experiment.equipment.some(eq => eq.name.includes('hot-plate')) && (
-                    <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                      <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm mb-1">
-                        🌡️ Hot Plate Effect:
-                      </p>
-                      <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 ml-4">
-                        <li>• Controlled heating applied</li>
-                        <li>• Reaction rate moderately increased</li>
-                        <li>• More stable than open flame</li>
-                        <li>• Better for temperature-sensitive reactions</li>
-                      </ul>
-                    </div>
-                  )}
-                  {experiment.equipment.some(eq => eq.name.includes('stirrer')) && (
-                    <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                      <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm mb-1">
-                        🔄 Magnetic Stirrer Effect:
-                      </p>
-                      <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 ml-4">
-                        <li>• Increased mixing of reactants</li>
-                        <li>• Better contact between chemicals</li>
-                        <li>• Faster and more uniform reaction</li>
-                        <li>• Prevents settling of precipitates</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Products */}
-            {result.products && Array.isArray(result.products) && result.products.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
-                  <Beaker className="h-4 w-4 mr-2" />
+            {/* Products Info */}
+            {result.productsInfo && result.productsInfo.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                  <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                    <FlaskConical className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                  </div>
                   Products Formed
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {result.products.map((product, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium"
-                    >
-                      {product}
-                    </span>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  {result.productsInfo.map((product, idx) => (
+                    <div key={idx} className="bg-[#1e1b4b] dark:bg-[#1e1b4b] p-4 sm:p-5 rounded-2xl border border-indigo-500/30 hover:border-indigo-500/50 transition-colors shadow-lg group">
+                      <div className="flex justify-between items-start mb-3 sm:mb-4">
+                        <div>
+                          <h4 className="font-bold text-indigo-100 text-lg sm:text-xl">{product.name}</h4>
+                          <div className="flex gap-2 mt-2">
+                            <span className="text-[10px] sm:text-xs font-semibold bg-indigo-500/20 text-indigo-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-indigo-500/30">
+                              {product.state}
+                            </span>
+                            <span className="text-[10px] sm:text-xs font-semibold bg-blue-500/20 text-blue-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-blue-500/30">
+                              {product.color}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs sm:text-sm text-indigo-100/90 mb-4 sm:mb-5 leading-relaxed font-medium">{product.characteristics}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+                        <div className="bg-emerald-950/30 p-3 sm:p-4 rounded-xl border border-emerald-500/20 hover:bg-emerald-950/40 transition-colors">
+                          <span className="font-bold text-emerald-400 block mb-2 uppercase text-[10px] sm:text-xs tracking-wider">Common Uses</span>
+                          <p className="text-emerald-100/90 leading-relaxed">{product.commonUses}</p>
+                        </div>
+                        <div className="bg-rose-950/30 p-3 sm:p-4 rounded-xl border border-rose-500/20 hover:bg-rose-950/40 transition-colors">
+                          <span className="font-bold text-rose-400 block mb-2 uppercase text-[10px] sm:text-xs tracking-wider">Hazards</span>
+                          <p className="text-rose-100/90 leading-relaxed">{product.safetyHazards}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Detailed Observations */}
-            {result.observations && Array.isArray(result.observations) && result.observations.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Detailed Observations
-                </h3>
-                <ul className="space-y-1">
-                  {result.observations.map((observation, index) => (
-                    <li
-                      key={index}
-                      className="text-sm text-gray-700 dark:text-gray-300 flex items-start space-x-2"
-                    >
-                      <span className="text-blue-500 mt-1">•</span>
-                      <span>{observation}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Safety Notes */}
-            {result.safetyNotes && Array.isArray(result.safetyNotes) && result.safetyNotes.length > 0 && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                <h3 className="font-semibold text-red-900 dark:text-red-100 flex items-center mb-2">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Safety Notes
-                </h3>
-                <ul className="space-y-1">
-                  {result.safetyNotes.map((note, index) => (
-                    <li
-                      key={index}
-                      className="text-sm text-red-800 dark:text-red-200 flex items-start space-x-2"
-                    >
-                      <span className="text-red-500 mt-1">⚠</span>
-                      <span>{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Confidence Score */}
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="p-1.5 bg-indigo-500 rounded-lg">
-                    <Beaker className="h-4 w-4 text-white" />
+            {/* Safety Section */}
+            {result.safety && (
+              <div className="bg-[#1e1b4b] dark:bg-[#1e1b4b] p-4 sm:p-5 rounded-2xl border border-red-500/30 hover:border-red-500/50 transition-colors shadow-lg group">
+                <h3 className="font-bold text-base sm:text-lg text-white flex items-center gap-2 mb-4 sm:mb-5">
+                  <div className="p-1.5 bg-red-500/20 rounded-lg">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                   </div>
-                  <span className="font-bold text-indigo-900 dark:text-indigo-100">
-                    AI Confidence
-                  </span>
+                  Safety Information
+                </h3>
+                
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="bg-red-950/30 p-3 sm:p-4 rounded-xl border border-red-500/20 flex items-start gap-3 sm:gap-4">
+                    <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg shrink-0 mt-0.5">
+                      <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-red-100 text-base sm:text-lg mb-1">Risk Level: {result.safety.riskLevel}</p>
+                      <p className="text-xs sm:text-sm text-red-200/80 leading-relaxed">{result.safety.generalHazards}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                      <span className="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-wider block mb-2">Precautions</span>
+                      <p className="text-xs sm:text-sm text-red-100/90 leading-relaxed font-medium">{result.safety.precautions}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-wider block mb-2">First Aid</span>
+                      <p className="text-xs sm:text-sm text-red-100/90 leading-relaxed font-medium">{result.safety.firstAid}</p>
+                    </div>
+                    <div className="col-span-1 sm:col-span-2 pt-3 sm:pt-4 border-t border-red-500/20">
+                      <span className="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-wider block mb-2">Disposal</span>
+                      <p className="text-xs sm:text-sm text-red-100/90 leading-relaxed font-medium">{result.safety.disposal}</p>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">
-                  {result.confidence && !isNaN(result.confidence) ? Math.round(result.confidence * 100) : 50}%
-                </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 shadow-inner">
-                <motion.div
-                  className="bg-gradient-to-r from-indigo-500 to-blue-500 h-3 rounded-full shadow-sm"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${result.confidence && !isNaN(result.confidence) ? result.confidence * 100 : 50}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                />
-              </div>
+            )}
+
+            {/* Disclaimer */}
+            <div className="text-center pt-4 border-t border-indigo-500/20">
+              <p className="text-[10px] text-indigo-400/70">
+                This analysis is generated by an AI model and may not be 100% accurate. Please verify critical information independently.
+              </p>
             </div>
           </motion.div>
         ) : null}

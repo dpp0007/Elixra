@@ -26,9 +26,11 @@ import ModernNavbar from '@/components/ModernNavbar'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { Experiment, ReactionResult } from '@/types/chemistry'
 import { calculatePH, formatPH } from '@/lib/ph-calculator'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LabPage() {
     const router = useRouter()
+    const { syncExperiments } = useAuth()
     const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
     const [reactionResult, setReactionResult] = useState<ReactionResult | null>(null)
     const [isReacting, setIsReacting] = useState(false)
@@ -191,7 +193,9 @@ export default function LabPage() {
                 },
                 body: JSON.stringify({
                     ...experiment,
+                    experimentName: experiment.name,
                     reactionDetails: result,
+                    isSaved: false
                 }),
             })
         } catch (error) {
@@ -221,13 +225,17 @@ export default function LabPage() {
                 },
                 body: JSON.stringify({
                     ...currentExperiment,
+                    experimentName: currentExperiment.name,
                     reactionDetails: reactionResult,
-                    savedAt: new Date().toISOString()
+                    savedAt: new Date().toISOString(),
+                    isSaved: true
                 }),
             })
 
             if (response.ok) {
                 alert('✅ Experiment saved successfully!')
+                // Sync experiments with AuthContext so they appear in profile immediately
+                await syncExperiments()
             } else {
                 throw new Error('Failed to save experiment')
             }
@@ -317,7 +325,7 @@ export default function LabPage() {
             <ModernNavbar />
 
             {/* Main Content - Responsive Grid */}
-            <div className="min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-[320px_1fr_380px] gap-4 p-4">
+            <div className="min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-[320px_1fr_380px] gap-3 sm:gap-4 p-2 sm:p-4">
                 {/* Left Panel - Chemical Shelf */}
                 <motion.div
                     initial={{ x: -100, opacity: 0 }}
@@ -376,19 +384,6 @@ export default function LabPage() {
                                     <Plus className="w-4 h-4" />
                                     Test Tube
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        if (addBeakerFunc) {
-                                            addBeakerFunc()
-                                        } else {
-                                            (window as any).__addBeaker?.()
-                                        }
-                                    }}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-all"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Beaker
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -442,8 +437,8 @@ export default function LabPage() {
                         </div>
                     </div>
 
-                    {/* Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    {/* Scrollable Content - Only internal scroll on large screens */}
+                    <div className="flex-1 lg:overflow-y-auto custom-scrollbar">
                         <ReactionPanel
                             experiment={currentExperiment}
                             result={reactionResult}
@@ -462,7 +457,7 @@ export default function LabPage() {
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.5 }}
                 onClick={() => setShowFeatures(!showFeatures)}
-                className="fixed bottom-8 right-8 z-50 group"
+                className="fixed bottom-8 right-4 sm:right-8 z-50 group"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
             >
@@ -472,8 +467,9 @@ export default function LabPage() {
                 {/* Button */}
                 <div className="relative w-16 h-16 bg-gradient-to-br from-orange-500/90 to-red-500/90 backdrop-blur-xl border border-white/20 rounded-full shadow-2xl flex items-center justify-center">
                     <motion.div
-                        animate={{ rotate: showFeatures ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
+                        key={showFeatures ? 'active' : 'inactive'}
+                        animate={{ rotate: [0, -20, 20, -10, 10, 0] }}
+                        transition={{ duration: 1.5, ease: "easeInOut" }}
                     >
                         <Flame className="w-7 h-7 text-white drop-shadow-lg" />
                     </motion.div>
@@ -501,7 +497,7 @@ export default function LabPage() {
                         initial={{ opacity: 0, x: 100 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 100 }}
-                        className="fixed bottom-28 right-8 z-40 w-64"
+                        className="fixed bottom-28 right-4 sm:right-8 z-40 w-64"
                     >
                         <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl hover:border-white/40 transition-all duration-300 p-4">
                             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">

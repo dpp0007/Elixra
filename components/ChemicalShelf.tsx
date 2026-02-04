@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDrag } from 'react-dnd'
 import { COMMON_CHEMICALS, Chemical, ChemicalCategory } from '@/types/chemistry'
@@ -19,7 +19,8 @@ import {
   FlaskConical,
   TestTube2,
   Flame,
-  Sparkles
+  Sparkles,
+  ChevronDown
 } from 'lucide-react'
 
 interface ChemicalCardProps {
@@ -276,6 +277,79 @@ function ChemicalCard({ chemical, onClick, onAddToTestTube }: ChemicalCardProps)
   )
 }
 
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface CustomSelectProps {
+  value: string
+  onChange: (value: string) => void
+  options: SelectOption[]
+  className?: string
+  align?: 'left' | 'right'
+}
+
+function CustomSelect({ value, onChange, options, className = "", align = 'left' }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selectedOption = options.find(opt => opt.value === value) || options[0]
+
+  return (
+    <div className={`relative ${className}`} ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between pl-3 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left text-xs sm:text-sm"
+      >
+        <span className="truncate mr-2">{selectedOption?.label}</span>
+        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className={`absolute z-50 mt-1 min-w-full w-max max-w-[300px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-xl max-h-60 overflow-y-auto overflow-x-hidden ${align === 'right' ? 'right-0' : 'left-0'}`}
+          >
+            {options.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value)
+                  setIsOpen(false)
+                }}
+                className={`px-3 py-2 cursor-pointer text-xs sm:text-sm transition-colors whitespace-nowrap
+                  ${option.value === value
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }
+                `}
+              >
+                {option.label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 interface ChemicalShelfProps {
   onAddChemicalToTestTube?: (chemical: Chemical) => void
 }
@@ -338,6 +412,21 @@ export default function ChemicalShelf({ onAddChemicalToTestTube }: ChemicalShelf
     return COMMON_CHEMICALS.filter(c => c.category === category).length
   }
 
+  const stateOptions: SelectOption[] = [
+    { value: 'all', label: 'All States' },
+    { value: 'solid', label: 'Solid' },
+    { value: 'liquid', label: 'Liquid' }
+  ]
+
+  const categoryOptions: SelectOption[] = [
+    { value: 'all', label: `All Categories (${COMMON_CHEMICALS.length})` },
+    ...categories.map(category => {
+      const count = getCategoryCount(category)
+      if (count === 0) return null
+      return { value: category, label: `${category} (${count})` }
+    }).filter(Boolean) as SelectOption[]
+  ]
+
   return (
     <>
       <div className="p-4">
@@ -365,37 +454,25 @@ export default function ChemicalShelf({ onAddChemicalToTestTube }: ChemicalShelf
           </div>
 
           {/* Compact Filter Row */}
-          <div className="flex items-center gap-2 text-xs">
-            <Filter className="h-3 w-3 text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-3 text-xs">
+            <Filter className="h-4 w-4 text-gray-500 flex-shrink-0" />
 
             {/* State Filter */}
-            <select
+            <CustomSelect
               value={filterState}
-              onChange={(e) => setFilterState(e.target.value as any)}
-              className="px-2 py-2 sm:py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-blue-500 touch-manipulation min-w-0"
-            >
-              <option value="all">All States</option>
-              <option value="solid">Solid</option>
-              <option value="liquid">Liquid</option>
-            </select>
+              onChange={(val) => setFilterState(val as any)}
+              options={stateOptions}
+              className="min-w-[120px]"
+            />
 
             {/* Category Filter */}
-            <select
+            <CustomSelect
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value as any)}
-              className="px-2 py-2 sm:py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-blue-500 flex-1 min-w-0 touch-manipulation"
-            >
-              <option value="all">All Categories ({COMMON_CHEMICALS.length})</option>
-              {categories.map((category) => {
-                const count = getCategoryCount(category)
-                if (count === 0) return null
-                return (
-                  <option key={category} value={category}>
-                    {category} ({count})
-                  </option>
-                )
-              })}
-            </select>
+              onChange={(val) => setFilterCategory(val as any)}
+              options={categoryOptions}
+              className="flex-1 min-w-0"
+              align="right"
+            />
           </div>
 
           {/* Active Filters Info */}
@@ -422,8 +499,8 @@ export default function ChemicalShelf({ onAddChemicalToTestTube }: ChemicalShelf
           </p>
         </div>
 
-        {/* Chemical Grid - 2 columns on mobile, 1 on desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
+        {/* Chemical Grid - Responsive columns based on container width */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 sm:gap-3">
           {filteredChemicals.length > 0 ? (
             filteredChemicals.map((chemical) => (
               <ChemicalCard

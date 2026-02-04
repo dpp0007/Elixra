@@ -9,8 +9,13 @@ import {
 } from 'lucide-react'
 import ModernNavbar from '@/components/ModernNavbar'
 import AuthButton from '@/components/AuthButton'
-import HeroAtom3D from '@/components/HeroAtom3D'
+import dynamic from 'next/dynamic'
 import { useRef, useState, useEffect } from 'react'
+
+const HeroAtom3D = dynamic(() => import('@/components/HeroAtom3D'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-slate-100/10 animate-pulse rounded-lg" />
+})
 
 // Animation variants
 const fadeInUp = {

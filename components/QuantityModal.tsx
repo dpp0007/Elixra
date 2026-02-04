@@ -70,7 +70,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 shadow-2xl max-w-md w-full border border-white/10"
+            className="bg-[#0f172a] rounded-2xl p-6 shadow-2xl max-w-md w-full border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -79,7 +79,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                 <h3 className="text-xl font-bold text-white">
                   Add {chemical.name}
                 </h3>
-                <p className="text-sm text-blue-300 font-medium">
+                <p className="text-sm text-blue-400 font-medium">
                   {chemical.formula}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
@@ -105,7 +105,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
               <div className="flex items-center gap-3 mb-4">
                 <button
                   onClick={decrementAmount}
-                  className="w-12 h-12 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition-all border border-white/10 flex items-center justify-center"
+                  className="w-12 h-12 bg-[#1e293b] hover:bg-[#334155] rounded-xl transition-all border border-white/10 flex items-center justify-center"
                 >
                   <Minus className="h-5 w-5 text-gray-300" />
                 </button>
@@ -115,7 +115,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                    className="w-full px-4 py-3 text-center text-2xl font-bold bg-slate-800/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-500 transition-all"
+                    className="w-full px-4 py-3 text-center text-2xl font-bold bg-[#1e293b] border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-600/50 focus:border-blue-600/50 text-white placeholder-gray-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     step={unit === 'ml' || unit === 'g' ? 0.1 : 1}
                     min="0.1"
                   />
@@ -126,7 +126,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
 
                 <button
                   onClick={incrementAmount}
-                  className="w-12 h-12 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition-all border border-white/10 flex items-center justify-center"
+                  className="w-12 h-12 bg-[#1e293b] hover:bg-[#334155] rounded-xl transition-all border border-white/10 flex items-center justify-center"
                 >
                   <Plus className="h-5 w-5 text-gray-300" />
                 </button>
@@ -139,8 +139,8 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                     key={preset}
                     onClick={() => setAmount(preset)}
                     className={`px-2 py-2.5 rounded-lg text-sm font-medium transition-all ${amount === preset
-                      ? 'bg-blue-500 text-white shadow-md'
-                      : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-gray-300 border border-white/5'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-[#1e293b] text-gray-400 hover:bg-[#334155] hover:text-gray-300 border border-white/5'
                       }`}
                   >
                     {preset}
@@ -161,7 +161,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                       onClick={() => setUnit('ml')}
                       className={`px-4 py-3 rounded-lg font-medium transition-all ${unit === 'ml'
                         ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-gray-300 border border-white/5'
+                        : 'bg-[#1e293b] text-gray-400 hover:bg-[#334155] hover:text-gray-300 border border-white/5'
                         }`}
                     >
                       Milliliters (ml)
@@ -170,7 +170,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                       onClick={() => setUnit('drops')}
                       className={`px-4 py-3 rounded-lg font-medium transition-all ${unit === 'drops'
                         ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-gray-300 border border-white/5'
+                        : 'bg-[#1e293b] text-gray-400 hover:bg-[#334155] hover:text-gray-300 border border-white/5'
                         }`}
                     >
                       Drops
@@ -182,7 +182,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                       onClick={() => setUnit('g')}
                       className={`px-4 py-3 rounded-lg font-medium transition-all ${unit === 'g'
                         ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-gray-300 border border-white/5'
+                        : 'bg-[#1e293b] text-gray-400 hover:bg-[#334155] hover:text-gray-300 border border-white/5'
                         }`}
                     >
                       Grams (g)
@@ -191,7 +191,7 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
                       onClick={() => setUnit('mg')}
                       className={`px-4 py-3 rounded-lg font-medium transition-all ${unit === 'mg'
                         ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-gray-300 border border-white/5'
+                        : 'bg-[#1e293b] text-gray-400 hover:bg-[#334155] hover:text-gray-300 border border-white/5'
                         }`}
                     >
                       Milligrams (mg)
@@ -205,13 +205,13 @@ export default function QuantityModal({ chemical, isOpen, onClose, onConfirm }: 
             <div className="flex gap-3 mt-6">
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3.5 bg-slate-800/30 hover:bg-slate-700/40 text-gray-300 hover:text-white rounded-xl font-medium transition-all border border-white/5"
+                className="flex-1 px-6 py-3.5 bg-[#1e293b] hover:bg-[#334155] text-gray-300 hover:text-white rounded-xl font-medium transition-all border border-white/5"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
-                className="flex-1 px-6 py-3.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
               >
                 <Beaker className="h-5 w-5" />
                 <span>Add</span>

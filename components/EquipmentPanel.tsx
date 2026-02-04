@@ -245,36 +245,36 @@ export default function EquipmentPanel({
                   </div>
                 </div>
                 <button
-                  onClick={handleClose}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+            onClick={handleClose}
+            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-              {/* Scrollable Content Container */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Equipment List */}
-                <div className="p-4 space-y-4">
-                  {equipment.map((eq) => {
-                    const Icon = eq.icon
-                    return (
-                      <div
-                        key={eq.id}
-                        className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border-2 transition-all flex flex-col relative z-0 ${eq.active
-                          ? 'border-green-500 shadow-lg shadow-green-500/20'
-                          : 'border-gray-200 dark:border-gray-700'
-                          }`}
-                      >
-                        {/* Header */}
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className={`relative p-2 rounded-lg bg-gradient-to-br ${eq.color} ${eq.active ? 'animate-pulse' : ''}`}>
-                            <Icon className={`h-5 w-5 text-white ${eq.active && (eq.id === 'magnetic-stirrer' || eq.id === 'centrifuge')
-                              ? 'animate-spin'
-                              : eq.active && (eq.id === 'bunsen-burner' || eq.id === 'hot-plate')
-                                ? 'animate-bounce'
-                                : ''
-                              }`} />
+        {/* Scrollable Content Container */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Equipment List */}
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+            {equipment.map((eq) => {
+              const Icon = eq.icon
+              return (
+                <div
+                  key={eq.id}
+                  className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 border-2 transition-all flex flex-col relative z-0 ${eq.active
+                    ? 'border-green-500 shadow-lg shadow-green-500/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                >
+                  {/* Header */}
+                  <div className="flex items-center space-x-3 mb-2 sm:mb-3">
+                    <div className={`relative p-2 rounded-lg bg-gradient-to-br ${eq.color} ${eq.active ? 'animate-pulse' : ''}`}>
+                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 text-white ${eq.active && (eq.id === 'magnetic-stirrer' || eq.id === 'centrifuge')
+                        ? 'animate-spin'
+                        : eq.active && (eq.id === 'bunsen-burner' || eq.id === 'hot-plate')
+                          ? 'animate-bounce'
+                          : ''
+                        }`} />
                             {eq.active && (
                               <span className="absolute -top-1 -right-1 flex h-3 w-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -310,19 +310,19 @@ export default function EquipmentPanel({
                             {/* Analytical Balance - Display Only with TARE */}
                             {eq.id === 'analytical-balance' ? (
                               <div className="text-center py-2">
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                  ⚖️ Measured Weight
-                                </div>
-                                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                                  {currentWeight.toFixed(4)} g
-                                </div>
-                                <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-                                  {currentWeight > 200 ? '⚠️ OVERLOAD' :
-                                    currentWeight > 100 ? '🔵 Heavy' :
-                                      currentWeight > 10 ? '🟢 Normal' :
-                                        currentWeight > 0 ? '🟡 Light' :
-                                          '⚪ Empty'}
-                                </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                              ⚖️ Measured Weight
+                            </div>
+                            <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                              {currentWeight.toFixed(4)} g
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                              {currentWeight > 200 ? '⚠️ OVERLOAD' :
+                                currentWeight > 100 ? '🔵 Heavy' :
+                                  currentWeight > 10 ? '🟢 Normal' :
+                                    currentWeight > 0 ? '🟡 Light' :
+                                      '⚪ Empty'}
+                            </div>
                                 <button
                                   onClick={() => {
                                     // HIGH PRIORITY FIX: TARE sets current weight as offset
@@ -355,60 +355,60 @@ export default function EquipmentPanel({
                               </div>
                             ) : eq.id === 'ph-meter' ? (
                               /* pH Meter - Display Only (No Controls) */
-                              <div className="text-center py-2">
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                  📊 Measured pH
+                          <div className="text-center py-2">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                              📊 Measured pH
+                            </div>
+                            {currentPH === 0 ? (
+                              <>
+                                <div className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500 mb-1">
+                                  -- EMPTY --
                                 </div>
-                                {currentPH === 0 ? (
-                                  <>
-                                    <div className="text-2xl font-bold text-gray-400 dark:text-gray-500 mb-1">
-                                      -- EMPTY --
-                                    </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                      ⚪ No solution detected
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-                                      {currentPH.toFixed(1)}
-                                    </div>
-                                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                                      {currentPH <= 2 ? '🔴 Strongly Acidic' :
-                                        currentPH < 6 ? '🟠 Weakly Acidic' :
-                                          currentPH < 8 ? '🟢 Neutral' :
-                                            currentPH < 11 ? '🔵 Weakly Basic' :
-                                              '🟣 Strongly Basic'}
-                                    </div>
-                                  </>
-                                )}
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  ⚪ No solution detected
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                                  {currentPH.toFixed(1)}
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                  {currentPH <= 2 ? '🔴 Strongly Acidic' :
+                                    currentPH < 6 ? '🟠 Weakly Acidic' :
+                                      currentPH < 8 ? '🟢 Neutral' :
+                                        currentPH < 11 ? '🔵 Weakly Basic' :
+                                          '🟣 Strongly Basic'}
+                                </div>
+                              </>
+                            )}
                                 <div className="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">
                                   pH is calculated from tube contents
                                 </div>
                               </div>
                             ) : eq.id === 'thermometer' ? (
                               /* Thermometer - Display Only (No Controls) */
-                              <div className="text-center py-2">
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                  🌡️ Measured Temperature
+                          <div className="text-center py-2">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                              🌡️ Measured Temperature
+                            </div>
+                            {currentTemperature === -999 ? (
+                              <>
+                                <div className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500 mb-1">
+                                  -- EMPTY --
                                 </div>
-                                {currentTemperature === -999 ? (
-                                  <>
-                                    <div className="text-2xl font-bold text-gray-400 dark:text-gray-500 mb-1">
-                                      -- EMPTY --
-                                    </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                      ⚪ No solution detected
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className={`text-3xl font-bold mb-1 ${currentTemperature < 0 ? 'text-blue-400' :
-                                      currentTemperature < 100 ? 'text-green-600 dark:text-green-400' :
-                                        currentTemperature < 200 ? 'text-amber-500' :
-                                          currentTemperature < 300 ? 'text-orange-500' :
-                                            'text-red-500'
-                                      }`}>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  ⚪ No solution detected
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className={`text-2xl sm:text-3xl font-bold mb-1 ${currentTemperature < 0 ? 'text-blue-400' :
+                                  currentTemperature < 100 ? 'text-green-600 dark:text-green-400' :
+                                    currentTemperature < 200 ? 'text-amber-500' :
+                                      currentTemperature < 300 ? 'text-orange-500' :
+                                        'text-red-500'
+                                  }`}>
                                       {currentTemperature.toFixed(1)}°C
                                     </div>
                                     <div className="text-xs text-gray-600 dark:text-gray-400">

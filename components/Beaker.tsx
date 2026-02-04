@@ -198,7 +198,7 @@ export default function Beaker({
           drop(node)
           if (node) (tubeRef as any).current = node
         }}
-        className={`beaker relative w-24 h-40 transition-all duration-300 ${isOver && canDrop
+        className={`beaker relative w-28 h-40 transition-all duration-300 ${isOver && canDrop
           ? 'ring-4 ring-green-400 ring-opacity-50 shadow-xl shadow-green-400/30 scale-105'
           : canDrop
             ? 'ring-2 ring-green-300 ring-opacity-30'
@@ -215,18 +215,32 @@ export default function Beaker({
         role="region"
         aria-label={`Beaker ${id}. Contains ${contents.length} chemical${contents.length !== 1 ? 's' : ''}.`}
       >
+        {/* Glass Container Body */}
+        <div className="absolute inset-0 z-20 pointer-events-none rounded-b-3xl border-l-2 border-r-2 border-b-2 border-white/20 bg-gradient-to-br from-white/10 to-transparent backdrop-blur-[2px] shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]">
+            {/* Left Highlight */}
+            <div className="absolute top-2 bottom-4 left-2 w-1.5 bg-gradient-to-b from-white/40 to-transparent rounded-full opacity-60 blur-[1px]"></div>
+            {/* Right Highlight */}
+            <div className="absolute top-2 bottom-4 right-2 w-0.5 bg-gradient-to-b from-white/30 to-transparent rounded-full opacity-40 blur-[0.5px]"></div>
+            
+            {/* Rim Highlight */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 rounded-full blur-[1px]"></div>
+        </div>
+
         {/* Beaker spout */}
-        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-transparent border-l-2 border-r-2 border-gray-300 rounded-t-lg"></div>
+        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-8 h-3 z-10">
+            <div className="w-full h-full border-b-2 border-l-2 border-r-2 border-white/20 rounded-b-xl bg-white/5 backdrop-blur-sm"></div>
+        </div>
 
         {/* Beaker liquid - with proper rounded bottom */}
         <AnimatePresence>
           {contents.length > 0 && (
             <motion.div
-              className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-out ${isReacting ? 'animate-color-change' : ''}`}
+              className={`absolute bottom-[2px] left-[2px] right-[2px] transition-all duration-1000 ease-out ${isReacting ? 'animate-color-change' : ''}`}
               style={{
                 backgroundColor: getLiquidColor(),
                 height: `${getLiquidHeight()}%`,
-                borderRadius: '0 0 24px 24px',
+                borderRadius: '0 0 22px 22px',
+                zIndex: 10
               }}
               initial={{ height: 0, opacity: 0 }}
               animate={{
@@ -239,12 +253,15 @@ export default function Beaker({
                 opacity: { duration: 0.4 }
               }}
             >
+              {/* Liquid Surface Meniscus */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 rounded-[100%] scale-x-110 opacity-50 blur-[1px]"></div>
+
               {/* Liquid shimmer effect */}
-              <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: '0 0 24px 24px' }}>
+              <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: '0 0 22px 22px' }}>
                 <motion.div
                   className="absolute top-0 left-0 w-full h-full"
                   style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
                   }}
                   animate={{
                     x: ['-100%', '200%'],
@@ -401,10 +418,23 @@ export default function Beaker({
           )}
         </AnimatePresence>
 
-        {/* Measurement marks */}
-        <div className="absolute left-0 top-1/4 w-2 h-px bg-gray-400"></div>
-        <div className="absolute left-0 top-1/2 w-2 h-px bg-gray-400"></div>
-        <div className="absolute left-0 top-3/4 w-2 h-px bg-gray-400"></div>
+        {/* Measurement Marks */}
+        <div className="absolute left-0 top-[20%] bottom-[15%] w-full pointer-events-none z-30 opacity-70">
+            {[0, 1, 2, 3, 4].map((i) => (
+                <div 
+                    key={i} 
+                    className="absolute left-0 w-3 h-[1px] bg-white/50 shadow-[0_0_2px_rgba(255,255,255,0.5)]"
+                    style={{ top: `${i * 20}%` }}
+                />
+            ))}
+            {[0, 1, 2, 3].map((i) => (
+                <div 
+                    key={`small-${i}`} 
+                    className="absolute left-0 w-1.5 h-[1px] bg-white/30"
+                    style={{ top: `${10 + i * 20}%` }}
+                />
+            ))}
+        </div>
 
       </motion.div>
 
@@ -445,11 +475,6 @@ export default function Beaker({
                 </div>
               </div>
             )}
-          </div>
-        ) : contents.length === 0 ? (
-          <div className="text-xs text-gray-400 flex flex-col items-center space-y-2 p-4 bg-slate-800/30 rounded-xl border-2 border-dashed border-gray-600 hover:border-green-400 transition-colors pointer-events-none">
-            <Droplets className="h-6 w-6" />
-            <span className="font-medium">Drop chemicals here</span>
           </div>
         ) : (
           <div className="space-y-2">

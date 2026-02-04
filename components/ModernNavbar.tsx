@@ -32,10 +32,10 @@ export default function ModernNavbar() {
 
           {/* Main container - matching features page glass morphism */}
           <div className="relative h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl rounded-full shadow-2xl border border-white/10 hover:border-white/20 transition-all duration-300">
-            <div className="flex h-16 items-center pl-8 lg:pl-10 pr-3">
+            <div className="flex h-16 items-center pl-4 sm:pl-8 lg:pl-10 pr-3">
               {/* Logo - Left side */}
-              <div className="flex items-center flex-shrink-0 mr-8">
-                <div className="relative h-10 w-32">
+              <div className="flex items-center flex-shrink-0 mr-4 sm:mr-8">
+                <div className="relative h-10 w-24 sm:w-32">
                   <Image
                     src="/Assets/Main Logo.svg"
                     alt="Elixra Virtual Chem Lab"

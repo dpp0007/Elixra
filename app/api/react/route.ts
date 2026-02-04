@@ -54,11 +54,35 @@ export async function POST(request: NextRequest) {
       products: Array.isArray(reactionData.products) ? reactionData.products : ['Unknown'],
       balancedEquation: reactionData.balancedEquation || 'Reaction equation unknown',
       reactionType: reactionData.reactionType || 'unknown',
+      visualObservation: reactionData.visualObservation || 'No observation details provided',
       observations: Array.isArray(reactionData.observations) ? reactionData.observations : ['Reaction occurred'],
       safetyNotes: Array.isArray(reactionData.safetyNotes) ? reactionData.safetyNotes : ['Handle with care'],
       temperature: reactionData.temperature || 'unchanged',
-      gasEvolution: Boolean(reactionData.gasEvolution),
-      confidence: typeof reactionData.confidence === 'number' ? Math.min(1, Math.max(0, reactionData.confidence)) : 0.5
+      temperatureChange: reactionData.temperatureChange || (reactionData.temperature === 'increased' ? 'exothermic' : reactionData.temperature === 'decreased' ? 'endothermic' : 'none'),
+      gasEvolution: reactionData.gasEvolution || null,
+      confidence: typeof reactionData.confidence === 'number' ? Math.min(1, Math.max(0, reactionData.confidence)) : 0.5,
+      
+      // New structured data fields
+      instrumentAnalysis: reactionData.instrumentAnalysis || undefined,
+      productsInfo: Array.isArray(reactionData.productsInfo) ? reactionData.productsInfo : [],
+      explanation: reactionData.explanation || {
+        mechanism: 'Analysis not available',
+        bondBreaking: 'Analysis not available',
+        energyProfile: 'Analysis not available',
+        atomicLevel: 'Analysis not available',
+        keyConcept: 'Analysis not available'
+      },
+      safety: reactionData.safety || {
+        riskLevel: 'Low',
+        precautions: 'Standard lab safety protocols apply',
+        disposal: 'Dispose according to local regulations',
+        firstAid: 'Rinse with water if contact occurs',
+        generalHazards: 'None identified'
+      },
+      phChange: reactionData.phChange || null,
+      ph: reactionData.phChange ? parseFloat(reactionData.phChange) : undefined, // backend sends phChange string/number
+      emission: reactionData.emission || null,
+      stateChange: reactionData.stateChange || null
     }
 
     console.log('✓ Gemini Analysis successful:', validatedResult)

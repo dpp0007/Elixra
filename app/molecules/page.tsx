@@ -4,8 +4,13 @@ import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Atom as AtomIcon, Plus, Trash2, RotateCw } from 'lucide-react'
 import ModernNavbar from '@/components/ModernNavbar'
-import Molecule3DViewer from '@/components/Molecule3DViewer'
+import dynamic from 'next/dynamic'
 import MoleculeDropZone from '@/components/MoleculeDropZone'
+
+const Molecule3DViewer = dynamic(() => import('@/components/Molecule3DViewer'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-slate-100/10 animate-pulse rounded-lg flex items-center justify-center text-slate-400">Loading 3D Viewer...</div>
+})
 import ElementDragSource from '@/components/ElementDragSource'
 import { AtomMenu, BondMenu } from '@/components/InteractionMenu'
 import AtomBondDialog from '@/components/AtomBondDialog'

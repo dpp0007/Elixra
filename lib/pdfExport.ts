@@ -137,8 +137,10 @@ export function generateExperimentPDF(report: ExperimentReport): void {
     ['Color', report.result.color || 'Not observed'],
     ['Precipitate', report.result.precipitate ? 'Yes' : 'No'],
     ['Gas Evolution', report.result.gasEvolution ? 'Yes' : 'No'],
-    ['Temperature', report.result.temperature || 'Not measured'],
-    ['Odor', report.result.smell || 'None detected']
+    ['Temperature', report.result.temperatureChange ? report.result.temperatureChange : (report.result.temperature || 'Not measured')],
+    ['Odor', report.result.smell || 'None detected'],
+    ['pH Change', report.result.phChange || 'None'],
+    ['State Change', report.result.stateChange || 'None']
   ]
 
     autoTable(doc, {
@@ -158,6 +160,142 @@ export function generateExperimentPDF(report: ExperimentReport): void {
   if (yPosition > pageHeight - 80) {
     doc.addPage()
     yPosition = margin
+  }
+
+  // 2.3 Instrument Analysis
+  if (report.result.instrumentAnalysis) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('2.3 Instrument Analysis', margin, yPosition)
+    yPosition += 6
+
+    const instrumentData = [
+      ['Method', report.result.instrumentAnalysis.name],
+      ['Intensity', report.result.instrumentAnalysis.intensity],
+      ['Change Observed', report.result.instrumentAnalysis.change],
+      ['Outcome Difference', report.result.instrumentAnalysis.outcomeDifference]
+    ]
+
+    autoTable(doc, {
+      startY: yPosition,
+      body: instrumentData,
+      theme: 'grid',
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 40 }
+      }
+    })
+
+    yPosition = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    doc.addPage()
+    yPosition = margin
+  }
+
+  // 2.4 Products Information
+  if (report.result.productsInfo && report.result.productsInfo.length > 0) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('2.4 Products Analysis', margin, yPosition)
+    yPosition += 6
+
+    const productsData = report.result.productsInfo.map(prod => [
+      prod.name,
+      prod.state,
+      prod.color,
+      prod.characteristics,
+      prod.safetyHazards
+    ])
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Product', 'State', 'Color', 'Characteristics', 'Hazards']],
+      body: productsData,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8 }
+    })
+
+    yPosition = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    doc.addPage()
+    yPosition = margin
+  }
+
+  // 2.5 Reaction Mechanism & Explanation
+  if (report.result.explanation) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('2.5 Reaction Mechanism', margin, yPosition)
+    yPosition += 6
+
+    const explanationData = [
+      ['Mechanism', report.result.explanation.mechanism],
+      ['Bond Breaking', report.result.explanation.bondBreaking],
+      ['Energy Profile', report.result.explanation.energyProfile],
+      ['Atomic Level', report.result.explanation.atomicLevel],
+      ['Key Concept', report.result.explanation.keyConcept]
+    ]
+
+    if (report.result.explanation.electronTransfer) {
+      explanationData.splice(2, 0, ['Electron Transfer', report.result.explanation.electronTransfer])
+    }
+
+    autoTable(doc, {
+      startY: yPosition,
+      body: explanationData,
+      theme: 'striped',
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 40 }
+      }
+    })
+
+    yPosition = (doc as any).lastAutoTable.finalY + 10
+  }
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    doc.addPage()
+    yPosition = margin
+  }
+
+  // 2.6 Safety Information
+  if (report.result.safety) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('2.6 Safety Assessment', margin, yPosition)
+    yPosition += 6
+
+    const safetyData = [
+      ['Risk Level', report.result.safety.riskLevel],
+      ['Precautions', report.result.safety.precautions],
+      ['First Aid', report.result.safety.firstAid],
+      ['Disposal', report.result.safety.disposal],
+      ['General Hazards', report.result.safety.generalHazards]
+    ]
+
+    autoTable(doc, {
+      startY: yPosition,
+      body: safetyData,
+      theme: 'grid',
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9, cellPadding: 2 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 40, fillColor: [255, 240, 240] }
+      }
+    })
+
+    yPosition = (doc as any).lastAutoTable.finalY + 10
   }
 
   // Detailed Observations
