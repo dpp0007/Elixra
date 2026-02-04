@@ -32,8 +32,13 @@ module.exports = {
         'bubble': 'bubble 2s infinite',
         'precipitate': 'precipitate 3s ease-out',
         'pour': 'pour 1s ease-in-out',
+        'shimmer': 'shimmer 2s linear infinite',
       },
       keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        },
         bubble: {
           '0%, 100%': { transform: 'translateY(0) scale(1)', opacity: '0.7' },
           '50%': { transform: 'translateY(-10px) scale(1.1)', opacity: '1' },

@@ -30,56 +30,9 @@ export default function ModernNavbar() {
           {/* Outer glow effect - matching features page purple theme */}
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 blur-xl opacity-75"></div>
 
-          {/* SVG animated border beam - purple/pink gradient */}
-          <svg
-            className="absolute inset-0 pointer-events-none"
-            width="100%"
-            height="100%"
-            style={{ overflow: 'visible' }}
-          >
-            <defs>
-              <linearGradient id="beam-gradient">
-                <stop offset="0%" stopColor="transparent" />
-                <stop offset="35%" stopColor="rgba(139, 92, 246, 0)" />
-                <stop offset="45%" stopColor="rgba(139, 92, 246, 0.6)" />
-                <stop offset="50%" stopColor="rgba(168, 85, 247, 1)" />
-                <stop offset="55%" stopColor="rgba(236, 72, 153, 0.6)" />
-                <stop offset="65%" stopColor="rgba(236, 72, 153, 0)" />
-                <stop offset="100%" stopColor="transparent" />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="5" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            <rect
-              x="1"
-              y="1"
-              width="calc(100% - 2px)"
-              height="calc(100% - 2px)"
-              rx="32"
-              fill="none"
-              stroke="url(#beam-gradient)"
-              strokeWidth="3"
-              strokeDasharray="1200"
-              filter="url(#glow)"
-            >
-              <animate
-                attributeName="stroke-dashoffset"
-                from="0"
-                to="-2400"
-                dur="4s"
-                repeatCount="indefinite"
-              />
-            </rect>
-          </svg>
-
           {/* Main container - matching features page glass morphism */}
-          <div className="relative h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl rounded-full shadow-2xl border-2 border-white/20 hover:border-white/30 transition-all duration-300">
-            <div className="flex h-16 items-center px-8 lg:px-10">
+          <div className="relative h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl rounded-full shadow-2xl border border-white/10 hover:border-white/20 transition-all duration-300">
+            <div className="flex h-16 items-center pl-8 lg:pl-10 pr-3">
               {/* Logo - Left side */}
               <div className="flex items-center flex-shrink-0 mr-8">
                 <div className="relative h-10 w-32">
@@ -114,6 +67,11 @@ export default function ModernNavbar() {
                   )
                 })}
               </nav>
+
+              {/* Desktop Auth Button */}
+              <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-white/10">
+                <AuthButton />
+              </div>
 
               {/* Mobile Menu Button */}
               <button

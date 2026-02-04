@@ -36,8 +36,8 @@ export default function ModernPageWrapper({ children, showParticles = true }: Mo
               key={i}
               className="absolute w-2 h-2 bg-white/20 rounded-full"
               initial={{ 
-                x: Math.random() * 1920, 
-                y: Math.random() * 1080 
+                x: `${Math.random() * 100}%`, 
+                y: `${Math.random() * 100}%` 
               }}
               animate={{
                 y: [null, -100 - Math.random() * 50],

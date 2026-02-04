@@ -73,6 +73,7 @@ export interface ExperimentLog {
   timestamp: Date
   updatedAt?: Date
   notes?: string
+  isSaved?: boolean
   metadata?: {
     userAgent?: string | null
     ip?: string | null

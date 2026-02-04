@@ -13,12 +13,12 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
-  const { login, isLoading, isAuthenticated } = useAuth()
+  const { login, loginWithGoogle, isLoading, isAuthenticated } = useAuth()
   
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/lab')
+      router.push('/')
     }
   }, [isAuthenticated, router])
 
@@ -35,7 +35,7 @@ export default function SignInPage() {
       const success = await login(email, password)
       if (success) {
         // Replace current page in history to prevent back navigation to login
-        router.replace('/lab')
+        router.replace('/')
       } else {
         setError('Invalid email or password')
       }
@@ -45,156 +45,139 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      {/* Back Button */}
-      <Link
-        href="/"
-        className="absolute top-6 left-6 flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200 group backdrop-blur-sm"
-      >
-        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-        <span className="text-sm font-medium">Back to Home</span>
-      </Link>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#0a0a0a] overflow-hidden relative">
+      {/* Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="absolute top-8 left-8 z-20">
+        <Link 
+          href="/"
+          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        {/* Header */}
         <div className="text-center mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4"
-          >
-            <Atom className="h-8 w-8 text-white" />
-          </motion.div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your Virtual Chemistry Lab account
-          </p>
+          <Link href="/" className="inline-block mb-6">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="bg-gradient-to-tr from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                <Atom className="h-8 w-8 text-white" />
+              </div>
+              <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                Elixra
+              </span>
+            </div>
+          </Link>
+          <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+          <p className="text-gray-400">Sign in to continue your research</p>
         </div>
 
-        {/* Sign In Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700"
-        >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
-              >
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-              </motion.div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
                 </div>
                 <input
-                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  placeholder="Enter your email"
+                  className="block w-full pl-10 pr-3 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  placeholder="john@example.com"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
                 </div>
                 <input
-                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  placeholder="Enter your password"
+                  className="block w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Sign In Button */}
-            <motion.button
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <button
               type="submit"
               disabled={isLoading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Sign In
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <span>Sign In</span>
+                  <ArrowRight className="h-5 w-5" />
                 </>
               )}
-            </motion.button>
+            </button>
           </form>
 
-          {/* Divider */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Don't have an account?
-                </span>
+                <span className="px-2 bg-[#0F0F16] text-gray-500">Or continue with</span>
               </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={() => loginWithGoogle()}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center space-x-3 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl transition-all duration-300 font-medium disabled:opacity-50"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
+                <span>Sign in with Google</span>
+              </button>
             </div>
           </div>
 
-          {/* Sign Up Link */}
-          <div className="mt-6 text-center">
-            <Link
-              href="/auth/signup"
-              className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-            >
-              Create a new account
+          <p className="mt-8 text-center text-sm text-gray-400">
+            Don't have an account?{' '}
+            <Link href="/auth/signup" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+              Create account
             </Link>
-          </div>
-
-
-        </motion.div>
+          </p>
+        </div>
       </motion.div>
     </div>
   )

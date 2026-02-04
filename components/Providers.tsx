@@ -1,6 +1,8 @@
 'use client'
 
+import { SessionProvider } from 'next-auth/react'
 import { AuthProvider } from '@/contexts/AuthContext'
+import UsernameSetupModal from '@/components/UsernameSetupModal'
 
 export default function Providers({ 
   children 
@@ -8,8 +10,11 @@ export default function Providers({
   children: React.ReactNode
 }) {
   return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
+    <SessionProvider>
+      <AuthProvider>
+        {children}
+        <UsernameSetupModal />
+      </AuthProvider>
+    </SessionProvider>
   )
 }

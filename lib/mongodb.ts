@@ -7,6 +7,9 @@ if (!process.env.MONGODB_URI) {
 const uri = process.env.MONGODB_URI
 const options = {}
 
+console.log('MongoDB URI loaded:', uri.replace(/:([^:@]+)@/, ':****@')) // Log URI for debugging
+
+
 let client: MongoClient
 let clientPromise: Promise<MongoClient>
 

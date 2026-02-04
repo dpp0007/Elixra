@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { ExperimentLog } from '@/types/chemistry'
 
 interface AuthContextType {
@@ -9,10 +10,13 @@ interface AuthContextType {
   experiments: ExperimentLog[]
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+  loginWithGoogle: () => Promise<void>
+  logout: () => Promise<void>
+  updateProfile: (data?: any) => Promise<any>
   syncExperiments: () => Promise<void>
   saveExperiment: (experiment: any) => Promise<void>
   deleteExperiment: (id: string) => Promise<void>
+  toggleSaveExperiment: (id: string, isSaved: boolean) => Promise<void>
   getLocalExperiments: () => ExperimentLog[]
   clearLocalExperiments: () => void
 }
@@ -20,57 +24,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, status, update } = useSession()
   const [experiments, setExperiments] = useState<ExperimentLog[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  // Check for existing session on mount and on focus
-  useEffect(() => {
-    const checkSession = () => {
-      const sessionData = localStorage.getItem('user-session')
-      const sessionCookie = document.cookie.includes('user-session=true')
-      
-      if (sessionData && sessionCookie) {
-        try {
-          const userData = JSON.parse(sessionData)
-          setUser(userData)
-          setIsAuthenticated(true)
-        } catch (error) {
-          console.error('Invalid session data:', error)
-          localStorage.removeItem('user-session')
-        }
-      }
-    }
-    
-    // Check session on mount
-    checkSession()
-    
-    // Check session when page becomes visible (handles back navigation)
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        checkSession()
-      }
-    }
-    
-    // Check session when window gains focus
-    const handleFocus = () => {
-      checkSession()
-    }
-    
-    // Add event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
-    
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
-    }
-  }, [])
+  
+  const isAuthenticated = status === 'authenticated'
+  const isLoading = status === 'loading'
+  const user = session?.user || null
 
   // Get experiments from localStorage
-  const getLocalExperiments = (): ExperimentLog[] => {
+  const getLocalExperiments = useCallback((): ExperimentLog[] => {
+    if (typeof window === 'undefined') return []
     try {
       const saved = localStorage.getItem('savedExperiments')
       return saved ? JSON.parse(saved) : []
@@ -78,7 +41,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to get local experiments:', error)
       return []
     }
-  }
+  }, [])
+
+  // Sync experiments with backend
+  const syncExperiments = useCallback(async () => {
+    if (!isAuthenticated) return
+
+    try {
+      const response = await fetch('/api/experiments')
+      if (response.ok) {
+        const data = await response.json()
+        setExperiments(data.experiments)
+      } else {
+        console.error('Failed to fetch experiments')
+      }
+    } catch (error) {
+      console.error('Error syncing experiments:', error)
+    }
+  }, [isAuthenticated])
+
+  // Initial load and sync
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncExperiments()
+    } else {
+      setExperiments(getLocalExperiments())
+    }
+  }, [isAuthenticated, syncExperiments, getLocalExperiments])
 
   // Save experiment to localStorage
   const saveToLocalStorage = (experiment: ExperimentLog) => {
@@ -100,125 +89,149 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Fetch experiments (localStorage only for now)
-  const fetchExperiments = async () => {
-    setExperiments(getLocalExperiments())
-  }
-
-  // Sync experiments (placeholder for future implementation)
-  const syncExperiments = async () => {
-    console.log('Sync experiments - not implemented yet')
-  }
-
-  // Save experiment (localStorage only for now)
+  // Save experiment
   const saveExperiment = async (experimentData: any) => {
     const experiment: ExperimentLog = {
-      userId: 'anonymous',
+      userId: user?.email || 'anonymous',
       experimentName: experimentData.name || `Experiment ${new Date().toLocaleString()}`,
       chemicals: experimentData.chemicals,
       reactionDetails: experimentData.reactionDetails,
       timestamp: new Date(),
+      isSaved: experimentData.isSaved || false
     }
 
-    // Save to localStorage
-    saveToLocalStorage(experiment)
-    
-    // Update local state
-    setExperiments(getLocalExperiments())
-  }
-
-  // Delete experiment (localStorage only for now)
-  const deleteExperiment = async (id: string) => {
-    // Handle local deletion
-    const localExperiments = getLocalExperiments()
-    const updated = localExperiments.filter((exp, index) => index.toString() !== id)
-    localStorage.setItem('savedExperiments', JSON.stringify(updated))
-    setExperiments(updated)
-  }
-
-  // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true)
-    try {
-      // For now, we'll simulate authentication
-      // In a real app, this would call the API
-      if (email && password) {
-        const userData = {
-          id: Date.now().toString(),
-          email,
-          name: email.split('@')[0],
-          loginTime: Date.now(),
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/experiments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(experiment),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          // Update local state with the new experiment from backend (which includes _id)
+          setExperiments(prev => [data.experiment, ...prev])
         }
-        
-        // Store session with multiple methods for persistence
-        localStorage.setItem('user-session', JSON.stringify(userData))
-        sessionStorage.setItem('user-session', JSON.stringify(userData))
-        
-        // Set cookie with longer expiration (7 days)
-        const expirationDate = new Date()
-        expirationDate.setDate(expirationDate.getDate() + 7)
-        document.cookie = `user-session=true; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`
-        
-        setUser(userData)
-        setIsAuthenticated(true)
-        
-        // Prevent browser from caching login state
-        if (typeof window !== 'undefined') {
-          window.history.replaceState(null, '', window.location.href)
-        }
-        
-        return true
+      } catch (error) {
+        console.error('Failed to save experiment to backend:', error)
       }
-      return false
-    } catch (error) {
-      console.error('Login failed:', error)
-      return false
-    } finally {
-      setIsLoading(false)
+    } else {
+      // Save to localStorage
+      saveToLocalStorage(experiment)
+      setExperiments(getLocalExperiments())
     }
+  }
+
+  // Delete experiment
+  const deleteExperiment = async (id: string) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/experiments?id=${id}`, {
+          method: 'DELETE',
+        })
+        
+        if (response.ok) {
+          setExperiments(prev => prev.filter(exp => exp._id !== id))
+        }
+      } catch (error) {
+        console.error('Failed to delete experiment from backend:', error)
+      }
+    } else {
+      // Handle local deletion (using index as ID for local)
+      const localExperiments = getLocalExperiments()
+      // If id is numeric (index), filter by index. If it looks like a timestamp/string, filter by that? 
+      // Local storage implementation usually needs a better ID system.
+      // For now, assuming index passed as string for local.
+      const updated = localExperiments.filter((_, index) => index.toString() !== id)
+      localStorage.setItem('savedExperiments', JSON.stringify(updated))
+      setExperiments(updated)
+    }
+  }
+
+  // Toggle Save Status
+  const toggleSaveExperiment = async (id: string, isSaved: boolean) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/experiments', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, isSaved }),
+        })
+        
+        if (response.ok) {
+          setExperiments(prev => prev.map(exp => 
+            exp._id === id ? { ...exp, isSaved } : exp
+          ))
+        }
+      } catch (error) {
+        console.error('Failed to update experiment status:', error)
+      }
+    } else {
+       // Local storage toggle (if we want to support saving in local storage?)
+       // Current local storage impl doesn't support persistent ID well, but let's try
+       const localExperiments = getLocalExperiments()
+       // Assuming id is index for local
+       const index = parseInt(id)
+       if (!isNaN(index) && localExperiments[index]) {
+         localExperiments[index].isSaved = isSaved
+         localStorage.setItem('savedExperiments', JSON.stringify(localExperiments))
+         setExperiments(localExperiments)
+       }
+    }
+  }
+
+  // Login function (Credentials)
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      })
+      
+      if (result?.error) {
+        console.error('Login failed:', result.error)
+        return false
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Login error:', error)
+      return false
+    }
+  }
+
+  // Login with Google
+  const loginWithGoogle = async () => {
+    await signIn('google', { callbackUrl: '/' })
   }
 
   // Logout function
-  const logout = () => {
-    // Clear all session storage
-    localStorage.removeItem('user-session')
-    sessionStorage.removeItem('user-session')
-    
-    // Clear cookies
-    document.cookie = 'user-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax'
-    
-    // Clear state
-    setUser(null)
-    setIsAuthenticated(false)
+  const logout = async () => {
+    await signOut({ callbackUrl: '/' })
     setExperiments([])
-    
-    // Clear browser history to prevent back navigation issues
-    if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', '/')
-    }
-  }
-
-  // Load experiments on mount and when authentication changes
-  useEffect(() => {
-    fetchExperiments()
-  }, [isAuthenticated])
-
-  const value = {
-    isAuthenticated,
-    user,
-    experiments,
-    isLoading,
-    login,
-    logout,
-    syncExperiments,
-    saveExperiment,
-    deleteExperiment,
-    getLocalExperiments,
-    clearLocalExperiments,
   }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        experiments,
+        isLoading,
+        login,
+        loginWithGoogle,
+        logout,
+        updateProfile: update,
+        syncExperiments,
+        saveExperiment,
+        deleteExperiment,
+        toggleSaveExperiment,
+        getLocalExperiments,
+        clearLocalExperiments,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
