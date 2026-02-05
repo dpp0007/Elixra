@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RotateCcw, Save, Share, Download, FolderOpen, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import SaveConfirmation from './SaveConfirmation'
 
 interface ExperimentControlsProps {
   onClear: () => void
@@ -14,7 +15,12 @@ interface ExperimentControlsProps {
 
 export default function ExperimentControls({ onClear, hasExperiment, currentExperiment, reactionResult }: ExperimentControlsProps) {
   const [showSavedExperiments, setShowSavedExperiments] = useState(false)
-  const { experiments, deleteExperiment, isAuthenticated } = useAuth()
+  const [saveStatus, setSaveStatus] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' }>({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  })
+  const { experiments, deleteExperiment, isAuthenticated, saveExperiment } = useAuth()
 
   const loadSavedExperiments = () => {
     setShowSavedExperiments(true)
@@ -28,23 +34,47 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
       alert('Failed to delete experiment. Please try again.')
     }
   }
-  const { saveExperiment } = useAuth()
+
+  const isDuplicateExperiment = useCallback((newExperiment: any) => {
+    return experiments.some(exp => 
+      exp.experimentName === newExperiment.experimentName && 
+      JSON.stringify(exp.chemicals) === JSON.stringify(newExperiment.chemicals) &&
+      JSON.stringify(exp.reactionDetails) === JSON.stringify(newExperiment.reactionDetails)
+    )
+  }, [experiments])
 
   const handleSave = async () => {
     if (!currentExperiment) return
     
-    try {
-      await saveExperiment({
-        name: currentExperiment.name || `Experiment ${new Date().toLocaleString()}`,
-        chemicals: currentExperiment.chemicals,
-        reactionDetails: reactionResult,
+    const experimentData = {
+      name: currentExperiment.name || `Experiment ${new Date().toLocaleString()}`,
+      chemicals: currentExperiment.chemicals,
+      reactionDetails: reactionResult,
+    }
+
+    if (isDuplicateExperiment(experimentData)) {
+      setSaveStatus({
+        isVisible: true,
+        message: 'This experiment has already been saved!',
+        type: 'error'
       })
-      
-      // Show success message
-      alert('Experiment saved successfully!')
+      return
+    }
+    
+    try {
+      await saveExperiment(experimentData)
+      setSaveStatus({
+        isVisible: true,
+        message: 'Experiment saved successfully!',
+        type: 'success'
+      })
     } catch (error) {
       console.error('Failed to save experiment:', error)
-      alert('Failed to save experiment. Please try again.')
+      setSaveStatus({
+        isVisible: true,
+        message: 'Failed to save experiment. Please try again.',
+        type: 'error'
+      })
     }
   }
 
@@ -280,7 +310,7 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
     <div className="flex items-center space-x-1">
       <motion.button
         onClick={loadSavedExperiments}
-        className="flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 hover:text-white border border-slate-600/30"
+        className="flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 bg-white/50 dark:bg-white/10 text-elixra-text-secondary hover:bg-elixra-bunsen/10 hover:text-elixra-bunsen border border-elixra-copper/20"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         title="Load Experiment"
@@ -294,8 +324,8 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
         disabled={!hasExperiment}
         className={`flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 border ${
           hasExperiment
-            ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30 hover:text-red-200 border-red-500/30'
-            : 'bg-slate-800/50 text-slate-500 cursor-not-allowed border-slate-700/30'
+            ? 'bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border-red-500/30'
+            : 'bg-gray-200 dark:bg-gray-800 text-elixra-text-muted cursor-not-allowed border-elixra-copper/10'
         }`}
         whileHover={hasExperiment ? { scale: 1.02 } : {}}
         whileTap={hasExperiment ? { scale: 0.98 } : {}}
@@ -310,8 +340,8 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
         disabled={!hasExperiment}
         className={`flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 border ${
           hasExperiment
-            ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 hover:text-blue-200 border-blue-500/30'
-            : 'bg-slate-800/50 text-slate-500 cursor-not-allowed border-slate-700/30'
+            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-blue-500/30'
+            : 'bg-gray-200 dark:bg-gray-800 text-elixra-text-muted cursor-not-allowed border-elixra-copper/10'
         }`}
         whileHover={hasExperiment ? { scale: 1.02 } : {}}
         whileTap={hasExperiment ? { scale: 0.98 } : {}}
@@ -326,8 +356,8 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
         disabled={!hasExperiment}
         className={`flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 border ${
           hasExperiment
-            ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30 hover:text-green-200 border-green-500/30'
-            : 'bg-slate-800/50 text-slate-500 cursor-not-allowed border-slate-700/30'
+            ? 'bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 border-green-500/30'
+            : 'bg-gray-200 dark:bg-gray-800 text-elixra-text-muted cursor-not-allowed border-elixra-copper/10'
         }`}
         whileHover={hasExperiment ? { scale: 1.02 } : {}}
         whileTap={hasExperiment ? { scale: 0.98 } : {}}
@@ -342,8 +372,8 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
         disabled={!hasExperiment}
         className={`flex items-center space-x-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 border ${
           hasExperiment
-            ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200 border-purple-500/30'
-            : 'bg-slate-800/50 text-slate-500 cursor-not-allowed border-slate-700/30'
+            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 border-purple-500/30'
+            : 'bg-gray-200 dark:bg-gray-800 text-elixra-text-muted cursor-not-allowed border-elixra-copper/10'
         }`}
         whileHover={hasExperiment ? { scale: 1.02 } : {}}
         whileTap={hasExperiment ? { scale: 0.98 } : {}}
@@ -361,36 +391,36 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="modal-overlay bg-black/50 backdrop-blur-sm"
+          className="modal-overlay bg-black/50 backdrop-blur-sm fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => setShowSavedExperiments(false)}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="modal-content bg-white dark:bg-gray-800 rounded-2xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl"
+            className="modal-content bg-elixra-cream dark:bg-elixra-charcoal rounded-2xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl w-full max-w-2xl border border-elixra-copper/20"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h3 className="text-xl font-bold text-elixra-text-primary">
                 Saved Experiments
               </h3>
               <button
                 onClick={() => setShowSavedExperiments(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all duration-200 flex items-center justify-center group"
+                className="p-2 hover:bg-elixra-bunsen/10 rounded-full transition-all duration-200 flex items-center justify-center group"
                 title="Close"
               >
-                <X className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
+                <X className="h-5 w-5 text-elixra-text-secondary group-hover:text-elixra-text-primary" />
               </button>
             </div>
 
             {experiments.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-elixra-text-secondary">
                 <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No saved experiments yet</p>
                 <p className="text-sm">Save an experiment to see it here</p>
                 {!isAuthenticated && (
-                  <p className="text-xs mt-2 text-blue-600 dark:text-blue-400">
+                  <p className="text-xs mt-2 text-elixra-bunsen">
                     Sign in to sync experiments across devices
                   </p>
                 )}
@@ -400,28 +430,28 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
                 {experiments.map((exp, index) => (
                   <div
                     key={exp._id || index}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="bg-white/50 dark:bg-white/5 rounded-lg p-4 hover:bg-white/80 dark:hover:bg-white/10 transition-colors border border-elixra-copper/10"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-elixra-text-primary">
                           {exp.experimentName}
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-elixra-text-secondary">
                           Chemicals: {exp.chemicals.map((c: any) => c.chemical.name).join(', ')}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                        <p className="text-xs text-elixra-text-muted">
                           Saved: {new Date(exp.timestamp).toLocaleString()}
                         </p>
                         {exp.reactionDetails && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400">
+                          <p className="text-xs text-elixra-bunsen">
                             Reaction: {exp.reactionDetails.reactionType}
                           </p>
                         )}
                       </div>
                       <button
                         onClick={() => deleteSavedExperiment(exp._id || index.toString())}
-                        className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-colors flex items-center justify-center"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-full transition-colors flex items-center justify-center"
                         title="Delete experiment"
                       >
                         <X className="h-4 w-4" />
@@ -435,6 +465,13 @@ export default function ExperimentControls({ onClear, hasExperiment, currentExpe
         </motion.div>
       )}
     </AnimatePresence>
+
+    <SaveConfirmation
+      isVisible={saveStatus.isVisible}
+      message={saveStatus.message}
+      type={saveStatus.type}
+      onClose={() => setSaveStatus(prev => ({ ...prev, isVisible: false }))}
+    />
     </>
   )
 }

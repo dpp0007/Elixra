@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus } from 'lucide-react'
 import { EQUIPMENT_CONFIG, Equipment } from '@/lib/equipment-config'
-import { EquipmentAttachment } from '@/lib/equipment-animations'
+import { EquipmentAttachment, canAttachEquipment } from '@/lib/equipment-animations'
+import ConflictErrorModal from './ConflictErrorModal'
 
 interface EquipmentPanelProps {
   onEquipmentChange?: (attachments: EquipmentAttachment[]) => void
@@ -16,6 +17,7 @@ interface EquipmentPanelProps {
   currentPH?: number // Dynamic pH from tube contents
   currentTemperature?: number // Dynamic temperature from heating equipment
   currentWeight?: number // MEDIUM PRIORITY FIX: Dynamic weight from tube contents
+  onRequestActivation?: (equipmentId: string) => void // New prop for manual activation flow
 }
 
 export default function EquipmentPanel({
@@ -27,7 +29,8 @@ export default function EquipmentPanel({
   onClose,
   currentPH = 0,
   currentTemperature = 0,
-  currentWeight = 0
+  currentWeight = 0,
+  onRequestActivation
 }: EquipmentPanelProps) {
   // Initialize with all 8 equipment types from config
   const [equipment, setEquipment] = useState<Equipment[]>(
@@ -35,6 +38,45 @@ export default function EquipmentPanel({
   )
 
   const [internalIsOpen, setInternalIsOpen] = useState(false)
+
+  const [conflictError, setConflictError] = useState<{
+    isOpen: boolean
+    message: string
+    conflictingEquipment?: { new: string; existing: string }
+  }>({ isOpen: false, message: '' })
+
+  // Sync local equipment state with props (currentAttachments + selectedTubeId)
+  useEffect(() => {
+    setEquipment(prevEquipment => {
+      return prevEquipment.map(eq => {
+        // Find if this equipment is active for the CURRENTLY selected tube
+        const activeAttachment = currentAttachments.find(
+          a => a.equipmentType === eq.id && a.targetTubeId === selectedTubeId
+        )
+        
+        // If active, sync the value from the attachment settings
+        if (activeAttachment) {
+          return {
+            ...eq,
+            active: true,
+            value: activeAttachment.settings?.temperature ?? 
+                   activeAttachment.settings?.rpm ?? 
+                   activeAttachment.settings?.pH ?? 
+                   activeAttachment.settings?.measuredTemp ??
+                   activeAttachment.settings?.weight ??
+                   activeAttachment.settings?.timeRemaining ??
+                   eq.value
+          }
+        }
+        
+        // If not active for THIS tube, set active to false
+        return {
+          ...eq,
+          active: false
+        }
+      })
+    })
+  }, [currentAttachments, selectedTubeId])
 
   // Use external state if provided, otherwise use internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
@@ -64,42 +106,45 @@ export default function EquipmentPanel({
     const isCurrentlyActive = !!existingAttachment
 
     if (!isCurrentlyActive) {
-      // EXCLUSIVITY ENFORCEMENT: Check for conflicts before turning ON
-      let updatedAttachments = [...currentAttachments]
-
-      // Heating exclusivity: Bunsen OR Hot Plate
-      if (id === 'bunsen-burner' || id === 'hot-plate') {
-        const conflictingHeater = updatedAttachments.find(
-          a => (a.equipmentType === 'bunsen-burner' || a.equipmentType === 'hot-plate') &&
-            a.targetTubeId === selectedTubeId
-        )
-        if (conflictingHeater) {
-          console.warn(`⚠️ EXCLUSIVITY: Disabling ${conflictingHeater.equipmentType} to activate ${id}`)
-          updatedAttachments = updatedAttachments.filter(a => a.equipmentId !== conflictingHeater.equipmentId)
-          // Update UI to show conflicting equipment as inactive
-          setEquipment(prev => prev.map(e =>
-            e.id === conflictingHeater.equipmentType ? { ...e, active: false } : e
-          ))
-        }
+      // If parent requested manual activation flow, delegate to it
+      if (onRequestActivation) {
+        onRequestActivation(id)
+        return
       }
 
-      // Motion exclusivity: Stirrer OR Centrifuge
-      if (id === 'magnetic-stirrer' || id === 'centrifuge') {
-        const conflictingMotion = updatedAttachments.find(
-          a => (a.equipmentType === 'magnetic-stirrer' || a.equipmentType === 'centrifuge') &&
-            a.targetTubeId === selectedTubeId
+      // EXCLUSIVITY ENFORCEMENT: Check for conflicts before turning ON
+      const validation = canAttachEquipment(id, selectedTubeId, currentAttachments)
+
+      if (!validation.allowed) {
+        // Find conflicting item name for UI
+        const conflictingItem = currentAttachments.find(a => 
+          a.targetTubeId === selectedTubeId && a.isActive && (
+             // Heuristic matching based on conflict rules
+             ((id === 'bunsen-burner' || id === 'hot-plate') && (a.equipmentType === 'bunsen-burner' || a.equipmentType === 'hot-plate')) ||
+             ((id === 'magnetic-stirrer' || id === 'centrifuge') && (a.equipmentType === 'magnetic-stirrer' || a.equipmentType === 'centrifuge')) ||
+             ((id === 'centrifuge') && (a.equipmentType === 'bunsen-burner' || a.equipmentType === 'hot-plate')) ||
+             ((id === 'analytical-balance') && (a.equipmentType === 'analytical-balance'))
+          )
         )
-        if (conflictingMotion) {
-          console.warn(`⚠️ EXCLUSIVITY: Disabling ${conflictingMotion.equipmentType} to activate ${id}`)
-          updatedAttachments = updatedAttachments.filter(a => a.equipmentId !== conflictingMotion.equipmentId)
-          // Update UI to show conflicting equipment as inactive
-          setEquipment(prev => prev.map(e =>
-            e.id === conflictingMotion.equipmentType ? { ...e, active: false } : e
-          ))
-        }
+
+        const conflictingName = conflictingItem ? EQUIPMENT_CONFIG.find(e => e.id === conflictingItem.equipmentType)?.name : 'Existing Equipment'
+        const newName = EQUIPMENT_CONFIG.find(e => e.id === id)?.name
+
+        setConflictError({
+          isOpen: true,
+          message: validation.reason || 'Equipment conflict detected.',
+          conflictingEquipment: conflictingItem ? {
+            new: newName || id,
+            existing: conflictingName || conflictingItem.equipmentType
+          } : undefined
+        })
+        
+        console.error('Equipment Conflict:', { attempted: id, reason: validation.reason })
+        return
       }
 
       // Turn ON - create attachment
+      const updatedAttachments = [...currentAttachments]
       const newAttachment: EquipmentAttachment = {
         equipmentId: `${id}-${Date.now()}`,
         equipmentType: id,
@@ -204,7 +249,7 @@ export default function EquipmentPanel({
             </svg>
           )}
           {activeEquipment.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-xs flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-elixra-bunsen rounded-full text-xs flex items-center justify-center">
               {activeEquipment.length}
             </span>
           )}
@@ -230,11 +275,11 @@ export default function EquipmentPanel({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-900 shadow-2xl z-[100000] flex flex-col pointer-events-auto"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-elixra-cream dark:bg-elixra-charcoal shadow-2xl z-[100000] flex flex-col pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Outside scroll container */}
-              <div className="flex-shrink-0 bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 flex items-center justify-between z-50">
+              <div className="flex-shrink-0 bg-elixra-copper text-white p-4 flex items-center justify-between z-50">
                 <div className="flex items-center space-x-2">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -261,9 +306,9 @@ export default function EquipmentPanel({
               return (
                 <div
                   key={eq.id}
-                  className={`bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 border-2 transition-all flex flex-col relative z-0 ${eq.active
-                    ? 'border-green-500 shadow-lg shadow-green-500/20'
-                    : 'border-gray-200 dark:border-gray-700'
+                  className={`bg-white/50 dark:bg-white/5 rounded-xl p-3 sm:p-4 border-2 transition-all flex flex-col relative z-0 ${eq.active
+                    ? 'border-elixra-bunsen shadow-lg shadow-elixra-bunsen/20'
+                    : 'border-elixra-copper/10'
                     }`}
                 >
                   {/* Header */}
@@ -284,23 +329,23 @@ export default function EquipmentPanel({
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                              <h3 className="font-bold text-elixra-text-primary text-sm">
                                 {eq.name}
                               </h3>
                               {eq.active && (
-                                <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full animate-pulse">
+                                <span className="px-2 py-0.5 bg-elixra-bunsen text-white text-xs font-bold rounded-full animate-pulse">
                                   ON
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                            <p className="text-xs text-elixra-text-secondary">
                               {eq.category} • {eq.active ? '⚡ Active' : '○ Inactive'}
                             </p>
                           </div>
                         </div>
 
                         {/* Description */}
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        <p className="text-xs text-elixra-text-secondary mb-3">
                           {eq.description}
                         </p>
 
@@ -543,7 +588,7 @@ export default function EquipmentPanel({
                           onClick={() => toggleEquipment(eq.id)}
                           className={`w-full mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${eq.active
                             ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/50'
-                            : 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/50'
+                            : 'btn-primary'
                             }`}
                         >
                           {eq.active ? '⏸ Turn Off' : '▶ Turn On'}
@@ -556,13 +601,13 @@ export default function EquipmentPanel({
                 {/* Active Equipment Summary */}
                 {
                   activeEquipment.length > 0 && (
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 border-t border-green-200 dark:border-green-800">
-                      <h3 className="font-bold text-green-900 dark:text-green-100 mb-2">
+                    <div className="p-4 bg-elixra-bunsen/10 border-t border-elixra-bunsen/20">
+                      <h3 className="font-bold text-elixra-bunsen mb-2">
                         Active Equipment ({activeEquipment.length})
                       </h3>
                       <div className="space-y-1">
                         {activeEquipment.map(eq => (
-                          <div key={eq.id} className="text-sm text-green-800 dark:text-green-200">
+                          <div key={eq.id} className="text-sm text-elixra-bunsen-dark dark:text-elixra-bunsen-light">
                             • {eq.name}: {eq.value} {eq.unit}
                           </div>
                         ))}
@@ -572,8 +617,8 @@ export default function EquipmentPanel({
                 }
 
                 {/* Info */}
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="p-4 bg-elixra-copper/10 border-t border-elixra-copper/20">
+                  <p className="text-sm text-elixra-copper">
                     <strong>Tip:</strong> Turn on equipment before performing reactions.
                     Active equipment will affect your experiment results!
                   </p>
@@ -583,6 +628,14 @@ export default function EquipmentPanel({
           </>
         )}
       </AnimatePresence>
+
+      {/* Conflict Error Modal */}
+      <ConflictErrorModal
+        isOpen={conflictError.isOpen}
+        onClose={() => setConflictError({ ...conflictError, isOpen: false })}
+        message={conflictError.message}
+        conflictingEquipment={conflictError.conflictingEquipment}
+      />
     </>
   )
 }

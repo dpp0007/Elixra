@@ -22,6 +22,7 @@ interface LabTableProps {
   selectedTubeId?: string
   onSelectTube?: (tubeId: string) => void
   onSelectedTubeContentsChange?: (contents: ChemicalContent[]) => void
+  onTestTubesChange?: (tubes: Array<{ id: string; contents: ChemicalContent[] }>) => void
 }
 
 export default function LabTable({
@@ -35,7 +36,8 @@ export default function LabTable({
   onEquipmentChange,
   selectedTubeId = 'tube-1',
   onSelectTube,
-  onSelectedTubeContentsChange
+  onSelectedTubeContentsChange,
+  onTestTubesChange
 }: LabTableProps) {
   const [testTubes, setTestTubes] = useState<Array<{ id: string; contents: ChemicalContent[] }>>([
     { id: 'tube-1', contents: [] },
@@ -83,6 +85,13 @@ export default function LabTable({
       onSelectedTubeContentsChange(selectedTube.contents)
     }
   }, [testTubes, beakers, selectedTubeId, onSelectedTubeContentsChange])
+
+  // Notify parent when test tubes list changes (for equipment selection)
+  useEffect(() => {
+    if (onTestTubesChange) {
+      onTestTubesChange(testTubes)
+    }
+  }, [testTubes, onTestTubesChange])
 
   const removeGlassware = (id: string, type: 'tube' | 'beaker') => {
     if (type === 'tube') {
@@ -393,29 +402,18 @@ export default function LabTable({
         <motion.button
           onClick={performReaction}
           disabled={isReacting || !canPerformReaction}
-          whileHover={!isReacting && canPerformReaction ? { filter: 'brightness(1.1)', boxShadow: '0 0 25px rgba(37, 99, 235, 0.5)' } : {}}
+          whileHover={!isReacting && canPerformReaction ? { filter: 'brightness(1.1)', boxShadow: '0 0 25px rgba(46, 107, 107, 0.5)' } : {}}
           whileTap={!isReacting && canPerformReaction ? { scale: 0.98 } : {}}
           className={`flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 w-full sm:w-auto touch-manipulation ${isReacting || !canPerformReaction
-            ? 'bg-[#1e293b] cursor-not-allowed text-gray-500 border border-white/10'
-            : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+            ? 'bg-gray-200 dark:bg-gray-800 cursor-not-allowed text-elixra-text-secondary border border-elixra-copper/10'
+            : 'btn-primary shadow-lg shadow-elixra-bunsen/20'
             }`}
         >
           <Atom className={`h-5 w-5 sm:h-6 sm:w-6 ${isReacting ? 'animate-spin' : ''}`} />
           <span>{isReacting ? 'Analyzing...' : 'Perform Reaction'}</span>
         </motion.button>
 
-        {isReacting && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center space-x-2 sm:space-x-3 text-blue-600 dark:text-blue-400"
-          >
-            <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-blue-600 border-t-transparent"></div>
-            <span className="text-xs sm:text-sm font-medium text-center">
-              AI is analyzing the reaction...
-            </span>
-          </motion.div>
-        )}
+ 
       </div>
 
       {/* Quantity Selection Modal */}

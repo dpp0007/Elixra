@@ -7,6 +7,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import ModernNavbar from '@/components/ModernNavbar'
 import StreamingChat from '@/components/StreamingChat'
+import { PerspectiveGrid, StaticGrid } from '@/components/GridBackground'
 
 // Dynamically import 3D avatar to avoid SSR issues
 const AvatarTeacher = dynamic(() => import('@/components/AvatarTeacherNew'), {
@@ -14,8 +15,8 @@ const AvatarTeacher = dynamic(() => import('@/components/AvatarTeacherNew'), {
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">
       <div className="text-center">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-400">Loading avatar...</p>
+        <div className="w-16 h-16 border-4 border-elixra-bunsen border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-elixra-secondary">Loading avatar...</p>
       </div>
     </div>
   )
@@ -29,21 +30,15 @@ export default function AvatarPage() {
   const [currentChemicals, setCurrentChemicals] = useState<string[]>([])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div className="absolute w-full h-full">
-          <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-          <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-          <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-0 left-1/2 animate-pulse delay-2000"></div>
-        </motion.div>
-      </div>
+    <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
+      {/* Background Grid */}
+      <PerspectiveGrid />
 
       {/* Navbar */}
       <ModernNavbar />
 
       {/* Main Content */}
-      <div className="relative z-10 pt-20 px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="relative z-10 pt-8 px-4 sm:px-6 lg:px-8 pb-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <motion.div
@@ -53,24 +48,22 @@ export default function AvatarPage() {
           >
             <Link
               href="/lab"
-              className="inline-flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-4"
+              className="inline-flex items-center space-x-2 text-elixra-secondary hover:text-elixra-bunsen transition-colors mb-4"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Lab</span>
             </Link>
             
-            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full mb-4">
-              <Sparkles className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm text-gray-200">Powered by Ollama • Fully Offline</span>
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-elixra-bunsen/10 backdrop-blur-xl border border-elixra-bunsen/20 rounded-full mb-4">
+              <Sparkles className="h-4 w-4 text-elixra-copper" />
+              <span className="text-sm text-elixra-bunsen-dark dark:text-elixra-bunsen-light font-medium">Powered by Ollama • Fully Offline</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                ERA - ELIXRA Reaction Avatar
-              </span>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-4 text-elixra-charcoal dark:text-white">
+              ERA - <span className="text-elixra-bunsen">ELIXRA</span> Reaction Avatar
             </h1>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-              Your intelligent chemistry teaching assistant. Ask questions, learn mechanisms, and get instant explanations with interactive guidance
+            <p className="text-base sm:text-lg lg:text-xl text-elixra-secondary max-w-2xl mx-auto px-4 leading-relaxed">
+              Your intelligent chemistry teaching assistant. Ask questions, learn mechanisms, and get instant explanations with interactive guidance.
             </p>
           </motion.div>
 
@@ -81,16 +74,18 @@ export default function AvatarPage() {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="relative w-full overflow-hidden"
+              className="relative w-full h-full"
             >
-              <div className="h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden">
+              <div className="h-full glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 backdrop-blur-2xl rounded-3xl overflow-hidden border border-elixra-border-subtle shadow-xl relative group">
+                 <StaticGrid className="opacity-30" />
+                 
                 {/* Avatar Container */}
-                <div className="h-full relative">
+                <div className="h-full relative z-10">
                   <Suspense fallback={
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-gray-400">Loading avatar...</p>
+                        <div className="w-16 h-16 border-4 border-elixra-bunsen border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                        <p className="text-elixra-secondary">Loading avatar...</p>
                       </div>
                     </div>
                   }>
@@ -98,10 +93,10 @@ export default function AvatarPage() {
                   </Suspense>
                   
                   {/* Status Indicator - Responsive */}
-                  <div className="absolute top-2 left-2 sm:top-4 sm:left-4 px-2 py-1 sm:px-4 sm:py-2 bg-black/50 backdrop-blur-xl rounded-full border border-white/20">
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${speaking ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
-                      <span className="text-xs sm:text-sm text-white">
+                  <div className="absolute top-4 left-4 px-4 py-2 bg-elixra-cream/80 dark:bg-elixra-charcoal/80 backdrop-blur-xl rounded-full border border-elixra-border-subtle shadow-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${speaking ? 'bg-elixra-success animate-pulse' : 'bg-elixra-secondary'}`} />
+                      <span className="text-sm font-medium text-elixra-charcoal dark:text-white">
                         {speaking ? 'Speaking...' : 'Listening'}
                       </span>
                     </div>
@@ -109,17 +104,17 @@ export default function AvatarPage() {
 
                   {/* Info Cards - Hidden on mobile, visible on tablet+ */}
                   <div className="hidden sm:grid absolute bottom-4 left-4 right-4 grid-cols-3 gap-2">
-                    <div className="bg-black/50 backdrop-blur-xl rounded-xl p-2 lg:p-3 border border-white/20">
-                      <Bot className="h-4 w-4 lg:h-5 lg:w-5 text-purple-400 mb-1" />
-                      <p className="text-xs text-gray-300">AI Powered</p>
+                    <div className="bg-elixra-cream/80 dark:bg-elixra-charcoal/80 backdrop-blur-xl rounded-xl p-3 border border-elixra-border-subtle shadow-sm">
+                      <Bot className="h-5 w-5 text-elixra-bunsen mb-1" />
+                      <p className="text-xs text-elixra-secondary font-medium">AI Powered</p>
                     </div>
-                    <div className="bg-black/50 backdrop-blur-xl rounded-xl p-2 lg:p-3 border border-white/20">
-                      <Zap className="h-4 w-4 lg:h-5 lg:w-5 text-yellow-400 mb-1" />
-                      <p className="text-xs text-gray-300">Real-time</p>
+                    <div className="bg-elixra-cream/80 dark:bg-elixra-charcoal/80 backdrop-blur-xl rounded-xl p-3 border border-elixra-border-subtle shadow-sm">
+                      <Zap className="h-5 w-5 text-elixra-copper mb-1" />
+                      <p className="text-xs text-elixra-secondary font-medium">Real-time</p>
                     </div>
-                    <div className="bg-black/50 backdrop-blur-xl rounded-xl p-2 lg:p-3 border border-white/20">
-                      <BookOpen className="h-4 w-4 lg:h-5 lg:w-5 text-blue-400 mb-1" />
-                      <p className="text-xs text-gray-300">RAG Enhanced</p>
+                    <div className="bg-elixra-cream/80 dark:bg-elixra-charcoal/80 backdrop-blur-xl rounded-xl p-3 border border-elixra-border-subtle shadow-sm">
+                      <BookOpen className="h-5 w-5 text-blue-500 mb-1" />
+                      <p className="text-xs text-elixra-secondary font-medium">RAG Enhanced</p>
                     </div>
                   </div>
                 </div>
@@ -149,13 +144,13 @@ export default function AvatarPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="mt-4 lg:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
+            className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
             {[
-              { icon: Beaker, text: 'Explain SN2 mechanism', color: 'from-purple-500 to-pink-500' },
-              { icon: Sparkles, text: 'What is a Grignard reaction?', color: 'from-blue-500 to-cyan-500' },
-              { icon: Zap, text: 'How does combustion work?', color: 'from-orange-500 to-red-500' },
-              { icon: BookOpen, text: 'Teach me acid-base reactions', color: 'from-green-500 to-emerald-500' }
+              { icon: Beaker, text: 'Explain SN2 mechanism', color: 'text-elixra-bunsen', bg: 'bg-elixra-bunsen/10' },
+              { icon: Sparkles, text: 'What is a Grignard reaction?', color: 'text-elixra-copper', bg: 'bg-elixra-copper/10' },
+              { icon: Zap, text: 'How does combustion work?', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+              { icon: BookOpen, text: 'Teach me acid-base reactions', color: 'text-elixra-success', bg: 'bg-elixra-success/10' }
             ].map((action, i) => (
               <button
                 key={i}
@@ -163,12 +158,12 @@ export default function AvatarPage() {
                   // This would trigger the chat with the preset question
                   console.log('Quick action:', action.text)
                 }}
-                className="group relative p-3 lg:p-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl hover:border-white/40 transition-all duration-300"
+                className="group relative p-4 bg-white/95 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl hover:border-elixra-bunsen/30 hover:shadow-lg transition-all duration-300 text-left shadow-sm"
               >
-                <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r ${action.color} rounded-xl flex items-center justify-center mb-2`}>
-                  <action.icon className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+                <div className={`w-10 h-10 ${action.bg} rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}>
+                  <action.icon className={`h-5 w-5 ${action.color}`} />
                 </div>
-                <p className="text-xs lg:text-sm text-gray-300 group-hover:text-white transition-colors text-left">
+                <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-elixra-bunsen transition-colors">
                   {action.text}
                 </p>
               </button>

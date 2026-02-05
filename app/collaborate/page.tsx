@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowLeft, Users, Plus, LogIn, Copy, CheckCircle } from 'lucide-react'
 import ModernNavbar from '@/components/ModernNavbar'
+import { PerspectiveGrid } from '@/components/GridBackground'
 
 export default function CollaboratePage() {
   const [roomCode, setRoomCode] = useState('')
@@ -64,13 +65,8 @@ export default function CollaboratePage() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -top-48 -left-48 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-1/2 right-0 animate-pulse delay-1000"></div>
-        <div className="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl bottom-0 left-1/3 animate-pulse delay-2000"></div>
-      </div>
+    <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
+      <PerspectiveGrid />
 
       {/* Modern Navbar */}
       <ModernNavbar />
@@ -81,33 +77,33 @@ export default function CollaboratePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-lg"
+            className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg"
           >
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus className="h-8 w-8 text-blue-600" />
+              <div className="w-16 h-16 bg-elixra-bunsen/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-elixra-bunsen/20">
+                <Plus className="h-8 w-8 text-elixra-bunsen" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-elixra-charcoal dark:text-white mb-2">
                 Create Session
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-elixra-secondary">
                 Start a new collaboration session and invite others
               </p>
             </div>
             
             {createdRoom ? (
               <div className="space-y-4">
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                  <p className="text-sm text-green-800 dark:text-green-200 mb-2">
+                <div className="bg-elixra-success/10 border border-elixra-success/20 rounded-xl p-4">
+                  <p className="text-sm text-elixra-success mb-2 font-medium">
                     Session created successfully!
                   </p>
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-white dark:bg-gray-700 rounded-lg px-4 py-3 font-mono text-2xl text-center">
+                    <div className="flex-1 bg-white/50 dark:bg-black/20 rounded-lg px-4 py-3 font-mono text-2xl text-center text-elixra-charcoal dark:text-white tracking-widest border border-elixra-border-subtle">
                       {createdRoom}
                     </div>
                     <button
                       onClick={copyRoomCode}
-                      className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      className="p-3 bg-elixra-bunsen hover:bg-elixra-bunsen-dark text-white rounded-lg transition-colors shadow-md"
                     >
                       {copied ? <CheckCircle className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                     </button>
@@ -116,14 +112,14 @@ export default function CollaboratePage() {
                 
                 <Link
                   href={`/lab/collaborative?room=${createdRoom}`}
-                  className="block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center transition-colors"
+                  className="block w-full px-6 py-3 btn-primary text-center"
                 >
                   Enter Lab
                 </Link>
                 
                 <button
                   onClick={() => setCreatedRoom(null)}
-                  className="w-full px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="w-full px-6 py-3 bg-white/50 dark:bg-white/5 text-elixra-charcoal dark:text-white rounded-lg hover:bg-white/80 dark:hover:bg-white/10 transition-colors border border-elixra-border-subtle"
                 >
                   Create Another
                 </button>
@@ -132,7 +128,7 @@ export default function CollaboratePage() {
               <button
                 onClick={createSession}
                 disabled={loading}
-                className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creating...' : 'Create Session'}
               </button>
@@ -144,23 +140,23 @@ export default function CollaboratePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-lg"
+            className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg"
           >
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <LogIn className="h-8 w-8 text-green-600" />
+              <div className="w-16 h-16 bg-elixra-copper/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-elixra-copper/20">
+                <LogIn className="h-8 w-8 text-elixra-copper" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-elixra-charcoal dark:text-white mb-2">
                 Join Session
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-elixra-secondary">
                 Enter a room code to join an existing session
               </p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-elixra-secondary mb-2 ml-1">
                   Room Code
                 </label>
                 <input
@@ -169,14 +165,14 @@ export default function CollaboratePage() {
                   onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                   placeholder="Enter 6-digit code"
                   maxLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white font-mono text-center text-2xl uppercase"
+                  className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-elixra-border-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-elixra-copper/50 focus:border-elixra-copper/50 text-elixra-charcoal dark:text-white font-mono text-center text-2xl uppercase tracking-widest placeholder-elixra-secondary/50"
                 />
               </div>
               
               <button
                 onClick={joinSession}
                 disabled={loading || !roomCode.trim()}
-                className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Joining...' : 'Join Session'}
               </button>
@@ -189,27 +185,28 @@ export default function CollaboratePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-8 bg-blue-500/10 backdrop-blur-xl border border-blue-400/30 rounded-xl p-6"
+          className="mt-8 bg-elixra-bunsen/5 backdrop-blur-xl border border-elixra-bunsen/20 rounded-xl p-6"
         >
-          <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-3">
+          <h3 className="font-bold text-elixra-bunsen-dark dark:text-elixra-bunsen-light mb-3 flex items-center gap-2">
+            <Users className="h-5 w-5" />
             How Collaboration Works
           </h3>
-          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+          <ul className="space-y-2 text-sm text-elixra-secondary">
             <li className="flex items-start">
-              <span className="mr-2">1.</span>
+              <span className="mr-2 font-bold text-elixra-bunsen">1.</span>
               <span>Create a session or join with a room code</span>
             </li>
             <li className="flex items-start">
-              <span className="mr-2">2.</span>
+              <span className="mr-2 font-bold text-elixra-bunsen">2.</span>
               <span>Share the room code with your lab partners</span>
             </li>
             <li className="flex items-start">
-              <span className="mr-2">3.</span>
+              <span className="mr-2 font-bold text-elixra-bunsen">3.</span>
               <span>Work together on experiments in real-time</span>
             </li>
             <li className="flex items-start">
-              <span className="mr-2">4.</span>
-              <span>See each other's actions and results instantly</span>
+              <span className="mr-2 font-bold text-elixra-bunsen">4.</span>
+              <span>See each other&apos;s actions and results instantly</span>
             </li>
           </ul>
         </motion.div>

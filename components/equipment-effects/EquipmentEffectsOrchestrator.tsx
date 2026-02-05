@@ -41,6 +41,17 @@ export default function EquipmentEffectsOrchestrator({
         a => a.targetTubeId === tubeId && a.isActive
     )
 
+    console.log(`🔧 EquipmentEffectsOrchestrator[${tubeId}]:`, {
+        totalAttachments: attachments.length,
+        tubeAttachments: tubeAttachments.length,
+        tubePosition,
+        attachments: attachments.map(a => ({ 
+            type: a.equipmentType, 
+            target: a.targetTubeId, 
+            active: a.isActive 
+        }))
+    })
+
     // Calculate dynamic pH from contents
     const dynamicPH = contents.length > 0 ? formatPH(calculatePH(contents)) : 0.0
 
@@ -53,6 +64,17 @@ export default function EquipmentEffectsOrchestrator({
     const balance = tubeAttachments.find(a => a.equipmentType === 'analytical-balance')
     const timer = tubeAttachments.find(a => a.equipmentType === 'timer')
     const centrifuge = tubeAttachments.find(a => a.equipmentType === 'centrifuge')
+
+    console.log(`🔧 EquipmentEffectsOrchestrator[${tubeId}] - Found equipment:`, {
+        bunsenBurner: !!bunsenBurner,
+        hotPlate: !!hotPlate,
+        stirrer: !!stirrer,
+        phMeter: !!phMeter,
+        thermometer: !!thermometer,
+        balance: !!balance,
+        timer: !!timer,
+        centrifuge: !!centrifuge
+    })
 
     // CRITICAL FIX: Enforce heating equipment exclusivity
     // Only one heating device can be active at a time
@@ -196,8 +218,9 @@ export default function EquipmentEffectsOrchestrator({
     }
 
     // Equipment must be positioned relative to tube, not viewport
+    // Wrapper uses high z-index to ensure equipment layer sits above page content
     return (
-        <div className="pointer-events-none" style={{ position: 'fixed', inset: 0 }}>
+        <div className="pointer-events-none" style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
             <AnimatePresence>
                 {/* Balance - Lowest layer (z-index 95-97) */}
                 {balance && (

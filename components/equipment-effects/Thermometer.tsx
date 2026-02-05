@@ -7,6 +7,7 @@
 
 import { motion } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
+import { EQUIPMENT_Z_INDEX } from '@/lib/equipment-positioning'
 
 // Mercury physical constants
 const MERCURY_FREEZE = -39 // °C
@@ -102,7 +103,7 @@ export default function Thermometer({ measuredTemp, isActive, tubePosition }: Th
                     position: 'fixed',
                     left: tubePosition.x + tubePosition.width / 2 + 15,
                     top: tubePosition.y - 30,
-                    zIndex: 103,
+                    zIndex: EQUIPMENT_Z_INDEX.probes,
                 }}
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -166,7 +167,7 @@ export default function Thermometer({ measuredTemp, isActive, tubePosition }: Th
                     position: 'fixed',
                     left: tubePosition.x + tubePosition.width + 10,
                     top: tubePosition.y + tubePosition.height * 0.3,
-                    zIndex: 105,
+                    zIndex: EQUIPMENT_Z_INDEX.thermometerDisplay,
                 }}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}

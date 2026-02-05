@@ -199,9 +199,9 @@ export default function Beaker({
           if (node) (tubeRef as any).current = node
         }}
         className={`beaker relative w-28 h-40 transition-all duration-300 ${isOver && canDrop
-          ? 'ring-4 ring-green-400 ring-opacity-50 shadow-xl shadow-green-400/30 scale-105'
+          ? 'shadow-xl shadow-green-400/30 scale-105'
           : canDrop
-            ? 'ring-2 ring-green-300 ring-opacity-30'
+            ? ''
             : ''
           } ${isReacting ? 'reaction-glow' : ''}`}
         style={{ zIndex: 120, position: 'relative' }}
@@ -216,19 +216,14 @@ export default function Beaker({
         aria-label={`Beaker ${id}. Contains ${contents.length} chemical${contents.length !== 1 ? 's' : ''}.`}
       >
         {/* Glass Container Body */}
-        <div className="absolute inset-0 z-20 pointer-events-none rounded-b-3xl border-l-2 border-r-2 border-b-2 border-white/20 bg-gradient-to-br from-white/10 to-transparent backdrop-blur-[2px] shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]">
+        <div className="absolute inset-0 z-20 pointer-events-none rounded-b-3xl border-l-2 border-r-2 border-b-2 border-elixra-copper/20 dark:border-white/20 bg-gradient-to-br from-white/40 to-white/5 dark:from-white/10 dark:to-transparent backdrop-blur-[2px] shadow-[inset_0_0_20px_rgba(255,255,255,0.2)]">
             {/* Left Highlight */}
-            <div className="absolute top-2 bottom-4 left-2 w-1.5 bg-gradient-to-b from-white/40 to-transparent rounded-full opacity-60 blur-[1px]"></div>
+            <div className="absolute top-2 bottom-4 left-2 w-1.5 bg-gradient-to-b from-white/60 to-transparent dark:from-white/40 rounded-full opacity-60 blur-[1px]"></div>
             {/* Right Highlight */}
-            <div className="absolute top-2 bottom-4 right-2 w-0.5 bg-gradient-to-b from-white/30 to-transparent rounded-full opacity-40 blur-[0.5px]"></div>
+            <div className="absolute top-2 bottom-4 right-2 w-0.5 bg-gradient-to-b from-white/40 to-transparent dark:from-white/30 rounded-full opacity-40 blur-[0.5px]"></div>
             
             {/* Rim Highlight */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 rounded-full blur-[1px]"></div>
-        </div>
-
-        {/* Beaker spout */}
-        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-8 h-3 z-10">
-            <div className="w-full h-full border-b-2 border-l-2 border-r-2 border-white/20 rounded-b-xl bg-white/5 backdrop-blur-sm"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-white/40 dark:bg-white/30 rounded-full blur-[1px]"></div>
         </div>
 
         {/* Beaker liquid - with proper rounded bottom */}
@@ -466,10 +461,10 @@ export default function Beaker({
           <div className="space-y-2 w-full max-w-[160px]">
             {/* Products in single box - matching test tube style */}
             {reactionResult.products && reactionResult.products.length > 0 && (
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
+              <div className="bg-white/60 dark:bg-white/10 rounded-lg p-3 shadow-sm border border-elixra-copper/10 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Products:</span>
-                  <span className="text-xs text-gray-900 dark:text-white font-medium">
+                  <span className="text-xs text-elixra-text-secondary">Products:</span>
+                  <span className="text-xs text-elixra-text-primary font-medium">
                     {reactionResult.products.join(' + ')}
                   </span>
                 </div>
@@ -478,7 +473,7 @@ export default function Beaker({
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-gray-300 mb-2">
+            <div className="text-xs font-semibold text-elixra-text-secondary mb-2">
               Contents ({contents.length})
             </div>
             {contents.map((content, index) => (
@@ -489,25 +484,25 @@ export default function Beaker({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="bg-slate-800/60 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-white/10 hover:shadow-md hover:border-green-400/50 transition-all">
+                <div className="bg-white/60 dark:bg-white/10 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-elixra-copper/10 hover:shadow-md hover:border-elixra-bunsen transition-all">
                   {/* Chemical Color Indicator */}
                   <div className="flex items-center space-x-2 mb-1">
                     <div
-                      className="w-3 h-3 rounded-full border border-white/20"
+                      className="w-3 h-3 rounded-full border border-elixra-copper/20"
                       style={{ backgroundColor: content.chemical.color }}
                     />
-                    <div className="font-bold text-white text-xs">
+                    <div className="font-bold text-elixra-text-primary text-xs">
                       {content.chemical.formula}
                     </div>
                   </div>
 
                   {/* Amount */}
-                  <div className="text-xs text-gray-300 font-medium">
+                  <div className="text-xs text-elixra-text-secondary font-medium">
                     {content.amount < 1 ? content.amount.toFixed(2) : content.amount} {content.unit}
                   </div>
 
                   {/* Chemical Name (on hover) */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-elixra-charcoal text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                     {content.chemical.name}
                   </div>
                 </div>
@@ -515,8 +510,8 @@ export default function Beaker({
             ))}
 
             {/* Total Volume/Mass */}
-            <div className="mt-3 pt-2 border-t border-white/10">
-              <div className="text-xs font-semibold text-blue-400">
+            <div className="mt-3 pt-2 border-t border-elixra-copper/10">
+              <div className="text-xs font-semibold text-elixra-bunsen">
                 Total: {(() => {
                   const total = contents.reduce((sum, content) => {
                     if (content.unit === 'ml' || content.unit === 'drops') {

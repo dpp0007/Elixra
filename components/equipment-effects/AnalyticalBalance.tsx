@@ -7,6 +7,7 @@
 
 import { motion } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
+import { EQUIPMENT_Z_INDEX } from '@/lib/equipment-positioning'
 
 type BalanceState = 'CAL' | 'READING' | 'OVERLOAD'
 
@@ -104,7 +105,7 @@ export default function AnalyticalBalance({ weight, tareOffset = 0, isActive, tu
                     position: 'fixed',
                     left: `${platformLeft}px`,
                     top: `${platformTop}px`,
-                    zIndex: 50,
+                    zIndex: EQUIPMENT_Z_INDEX.balancePlatform,
                     pointerEvents: 'none',
                 }}
                 initial={{ opacity: 0, y: -10 }}
@@ -147,7 +148,7 @@ export default function AnalyticalBalance({ weight, tareOffset = 0, isActive, tu
                     left: `${displayLeft}px`,
                     top: `${displayTop}px`,
                     width: `${displayWidth}px`,
-                    zIndex: 51,
+                    zIndex: EQUIPMENT_Z_INDEX.balanceDisplay,
                     pointerEvents: 'none',
                 }}
                 initial={{ opacity: 0, scale: 0.9 }}

@@ -36,6 +36,16 @@ export default function BunsenBurner({ temperature, isActive, tubePosition }: Bu
 
     // Vapor spawning at 100°C+
     useEffect(() => {
+        // Force render log
+        console.log(`🔥 BunsenBurner Render:`, {
+            isActive,
+            temperature,
+            tubePosition,
+            flameHeight,
+            flameWidth,
+            position
+        })
+
         if (!isActive || temperature < 100) {
             setVaporParticles([])
             return
@@ -50,9 +60,14 @@ export default function BunsenBurner({ temperature, isActive, tubePosition }: Bu
         }, spawnRate)
 
         return () => clearInterval(interval)
-    }, [isActive, temperature])
+    }, [isActive, temperature, tubePosition])
 
     if (!isActive) return null
+
+    // Ensure minimum visual presence (pilot light) even if temp is 0
+    // Increased scale for better visibility
+    const effectiveFlameScale = temperature <= 0 ? 0.4 : 1 
+    const effectiveOpacity = temperature <= 0 ? 0.8 : 1
 
     return (
         <div
@@ -65,13 +80,27 @@ export default function BunsenBurner({ temperature, isActive, tubePosition }: Bu
                 zIndex: EQUIPMENT_Z_INDEX.bunsenBurner,
             }}
         >
+            {/* Base Highlight for visibility on dark backgrounds */}
+            <div
+                className="absolute pointer-events-none"
+                style={{
+                    left: '50%',
+                    top: flameHeight - 2, // Slightly above base
+                    transform: 'translateX(-50%)',
+                    width: flameWidth * 1.6,
+                    height: 16,
+                    background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+                    zIndex: 10000
+                }}
+            />
+
             {/* Flame SVG - 3 layers, scaled to tube width */}
             <motion.svg
                 width={flameWidth}
-                height={flameHeight}
-                viewBox={`0 0 ${flameWidth} ${flameHeight}`}
+                height={Math.max(flameHeight, 20)} // Minimum height for pilot light
+                viewBox={`0 0 ${flameWidth} ${Math.max(flameHeight, 20)}`}
                 initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
+                animate={{ opacity: effectiveOpacity, scale: effectiveFlameScale }}
                 exit={{ opacity: 0, scale: 0 }}
                 transition={{ duration: 0.5 }}
                 style={{ filter: 'drop-shadow(0 0 12px rgba(255, 100, 0, 0.8))' }}
@@ -207,7 +236,8 @@ export default function BunsenBurner({ temperature, isActive, tubePosition }: Bu
                     transform: 'translateX(-50%)',
                     width: flameWidth * 1.5,
                     height: 12,
-                    background: 'linear-gradient(to bottom, #4a5568 0%, #2d3748 100%)',
+                    background: 'linear-gradient(to bottom, #718096 0%, #4a5568 100%)', // Lighter gray for visibility
+                    border: '1px solid rgba(255,255,255,0.2)', // Border for contrast
                     borderRadius: '4px',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                 }}

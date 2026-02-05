@@ -27,11 +27,23 @@ import { useDragScroll } from '@/hooks/useDragScroll'
 import { Experiment, ReactionResult } from '@/types/chemistry'
 import { calculatePH, formatPH } from '@/lib/ph-calculator'
 import { useAuth } from '@/contexts/AuthContext'
+import { EQUIPMENT_CONFIG } from '@/lib/equipment-config'
+import { EquipmentAttachment } from '@/lib/equipment-animations'
+import TestTubeSelectionModal from '@/components/TestTubeSelectionModal'
+
+import { StaticGrid } from '@/components/GridBackground'
+
+import SaveConfirmation from '@/components/SaveConfirmation'
 
 export default function LabPage() {
     const router = useRouter()
-    const { syncExperiments } = useAuth()
+    const { syncExperiments, experiments, saveExperiment } = useAuth()
     const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
+    const [saveStatus, setSaveStatus] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' }>({
+        isVisible: false,
+        message: '',
+        type: 'success'
+    })
     const [reactionResult, setReactionResult] = useState<ReactionResult | null>(null)
     const [isReacting, setIsReacting] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
@@ -45,6 +57,11 @@ export default function LabPage() {
     const [selectedTubeId, setSelectedTubeId] = useState('tube-1')
     const [openEquipmentPanel, setOpenEquipmentPanel] = useState(false)
     const [selectedTubeContents, setSelectedTubeContents] = useState<any[]>([])
+    
+    // Equipment selection state
+    const [availableTestTubes, setAvailableTestTubes] = useState<Array<{ id: string; contents: any[] }>>([])
+    const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
+    const [pendingEquipmentId, setPendingEquipmentId] = useState<string | null>(null)
 
     // Calculate dynamic pH and temperature for selected tube
     const currentPH = selectedTubeContents.length > 0 ? formatPH(calculatePH(selectedTubeContents)) : 0
@@ -216,32 +233,46 @@ export default function LabPage() {
             return
         }
 
+        const experimentData = {
+            ...currentExperiment,
+            experimentName: currentExperiment.name,
+            reactionDetails: reactionResult,
+            savedAt: new Date().toISOString(),
+            isSaved: true
+        }
+
+        // Check for duplicates
+        const isDuplicate = experiments.some(exp => 
+            exp.experimentName === experimentData.experimentName && 
+            JSON.stringify(exp.chemicals) === JSON.stringify(experimentData.chemicals) &&
+            JSON.stringify(exp.reactionDetails) === JSON.stringify(experimentData.reactionDetails)
+        )
+
+        if (isDuplicate) {
+            setSaveStatus({
+                isVisible: true,
+                message: 'This experiment has already been saved!',
+                type: 'error'
+            })
+            return
+        }
+
         setIsSaving(true)
         try {
-            const response = await fetch('/api/experiments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...currentExperiment,
-                    experimentName: currentExperiment.name,
-                    reactionDetails: reactionResult,
-                    savedAt: new Date().toISOString(),
-                    isSaved: true
-                }),
+            await saveExperiment(experimentData)
+            setSaveStatus({
+                isVisible: true,
+                message: 'Experiment saved successfully!',
+                type: 'success'
             })
-
-            if (response.ok) {
-                alert('✅ Experiment saved successfully!')
-                // Sync experiments with AuthContext so they appear in profile immediately
-                await syncExperiments()
-            } else {
-                throw new Error('Failed to save experiment')
-            }
+            await syncExperiments()
         } catch (error) {
             console.error('Save failed:', error)
-            alert('❌ Failed to save experiment. Please try again.')
+            setSaveStatus({
+                isVisible: true,
+                message: 'Failed to save experiment. Please try again.',
+                type: 'error'
+            })
         } finally {
             setIsSaving(false)
         }
@@ -312,36 +343,97 @@ export default function LabPage() {
         }
     }
 
+    // Handle equipment activation request
+    const handleRequestEquipmentActivation = (equipmentId: string) => {
+        setPendingEquipmentId(equipmentId)
+        setIsSelectionModalOpen(true)
+    }
+
+    // Handle tube selection for equipment
+    const handleEquipmentTubeSelected = (tubeId: string) => {
+        if (!pendingEquipmentId) return
+
+        setIsSelectionModalOpen(false)
+        setSelectedTubeId(tubeId) // Update global selection
+
+        // Proceed with activation logic
+        const id = pendingEquipmentId
+        const eq = EQUIPMENT_CONFIG.find(e => e.id === id)
+        if (!eq) return
+
+        let updatedAttachments = [...equipmentAttachments]
+
+        // EXCLUSIVITY ENFORCEMENT: Check for conflicts
+        // Heating exclusivity: Bunsen OR Hot Plate
+        if (id === 'bunsen-burner' || id === 'hot-plate') {
+            const conflictingHeater = updatedAttachments.find(
+                a => (a.equipmentType === 'bunsen-burner' || a.equipmentType === 'hot-plate') &&
+                    a.targetTubeId === tubeId
+            )
+            if (conflictingHeater) {
+                updatedAttachments = updatedAttachments.filter(a => a.equipmentId !== conflictingHeater.equipmentId)
+            }
+        }
+
+        // Motion exclusivity: Stirrer OR Centrifuge
+        if (id === 'magnetic-stirrer' || id === 'centrifuge') {
+            const conflictingMotion = updatedAttachments.find(
+                a => (a.equipmentType === 'magnetic-stirrer' || a.equipmentType === 'centrifuge') &&
+                    a.targetTubeId === tubeId
+            )
+            if (conflictingMotion) {
+                updatedAttachments = updatedAttachments.filter(a => a.equipmentId !== conflictingMotion.equipmentId)
+            }
+        }
+
+        // Turn ON - create attachment
+        const newAttachment: EquipmentAttachment = {
+            equipmentId: `${id}-${Date.now()}`,
+            equipmentType: id,
+            targetTubeId: tubeId,
+            isActive: true,
+            settings: {
+                temperature: (id === 'bunsen-burner' || id === 'hot-plate') ? eq.value : undefined,
+                rpm: (id === 'magnetic-stirrer' || id === 'centrifuge') ? eq.value : undefined,
+                pH: id === 'ph-meter' ? eq.value : undefined,
+                measuredTemp: id === 'thermometer' ? eq.value : undefined,
+                weight: id === 'analytical-balance' ? eq.value : undefined,
+                timeRemaining: id === 'timer' ? eq.value : undefined,
+                timerMode: id === 'timer' ? 'countdown' : undefined,
+                isTimerRunning: id === 'timer' ? false : undefined
+            }
+        }
+
+        setEquipmentAttachments([...updatedAttachments, newAttachment])
+        setPendingEquipmentId(null)
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
-            {/* Animated Background - Matching Features Page */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-                <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-                <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-0 left-1/2 animate-pulse delay-2000"></div>
-            </div>
+        <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-500">
+            {/* Background Grid */}
+            <StaticGrid className="opacity-30 fixed inset-0 z-0 pointer-events-none" />
 
             {/* Modern Navbar - Same as Homepage */}
             <ModernNavbar />
 
             {/* Main Content - Responsive Grid */}
-            <div className="min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-[320px_1fr_380px] gap-3 sm:gap-4 p-2 sm:p-4">
+            <div className="min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-[320px_1fr_380px] gap-3 sm:gap-4 p-2 sm:p-4 relative z-10">
                 {/* Left Panel - Chemical Shelf */}
                 <motion.div
                     initial={{ x: -100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="h-[400px] lg:h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl hover:border-white/40 transition-all duration-300 overflow-hidden flex flex-col"
+                    className="h-[400px] lg:h-full glass-panel rounded-3xl transition-all duration-300 overflow-hidden flex flex-col"
                 >
                     {/* Header */}
-                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                    <div className="flex-shrink-0 p-4 border-b border-elixra-copper/10 bg-elixra-cream/30 dark:bg-white/5">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <Sparkles className="w-5 h-5 text-blue-400" />
+                            <div className="p-2 bg-elixra-bunsen/10 rounded-lg">
+                                <Sparkles className="w-5 h-5 text-elixra-bunsen" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-white">Chemical Reagents</h2>
-                                <p className="text-xs text-gray-400">Click or drag to add</p>
+                                <h2 className="text-lg font-bold text-elixra-text-primary">Chemical Reagents</h2>
+                                <p className="text-xs text-elixra-text-secondary">Click or drag to add</p>
                             </div>
                         </div>
                     </div>
@@ -357,17 +449,17 @@ export default function LabPage() {
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="h-[500px] lg:h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl hover:border-white/40 transition-all duration-300 overflow-hidden flex flex-col"
+                    className="h-[500px] lg:h-full bg-elixra-cream/80 dark:bg-white/5 backdrop-blur-xl border border-elixra-copper/10 rounded-3xl transition-all duration-300 overflow-hidden flex flex-col shadow-inner"
                     ref={labTableRef}
                 >
                     {/* Header */}
-                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+                    <div className="flex-shrink-0 p-4 border-b border-elixra-copper/10 bg-elixra-cream/30 dark:bg-white/5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-cyan-500/20 rounded-lg">
-                                    <Atom className="w-5 h-5 text-cyan-400" />
+                                <div className="p-2 bg-elixra-bunsen/10 rounded-lg">
+                                    <Atom className="w-5 h-5 text-elixra-bunsen" />
                                 </div>
-                                <h2 className="text-lg font-bold text-white">Lab Bench</h2>
+                                <h2 className="text-lg font-bold text-elixra-text-primary">Lab Bench</h2>
                             </div>
                             {/* Add Glassware Buttons */}
                             <div className="flex gap-2">
@@ -379,7 +471,7 @@ export default function LabPage() {
                                             (window as any).__addTestTube?.()
                                         }
                                     }}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all"
+                                    className="flex items-center gap-2 px-3 py-1.5 btn-primary text-sm font-medium transition-all"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Test Tube
@@ -402,6 +494,7 @@ export default function LabPage() {
                             selectedTubeId={selectedTubeId}
                             onSelectTube={setSelectedTubeId}
                             onSelectedTubeContentsChange={setSelectedTubeContents}
+                            onTestTubesChange={setAvailableTestTubes}
                         />
                     </div>
                 </motion.div>
@@ -412,18 +505,18 @@ export default function LabPage() {
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className={`min-h-[600px] lg:h-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border-2 rounded-3xl transition-all duration-300 overflow-hidden flex flex-col ${reactionResult ? 'border-purple-500/50 shadow-lg shadow-purple-500/20' : 'border-white/20 hover:border-white/40'
+                    className={`min-h-[600px] lg:h-full glass-panel rounded-3xl transition-all duration-300 overflow-hidden flex flex-col ${reactionResult ? 'border-elixra-bunsen/50 shadow-lg shadow-elixra-bunsen/20' : ''
                         }`}
                 >
                     {/* Header */}
-                    <div className="flex-shrink-0 p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+                    <div className="flex-shrink-0 p-4 border-b border-elixra-copper/10 bg-elixra-cream/30 dark:bg-white/5">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-500/20 rounded-lg">
-                                <Atom className="w-5 h-5 text-purple-400" />
+                            <div className="p-2 bg-elixra-copper/10 rounded-lg">
+                                <Atom className="w-5 h-5 text-elixra-copper" />
                             </div>
                             <div className="flex-1">
-                                <h2 className="text-lg font-bold text-white">Reaction Analysis</h2>
-                                <p className="text-xs text-gray-400">AI-powered results</p>
+                                <h2 className="text-lg font-bold text-elixra-text-primary">Reaction Analysis</h2>
+                                <p className="text-xs text-elixra-text-secondary">AI-powered results</p>
                             </div>
                             {reactionResult && (
                                 <motion.div
@@ -499,16 +592,16 @@ export default function LabPage() {
                         exit={{ opacity: 0, x: 100 }}
                         className="fixed bottom-28 right-4 sm:right-8 z-40 w-64"
                     >
-                        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl hover:border-white/40 transition-all duration-300 p-4">
-                            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                <Flame className="w-4 h-4 text-orange-400" />
+                        <div className="glass-panel rounded-3xl transition-all duration-300 p-4 shadow-2xl border border-elixra-copper/20">
+                            <h3 className="text-sm font-bold text-elixra-text-primary mb-3 flex items-center gap-2">
+                                <Flame className="w-4 h-4 text-elixra-copper" />
                                 Quick Actions
                             </h3>
                             <div className="space-y-2">
                                 <button
                                     onClick={handleSave}
                                     disabled={!currentExperiment || isSaving}
-                                    className="w-full px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-300 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 bg-elixra-bunsen/10 hover:bg-elixra-bunsen/20 border border-elixra-bunsen/30 text-elixra-bunsen-dark dark:text-elixra-bunsen rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                 >
                                     <Save className="w-4 h-4" />
                                     {isSaving ? 'Saving...' : 'Save Experiment'}
@@ -516,7 +609,7 @@ export default function LabPage() {
                                 <button
                                     onClick={handleExport}
                                     disabled={!currentExperiment || isExporting}
-                                    className="w-full px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-300 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 bg-elixra-copper/10 hover:bg-elixra-copper/20 border border-elixra-copper/30 text-elixra-copper-dark dark:text-elixra-copper rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                 >
                                     <Download className="w-4 h-4" />
                                     {isExporting ? 'Exporting...' : 'Export PDF'}
@@ -524,7 +617,7 @@ export default function LabPage() {
                                 <button
                                     onClick={handleShare}
                                     disabled={!currentExperiment || isSharing}
-                                    className="w-full px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-green-300 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-700 dark:text-green-400 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                 >
                                     <Share2 className="w-4 h-4" />
                                     {isSharing ? 'Sharing...' : 'Share Results'}
@@ -532,7 +625,7 @@ export default function LabPage() {
                                 <button
                                     onClick={clearExperiment}
                                     disabled={!currentExperiment}
-                                    className="w-full px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-300 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-700 dark:text-red-400 rounded-lg text-sm transition-all text-left flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                 >
                                     <RotateCcw className="w-4 h-4" />
                                     Clear Lab
@@ -546,7 +639,7 @@ export default function LabPage() {
                                             })
                                             setShowFeatures(false)
                                         }}
-                                        className="lg:hidden w-full px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-300 rounded-lg text-sm transition-all text-left flex items-center gap-2"
+                                        className="lg:hidden w-full px-3 py-2 bg-elixra-bunsen/10 hover:bg-elixra-bunsen/20 border border-elixra-bunsen/30 text-elixra-bunsen rounded-lg text-sm transition-all text-left flex items-center gap-2 font-medium"
                                     >
                                         <Atom className="w-4 h-4" />
                                         View Results
@@ -554,7 +647,7 @@ export default function LabPage() {
                                 )}
 
                                 {/* Divider */}
-                                <div className="border-t border-white/10 my-2"></div>
+                                <div className="border-t border-elixra-copper/10 my-2"></div>
 
                                 {/* Equipment Button */}
                                 <button
@@ -562,7 +655,7 @@ export default function LabPage() {
                                         setOpenEquipmentPanel(true)
                                         setShowFeatures(false)
                                     }}
-                                    className="w-full px-3 py-2 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-orange-300 rounded-lg text-sm transition-all text-left flex items-center gap-2"
+                                    className="w-full px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-700 dark:text-orange-400 rounded-lg text-sm transition-all text-left flex items-center gap-2 font-medium"
                                 >
                                     <Flame className="w-4 h-4" />
                                     Lab Equipment
@@ -580,23 +673,23 @@ export default function LabPage() {
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.3);
+          background: rgba(46, 107, 107, 0.1);
           border-radius: 3px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5));
+          background: rgba(46, 107, 107, 0.3);
           border-radius: 3px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(180deg, rgba(59, 130, 246, 0.7), rgba(139, 92, 246, 0.7));
+          background: rgba(46, 107, 107, 0.5);
         }
 
         /* Firefox */
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: rgba(59, 130, 246, 0.5) rgba(15, 23, 42, 0.3);
+          scrollbar-color: rgba(46, 107, 107, 0.3) rgba(46, 107, 107, 0.1);
         }
       `}</style>
 
@@ -614,6 +707,28 @@ export default function LabPage() {
                 currentPH={currentPH}
                 currentTemperature={currentTemperature}
                 currentWeight={currentWeight}
+                onRequestActivation={handleRequestEquipmentActivation}
+            />
+
+            <SaveConfirmation
+                isVisible={saveStatus.isVisible}
+                message={saveStatus.message}
+                type={saveStatus.type}
+                onClose={() => setSaveStatus(prev => ({ ...prev, isVisible: false }))}
+            />
+
+            {/* Equipment Selection Modal */}
+            <TestTubeSelectionModal
+                isOpen={isSelectionModalOpen}
+                onClose={() => {
+                    setIsSelectionModalOpen(false)
+                    setPendingEquipmentId(null)
+                }}
+                onSelect={handleEquipmentTubeSelected}
+                testTubes={availableTestTubes}
+                chemical={null}
+                title="Select Equipment Target"
+                description={`Which test tube should the ${EQUIPMENT_CONFIG.find(e => e.id === pendingEquipmentId)?.name || 'equipment'} be attached to?`}
             />
         </div>
     )

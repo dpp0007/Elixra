@@ -20,38 +20,39 @@ export interface EquipmentPosition {
 
 /**
  * Z-Index hierarchy for equipment layering
+ * Boosted values to ensure visibility over UI panels
  */
 export const EQUIPMENT_Z_INDEX = {
   // Foundation layer
-  balance: 95,
-  balancePlatform: 96,
-  balanceDisplay: 106,
+  balance: 1095,
+  balancePlatform: 1096,
+  balanceDisplay: 1106,
   
   // Base equipment layer
-  stirrerBase: 98,
-  hotPlate: 99,
-  bunsenBurner: 100,
+  stirrerBase: 1098,
+  hotPlate: 1099,
+  bunsenBurner: 9000, // Maximized Z-Index to ensure visibility over all lab elements
   
   // Liquid effects layer
-  liquidOverlay: 100,
-  vortex: 101,
-  bubbles: 101,
-  colorShift: 101,
-  stirBar: 102,
+  liquidOverlay: 1100,
+  vortex: 1101,
+  bubbles: 1101,
+  colorShift: 1101,
+  stirBar: 1102,
   
   // Measurement layer
-  probes: 103,
-  phMeterDisplay: 105,
-  thermometerDisplay: 105,
+  probes: 1103,
+  phMeterDisplay: 1105,
+  thermometerDisplay: 1105,
   
   // UI overlay layer
-  timer: 106,
+  timer: 1106,
   
   // Override layer (centrifuge)
-  centrifugeVibration: 108,
-  centrifugeBlur: 109,
-  centrifugeChamber: 110,
-  centrifugeDisplay: 111
+  centrifugeVibration: 1108,
+  centrifugeBlur: 1109,
+  centrifugeChamber: 1110,
+  centrifugeDisplay: 1111
 } as const
 
 /**

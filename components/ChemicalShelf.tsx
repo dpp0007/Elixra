@@ -44,7 +44,7 @@ function ChemicalDetailModal({ chemical, isOpen, onClose }: ChemicalDetailModalP
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-elixra-cream dark:bg-elixra-charcoal border border-elixra-copper/20 rounded-xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -61,49 +61,49 @@ function ChemicalDetailModal({ chemical, isOpen, onClose }: ChemicalDetailModalP
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+              <h3 className="text-base sm:text-lg font-bold text-elixra-text-primary truncate">
                 {chemical.name}
               </h3>
-              <p className="text-sm sm:text-base font-mono text-gray-600 dark:text-gray-300 break-all">
+              <p className="text-sm sm:text-base font-mono text-elixra-text-secondary break-all">
                 {chemical.formula}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0 ml-2 touch-manipulation"
+            className="p-2 sm:p-2 hover:bg-elixra-bunsen/10 rounded-lg transition-colors flex-shrink-0 ml-2 touch-manipulation"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-elixra-text-secondary" />
           </button>
         </div>
 
         {/* Properties */}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2.5 sm:p-3">
+            <div className="bg-white/50 dark:bg-white/5 rounded-lg p-2.5 sm:p-3">
               <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
-                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">State</span>
+                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-elixra-bunsen" />
+                <span className="text-xs font-medium text-elixra-text-secondary">State</span>
               </div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white capitalize">{chemical.state}</p>
+              <p className="text-sm font-semibold text-elixra-text-primary capitalize">{chemical.state}</p>
             </div>
 
             {chemical.concentration && (
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2.5 sm:p-3">
+              <div className="bg-white/50 dark:bg-white/5 rounded-lg p-2.5 sm:p-3">
                 <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
                   <Beaker className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Concentration</span>
+                  <span className="text-xs font-medium text-elixra-text-secondary">Concentration</span>
                 </div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">{chemical.concentration}M</p>
+                <p className="text-sm font-semibold text-elixra-text-primary">{chemical.concentration}M</p>
               </div>
             )}
           </div>
 
           {/* Description */}
           {chemical.description && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2.5 sm:p-3">
-              <h4 className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">Description</h4>
-              <p className="text-xs text-blue-800 dark:text-blue-200">{chemical.description}</p>
+            <div className="bg-elixra-bunsen/10 rounded-lg p-2.5 sm:p-3">
+              <h4 className="text-xs font-semibold text-elixra-bunsen mb-1">Description</h4>
+              <p className="text-xs text-elixra-bunsen-dark dark:text-elixra-bunsen-light">{chemical.description}</p>
             </div>
           )}
 
@@ -128,9 +128,9 @@ function ChemicalDetailModal({ chemical, isOpen, onClose }: ChemicalDetailModalP
           )}
 
           {/* Usage Instructions */}
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2.5 sm:p-3">
-            <h4 className="text-xs font-semibold text-green-900 dark:text-green-100 mb-1">Usage</h4>
-            <p className="text-xs text-green-800 dark:text-green-200">
+          <div className="bg-green-500/10 rounded-lg p-2.5 sm:p-3">
+            <h4 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">Usage</h4>
+            <p className="text-xs text-green-700 dark:text-green-300">
               <span className="hidden sm:inline">Drag this chemical to test tubes or beakers to add it to your experiment.</span>
               <span className="sm:hidden">Tap or drag this chemical to test tubes or beakers.</span>
             </p>
@@ -268,9 +268,9 @@ function ChemicalCard({ chemical, onClick, onAddToTestTube }: ChemicalCardProps)
             e.stopPropagation()
             onClick()
           }}
-          className="p-2 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors touch-manipulation -m-1"
+          className="p-2 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors touch-manipulation -m-1"
         >
-          <Info className="h-4 w-4 sm:h-4 sm:w-4 text-blue-600" />
+          <Info className="h-4 w-4 sm:h-4 sm:w-4 text-elixra-bunsen" />
         </button>
       </div>
     </div>
@@ -311,10 +311,10 @@ function CustomSelect({ value, onChange, options, className = "", align = 'left'
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between pl-3 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left text-xs sm:text-sm"
+        className="w-full flex items-center justify-between pl-3 pr-3 py-2 bg-white/50 dark:bg-black/20 border border-elixra-copper/20 rounded-md text-elixra-text-primary focus:ring-2 focus:ring-elixra-bunsen focus:border-transparent cursor-pointer hover:border-elixra-copper/40 transition-colors text-left text-xs sm:text-sm"
       >
         <span className="truncate mr-2">{selectedOption?.label}</span>
-        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-elixra-text-secondary transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -324,7 +324,7 @@ function CustomSelect({ value, onChange, options, className = "", align = 'left'
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className={`absolute z-50 mt-1 min-w-full w-max max-w-[300px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-xl max-h-60 overflow-y-auto overflow-x-hidden ${align === 'right' ? 'right-0' : 'left-0'}`}
+            className={`absolute z-50 mt-1 min-w-full w-max max-w-[300px] bg-elixra-cream dark:bg-elixra-charcoal border border-elixra-copper/20 rounded-md shadow-xl max-h-60 overflow-y-auto overflow-x-hidden ${align === 'right' ? 'right-0' : 'left-0'}`}
           >
             {options.map((option) => (
               <div
@@ -335,8 +335,8 @@ function CustomSelect({ value, onChange, options, className = "", align = 'left'
                 }}
                 className={`px-3 py-2 cursor-pointer text-xs sm:text-sm transition-colors whitespace-nowrap
                   ${option.value === value
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-elixra-bunsen/10 text-elixra-bunsen font-medium'
+                    : 'text-elixra-text-primary hover:bg-elixra-bunsen/5'
                   }
                 `}
               >
@@ -532,9 +532,9 @@ export default function ChemicalShelf({ onAddChemicalToTestTube }: ChemicalShelf
         </div>
 
         {/* Safety Notice */}
-        <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800">
+        <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-yellow-500/10 rounded-md border border-yellow-500/20">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 flex-shrink-0" />
             <p className="text-xs text-yellow-700 dark:text-yellow-300">
               Virtual lab for educational purposes
             </p>

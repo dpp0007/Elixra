@@ -7,6 +7,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { EQUIPMENT_Z_INDEX } from '@/lib/equipment-positioning'
 
 interface PhMeterProps {
     pH: number // 0-14
@@ -56,7 +57,7 @@ export default function PhMeter({ pH, isActive, tubePosition }: PhMeterProps) {
                     left: tubePosition.x + tubePosition.width / 2,
                     top: tubePosition.y - 20,
                     transform: 'translateX(-50%)',
-                    zIndex: 103,
+                    zIndex: EQUIPMENT_Z_INDEX.probes,
                 }}
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -86,7 +87,7 @@ export default function PhMeter({ pH, isActive, tubePosition }: PhMeterProps) {
                     left: tubePosition.x + tubePosition.width / 2,
                     top: tubePosition.y - 70,
                     transform: 'translateX(-50%)',
-                    zIndex: 105,
+                    zIndex: EQUIPMENT_Z_INDEX.phMeterDisplay,
                 }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}

@@ -831,7 +831,7 @@ export default function StreamingChat({
         {!speechRecognitionSupported && (
           <div className="mt-3 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
             <p className="text-xs text-yellow-200">
-              ⚠️ <strong>{browserInfo}</strong> doesn't support voice input. 
+              ⚠️ <strong>{browserInfo}</strong> doesn&apos;t support voice input. 
               Switch to <strong>Chrome</strong> or <strong>Edge</strong> for voice features, or type your questions.
             </p>
           </div>

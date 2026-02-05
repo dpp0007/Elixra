@@ -23,12 +23,25 @@ interface HotPlateProps {
 export default function HotPlate({ temperature, isActive, tubePosition }: HotPlateProps) {
     const [bubbles, setBubbles] = useState<number[]>([])
     const { level, percentage } = getIntensityScale('hot-plate', temperature)
+    
+    // Generate unique ID for gradients based on position to avoid conflicts
+    const uniqueId = `hp-${Math.round(tubePosition.x)}-${Math.round(tubePosition.y)}`
 
     // Platform width scales with tube (tube width + 20% margin)
     const plateDiameter = getPlatformWidth(tubePosition.width, 1.2)
 
     // Position anchored to tube bottom center - plate sits below tube
     const position = getEquipmentPosition(tubePosition, 'bottom-center', { y: 5 })
+
+    useEffect(() => {
+        console.log(`🔥 HotPlate Render:`, {
+            isActive,
+            temperature,
+            tubePosition,
+            plateDiameter,
+            position
+        })
+    }, [isActive, temperature, tubePosition])
 
     // Bubble spawning at 100°C+
     useEffect(() => {
@@ -51,7 +64,7 @@ export default function HotPlate({ temperature, isActive, tubePosition }: HotPla
     if (!isActive) return null
 
     // Glow intensity based on temperature
-    const glowOpacity = 0.3 + (percentage / 100) * 0.6
+    const glowOpacity = 0.5 + (percentage / 100) * 0.5
     const glowColor =
         temperature < 200
             ? 'rgba(255, 150, 0, '
@@ -86,7 +99,9 @@ export default function HotPlate({ temperature, isActive, tubePosition }: HotPla
                     cy="10"
                     rx={plateDiameter / 2}
                     ry="8"
-                    fill="url(#plateGradient)"
+                    fill={`url(#plateGradient-${uniqueId})`}
+                    stroke="#6b7280"
+                    strokeWidth="0.5"
                 />
 
                 {/* Glow edge */}
@@ -124,7 +139,7 @@ export default function HotPlate({ temperature, isActive, tubePosition }: HotPla
                 ))}
 
                 <defs>
-                    <radialGradient id="plateGradient">
+                    <radialGradient id={`plateGradient-${uniqueId}`}>
                         <stop offset="0%" stopColor="#4a5568" />
                         <stop offset="70%" stopColor="#2d3748" />
                         <stop offset="100%" stopColor="#1a202c" />

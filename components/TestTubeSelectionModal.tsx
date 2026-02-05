@@ -11,6 +11,8 @@ interface TestTubeSelectionModalProps {
   onSelect: (tubeId: string) => void
   testTubes: Array<{ id: string; contents: any[] }>
   chemical: Chemical | null
+  title?: string
+  description?: string
 }
 
 export default function TestTubeSelectionModal({
@@ -18,9 +20,15 @@ export default function TestTubeSelectionModal({
   onClose,
   onSelect,
   testTubes,
-  chemical
+  chemical,
+  title,
+  description
 }: TestTubeSelectionModalProps) {
   if (!isOpen) return null
+
+  const displayTitle = title || 'Select Container'
+  const displayDescription = description || (chemical ? `Adding ${chemical.name}` : 'Select a test tube')
+  const displaySubtext = chemical ? 'Where would you like to add this chemical?' : 'Select a test tube to proceed'
 
   const modalContent = (
     <AnimatePresence>
@@ -29,7 +37,7 @@ export default function TestTubeSelectionModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100001] flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div
@@ -44,13 +52,13 @@ export default function TestTubeSelectionModal({
             <div className="flex items-center justify-between mb-6">
               <div className="flex-1 pr-4">
                 <h3 className="text-xl font-bold text-white">
-                  Select Container
+                  {displayTitle}
                 </h3>
                 <p className="text-sm text-blue-400 font-medium">
-                  Adding {chemical?.name}
+                  {displayDescription}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Where would you like to add this chemical?
+                  {displaySubtext}
                 </p>
               </div>
               <button

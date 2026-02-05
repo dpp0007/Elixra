@@ -11,7 +11,7 @@ export interface Bond {
   id: string
   from: string
   to: string
-  type: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen'
+  type: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'aromatic'
 }
 
 export interface MoleculeState {

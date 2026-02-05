@@ -148,7 +148,7 @@ export default function FeaturesPanel() {
                 {/* Info */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    <strong>New!</strong> We've added 19 advanced features to enhance your chemistry learning experience. Explore them all!
+                    <strong>New!</strong> We&apos;ve added 19 advanced features to enhance your chemistry learning experience. Explore them all!
                   </p>
                 </div>
               </div>

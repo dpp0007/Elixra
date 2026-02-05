@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Atom, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { PerspectiveGrid } from '@/components/GridBackground'
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -90,31 +91,33 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[#0a0a0a] overflow-hidden relative">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-elixra-cream dark:bg-elixra-charcoal overflow-hidden relative transition-colors duration-300">
+        <PerspectiveGrid />
+        
         {/* Background Gradients */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-elixra-bunsen/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-elixra-copper/20 rounded-full blur-[120px]" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-center max-w-md w-full relative z-10"
+          className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle p-8 rounded-3xl shadow-2xl text-center max-w-md w-full relative z-10"
         >
-          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-10 w-10 text-green-400" />
+          <div className="w-20 h-20 bg-elixra-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-10 w-10 text-elixra-success" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">Welcome Aboard!</h2>
-          <p className="text-gray-300 mb-8">
+          <h2 className="text-3xl font-bold text-elixra-charcoal dark:text-white mb-4">Welcome Aboard!</h2>
+          <p className="text-elixra-secondary mb-8">
             Your account has been created successfully. Redirecting you to the lab...
           </p>
-          <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-elixra-charcoal/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: '100%' }}
               transition={{ duration: 1.5 }}
-              className="h-full bg-green-500"
+              className="h-full bg-elixra-success"
             />
           </div>
         </motion.div>
@@ -123,17 +126,19 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#0a0a0a] overflow-hidden relative">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-elixra-cream dark:bg-elixra-charcoal overflow-hidden relative transition-colors duration-300">
+      <PerspectiveGrid />
+      
       {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]" />
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-elixra-bunsen/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-elixra-copper/20 rounded-full blur-[120px]" />
       </div>
 
       <div className="absolute top-8 left-8 z-20">
         <Link 
           href="/"
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          className="flex items-center space-x-2 text-elixra-secondary hover:text-elixra-charcoal dark:hover:text-elixra-cream transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Home</span>
@@ -149,22 +154,22 @@ export default function SignUpPage() {
           <Link href="/" className="inline-block mb-6">
             <div className="flex items-center justify-center space-x-3">
               <img src="/Assets/Main Logo.svg" alt="Elixra Logo" className="h-12 w-12" />
-              <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+              <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-elixra-bunsen to-elixra-bunsen-dark">
                 Elixra
               </span>
             </div>
           </Link>
-          <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-gray-400">Join the future of chemical experimentation</p>
+          <h2 className="text-2xl font-bold text-elixra-charcoal dark:text-white mb-2">Create Account</h2>
+          <p className="text-elixra-secondary">Join the future of chemical experimentation</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="glass-panel p-8 rounded-3xl bg-white/40 dark:bg-white/5 border border-elixra-border-subtle shadow-2xl backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+              <label className="text-sm font-medium text-elixra-charcoal dark:text-white ml-1">Full Name</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                  <User className="h-5 w-5 text-elixra-secondary group-focus-within:text-elixra-bunsen transition-colors" />
                 </div>
                 <input
                   type="text"
@@ -172,17 +177,17 @@ export default function SignUpPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="block w-full pl-10 pr-3 py-3 bg-elixra-charcoal/5 dark:bg-black/20 border border-elixra-border-subtle rounded-xl text-elixra-charcoal dark:text-white placeholder-elixra-secondary focus:outline-none focus:ring-2 focus:ring-elixra-bunsen/50 focus:border-elixra-bunsen/50 transition-all"
                   placeholder="John Doe"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+              <label className="text-sm font-medium text-elixra-charcoal dark:text-elixra-cream ml-1">Email Address</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                  <Mail className="h-5 w-5 text-elixra-secondary group-focus-within:text-elixra-bunsen transition-colors" />
                 </div>
                 <input
                   type="email"
@@ -190,17 +195,17 @@ export default function SignUpPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="block w-full pl-10 pr-3 py-3 bg-elixra-charcoal/5 dark:bg-black/20 border border-elixra-border-subtle rounded-xl text-elixra-charcoal dark:text-elixra-cream placeholder-elixra-secondary focus:outline-none focus:ring-2 focus:ring-elixra-bunsen/50 focus:border-elixra-bunsen/50 transition-all"
                   placeholder="john@example.com"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
+              <label className="text-sm font-medium text-elixra-charcoal dark:text-white ml-1">Password</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                  <Lock className="h-5 w-5 text-elixra-secondary group-focus-within:text-elixra-bunsen transition-colors" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -208,13 +213,13 @@ export default function SignUpPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="block w-full pl-10 pr-10 py-3 bg-elixra-charcoal/5 dark:bg-black/20 border border-elixra-border-subtle rounded-xl text-elixra-charcoal dark:text-white placeholder-elixra-secondary focus:outline-none focus:ring-2 focus:ring-elixra-bunsen/50 focus:border-elixra-bunsen/50 transition-all"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-elixra-secondary hover:text-elixra-bunsen transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -222,10 +227,10 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-300 ml-1">Confirm Password</label>
+              <label className="text-sm font-medium text-elixra-charcoal dark:text-white ml-1">Confirm Password</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                  <Lock className="h-5 w-5 text-elixra-secondary group-focus-within:text-elixra-bunsen transition-colors" />
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -233,13 +238,13 @@ export default function SignUpPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="block w-full pl-10 pr-10 py-3 bg-elixra-charcoal/5 dark:bg-black/20 border border-elixra-border-subtle rounded-xl text-elixra-charcoal dark:text-white placeholder-elixra-secondary focus:outline-none focus:ring-2 focus:ring-elixra-bunsen/50 focus:border-elixra-bunsen/50 transition-all"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-elixra-secondary hover:text-elixra-bunsen transition-colors"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -250,7 +255,7 @@ export default function SignUpPage() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20"
+                className="text-elixra-error text-sm text-center bg-elixra-error/10 py-2 rounded-lg border border-elixra-error/20"
               >
                 {error}
               </motion.div>
@@ -259,7 +264,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               {isLoading ? (
                 <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -275,10 +280,10 @@ export default function SignUpPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
+                <div className="w-full border-t border-elixra-border-subtle"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#0F0F16] text-gray-500">Or continue with</span>
+                <span className="px-2 bg-transparent text-elixra-secondary">Or continue with</span>
               </div>
             </div>
 
@@ -286,7 +291,7 @@ export default function SignUpPage() {
               <button
                 onClick={() => loginWithGoogle()}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center space-x-3 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl transition-all duration-300 font-medium disabled:opacity-50"
+                className="w-full flex items-center justify-center space-x-3 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-xl transition-all duration-300 font-medium disabled:opacity-50 shadow-sm hover:shadow-md"
               >
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
                 <span>Sign up with Google</span>
@@ -294,9 +299,9 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-gray-400">
+          <p className="mt-8 text-center text-sm text-elixra-secondary">
             Already have an account?{' '}
-            <Link href="/auth/signin" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+            <Link href="/auth/signin" className="font-medium text-elixra-bunsen hover:text-elixra-bunsen-dark transition-colors">
               Sign in
             </Link>
           </p>

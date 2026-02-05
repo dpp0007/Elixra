@@ -212,7 +212,7 @@ export default function EquipmentPage() {
                 <Link href="/lab" className="text-blue-400 hover:text-blue-300 underline">
                   Virtual Lab
                 </Link>
-                {' '}and click "Lab Equipment" to activate and configure these devices for your experiments.
+                {' '}and click &quot;Lab Equipment&quot; to activate and configure these devices for your experiments.
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import ModernNavbar from '@/components/ModernNavbar'
+import { PerspectiveGrid, StaticGrid } from '@/components/GridBackground'
 
 type QuizStage = 'config' | 'loading' | 'quiz' | 'results'
 type Difficulty = 'easy' | 'medium' | 'hard'
@@ -71,6 +72,67 @@ const QUESTION_TYPE_OPTIONS: { value: QuestionType; label: string; icon: string 
   { value: 'guess_product', label: 'Guess Product', icon: '🎯' }
 ]
 
+
+const ScalableText = ({ text, className }: { text: string; className?: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+
+  useLayoutEffect(() => {
+    const adjustFontSize = () => {
+      const container = containerRef.current
+      const textElement = textRef.current
+      if (!container || !textElement) return
+
+      // Reset styles to measure natural size
+      textElement.style.fontSize = '1.125rem' // text-lg
+      textElement.style.lineHeight = '1.5'
+      
+      let currentSize = 18 // 1.125rem in px
+      const minSize = 12 // Minimum readable size
+
+      // While content overflows vertically, reduce font size
+      while (
+        textElement.scrollHeight > container.clientHeight && 
+        currentSize > minSize
+      ) {
+        currentSize -= 0.5
+        textElement.style.fontSize = `${currentSize}px`
+        textElement.style.lineHeight = `${currentSize * 1.4}px`
+      }
+
+      // If still overflowing at min size, enable truncation
+      if (textElement.scrollHeight > container.clientHeight) {
+        textElement.style.display = '-webkit-box'
+        textElement.style.webkitLineClamp = '3' // Limit to 3 lines
+        textElement.style.webkitBoxOrient = 'vertical'
+        textElement.style.overflow = 'hidden'
+      } else {
+        // Reset truncation styles if it fits
+        textElement.style.display = 'block'
+        textElement.style.webkitLineClamp = 'unset'
+        textElement.style.overflow = 'visible'
+      }
+    }
+
+    adjustFontSize()
+    // Add resize observer for more robust responsiveness
+    const observer = new ResizeObserver(adjustFontSize)
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [text])
+
+  return (
+    <div ref={containerRef} className="flex-1 h-full flex items-center overflow-hidden">
+      <span ref={textRef} className={`${className} block break-words`}>
+        {text}
+      </span>
+    </div>
+  )
+}
+
 export default function QuizPage() {
   const [stage, setStage] = useState<QuizStage>('config')
   const [config, setConfig] = useState<QuizConfig>({
@@ -100,7 +162,9 @@ export default function QuizPage() {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev && prev <= 1) {
-          handleSubmitAnswer()
+          handleSubmitAnswer(true).then(() => {
+            handleNextQuestion()
+          })
           return null
         }
         return prev ? prev - 1 : null
@@ -163,8 +227,8 @@ export default function QuizPage() {
     return questions[index] || null
   }
 
-  const handleSubmitAnswer = async () => {
-    if (!currentAnswer.trim()) {
+  const handleSubmitAnswer = async (forceSubmit = false) => {
+    if (!currentAnswer.trim() && !forceSubmit) {
       alert('Please provide an answer')
       return
     }
@@ -302,12 +366,8 @@ export default function QuizPage() {
   // Config Stage
   if (stage === 'config') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-          <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-          <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-0 left-1/2 animate-pulse delay-2000"></div>
-        </div>
+      <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
+        <PerspectiveGrid />
 
         <ModernNavbar />
 
@@ -317,144 +377,145 @@ export default function QuizPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-12 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 lg:p-10 shadow-2xl"
+              className="lg:col-span-12 glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 backdrop-blur-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl relative overflow-hidden group"
             >
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                  <Target className="h-8 w-8 text-blue-400" />
+              <StaticGrid className="opacity-30" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 bg-elixra-bunsen/10 rounded-2xl border border-elixra-bunsen/20">
+                    <Target className="h-8 w-8 text-elixra-bunsen" />
+                  </div>
+                  <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight drop-shadow-sm">Quiz Configuration</h1>
                 </div>
-                <h1 className="text-3xl font-bold text-white">Quiz Configuration</h1>
-              </div>
 
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Difficulty */}
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Difficulty */}
+                    <div>
+                      <label className="block text-sm font-semibold text-elixra-secondary mb-4 uppercase tracking-wider">
+                        Difficulty Level
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
+                          <button
+                            key={level}
+                            onClick={() => setConfig({ ...config, difficulty: level })}
+                            className={`py-3 px-2 rounded-xl font-medium text-sm transition-all duration-300 ${
+                              config.difficulty === level
+                                ? 'bg-elixra-bunsen text-white shadow-lg shadow-elixra-bunsen/20'
+                                : 'bg-white/50 dark:bg-white/5 text-elixra-secondary hover:bg-white/80 dark:hover:bg-white/10 hover:text-elixra-charcoal dark:hover:text-white border border-elixra-border-subtle'
+                            }`}
+                          >
+                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Number of Questions */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <label className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider drop-shadow-sm">
+                          Number of Questions
+                        </label>
+                        <span className="text-white font-extrabold bg-elixra-bunsen px-4 py-1.5 rounded-full text-base shadow-md">
+                          {config.num_questions}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="20"
+                        value={config.num_questions}
+                        onChange={(e) => setConfig({ ...config, num_questions: parseInt(e.target.value) })}
+                        className="w-full accent-elixra-bunsen h-2 bg-elixra-charcoal/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer mt-2"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Question Types */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">
-                      Difficulty Level
+                    <label className="block text-sm font-semibold text-elixra-secondary mb-4 uppercase tracking-wider">
+                      Question Types
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {QUESTION_TYPE_OPTIONS.map(type => (
                         <button
-                          key={level}
-                          onClick={() => setConfig({ ...config, difficulty: level })}
-                          className={`py-3 px-2 rounded-xl font-medium text-sm transition-all duration-300 ${
-                            config.difficulty === level
-                              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                              : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+                          key={type.value}
+                          onClick={() => {
+                            const types = config.question_types.includes(type.value)
+                              ? config.question_types.filter(t => t !== type.value)
+                              : [...config.question_types, type.value]
+                            setConfig({ ...config, question_types: types })
+                          }}
+                          className={`p-4 rounded-xl text-left transition-all duration-300 border ${
+                            config.question_types.includes(type.value)
+                              ? 'bg-elixra-copper/10 text-elixra-charcoal dark:text-white border-elixra-copper/50 shadow-lg shadow-elixra-copper/20'
+                              : 'bg-white/80 dark:bg-white/10 text-gray-900 dark:text-white border-elixra-border-subtle hover:bg-white hover:border-elixra-copper/30 shadow-sm'
                           }`}
                         >
-                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                          <div className="text-2xl mb-2">{type.icon}</div>
+                          <div className="text-base font-extrabold truncate text-gray-900 dark:text-white drop-shadow-sm">{type.label}</div>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Number of Questions */}
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                        Number of Questions
+                  {/* Timer */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div className="flex items-center justify-between bg-white/50 dark:bg-white/5 p-4 rounded-2xl border border-elixra-border-subtle h-full">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${config.include_timer ? 'bg-elixra-success/20 text-elixra-success' : 'bg-elixra-charcoal/5 dark:bg-white/5 text-elixra-secondary'}`}>
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <span className="block font-bold text-lg text-gray-900 dark:text-white drop-shadow-sm">Enable Timer</span>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={config.include_timer}
+                          onChange={(e) => setConfig({ ...config, include_timer: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-elixra-charcoal/20 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-elixra-bunsen"></div>
                       </label>
-                      <span className="text-blue-400 font-bold bg-blue-500/10 px-3 py-1 rounded-full text-sm">
-                        {config.num_questions}
-                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="20"
-                      value={config.num_questions}
-                      onChange={(e) => setConfig({ ...config, num_questions: parseInt(e.target.value) })}
-                      className="w-full accent-blue-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer mt-2"
-                    />
-                  </div>
-                </div>
 
-                {/* Question Types */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">
-                    Question Types
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {QUESTION_TYPE_OPTIONS.map(type => (
-                      <button
-                        key={type.value}
-                        onClick={() => {
-                          const types = config.question_types.includes(type.value)
-                            ? config.question_types.filter(t => t !== type.value)
-                            : [...config.question_types, type.value]
-                          setConfig({ ...config, question_types: types })
-                        }}
-                        className={`p-4 rounded-xl text-left transition-all duration-300 border ${
-                          config.question_types.includes(type.value)
-                            ? 'bg-purple-500/20 text-white border-purple-500/50 shadow-lg shadow-purple-500/20'
-                            : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{type.icon}</div>
-                        <div className="text-sm font-medium truncate">{type.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Timer */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                  <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5 h-full">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${config.include_timer ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-gray-400'}`}>
-                        <Clock className="h-5 w-5" />
+                    {config.include_timer && (
+                      <div className="bg-white/50 dark:bg-white/5 p-4 rounded-2xl border border-elixra-border-subtle animate-in fade-in slide-in-from-top-2">
+                        <div className="flex justify-between items-center mb-4">
+                          <label className="text-sm font-semibold text-elixra-secondary">
+                            Seconds per Question
+                          </label>
+                          <span className="text-elixra-bunsen font-bold">{config.time_limit_per_question || 60}s</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="10"
+                          max="300"
+                          step="10"
+                          value={config.time_limit_per_question || 60}
+                          onChange={(e) => setConfig({ ...config, time_limit_per_question: parseInt(e.target.value) })}
+                          className="w-full accent-elixra-bunsen h-2 bg-elixra-charcoal/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer"
+                        />
                       </div>
-                      <div>
-                        <span className="block font-medium text-white">Enable Timer</span>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={config.include_timer}
-                        onChange={(e) => setConfig({ ...config, include_timer: e.target.checked })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
+                    )}
                   </div>
 
-                  {config.include_timer && (
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex justify-between items-center mb-4">
-                        <label className="text-sm font-semibold text-gray-400">
-                          Seconds per Question
-                        </label>
-                        <span className="text-blue-400 font-bold">{config.time_limit_per_question || 60}s</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="10"
-                        max="300"
-                        step="10"
-                        value={config.time_limit_per_question || 60}
-                        onChange={(e) => setConfig({ ...config, time_limit_per_question: parseInt(e.target.value) })}
-                        className="w-full accent-blue-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-                  )}
+                  {/* Start Button */}
+                  <button
+                    onClick={handleStartQuiz}
+                    disabled={loading || config.question_types.length === 0}
+                    className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-elixra-bunsen/25 hover:shadow-elixra-bunsen/40 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Play className="h-5 w-5 fill-current" />
+                    {loading ? 'Starting Quiz...' : 'Start Quiz'}
+                  </button>
                 </div>
-
-                {/* Start Button */}
-                <button
-                  onClick={handleStartQuiz}
-                  disabled={loading || config.question_types.length === 0}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Play className="h-5 w-5 fill-current" />
-                  {loading ? 'Starting Quiz...' : 'Start Quiz'}
-                </button>
               </div>
             </motion.div>
-
-{/* Visual removed */}
           </div>
         </div>
       </div>
@@ -464,10 +525,11 @@ export default function QuizPage() {
   // Loading Stage
   if (stage === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300 text-lg">Generating AI-powered quiz questions...</p>
+      <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal flex items-center justify-center relative overflow-hidden">
+        <PerspectiveGrid />
+        <div className="text-center relative z-10">
+          <div className="w-16 h-16 border-4 border-elixra-bunsen border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-elixra-secondary text-lg">Generating AI-powered quiz questions...</p>
         </div>
       </div>
     )
@@ -478,10 +540,11 @@ export default function QuizPage() {
     const question = questions[currentQuestionIndex]
     if (!question) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-300 text-lg">Loading question...</p>
+        <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal flex items-center justify-center relative overflow-hidden">
+          <PerspectiveGrid />
+          <div className="text-center relative z-10">
+            <div className="w-16 h-16 border-4 border-elixra-bunsen border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-elixra-secondary text-lg">Loading question...</p>
           </div>
         </div>
       )
@@ -490,11 +553,8 @@ export default function QuizPage() {
     const currentUserAnswer = userAnswers.find(a => a.question_id === currentQuestionIndex + 1)
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-          <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-        </div>
+      <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
+        <PerspectiveGrid />
 
         <ModernNavbar />
 
@@ -504,16 +564,16 @@ export default function QuizPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-8 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 lg:p-10 shadow-2xl"
+              className="lg:col-span-8 glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 backdrop-blur-2xl border border-elixra-border-subtle rounded-[2.5rem] p-8 lg:p-10 shadow-2xl"
             >
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider border border-blue-500/20">
+                    <span className="px-3 py-1 rounded-full bg-elixra-bunsen/10 text-elixra-bunsen text-xs font-bold uppercase tracking-wider border border-elixra-bunsen/20">
                       Question {currentQuestionIndex + 1} / {totalQuestions}
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold uppercase tracking-wider border border-purple-500/20">
+                    <span className="px-3 py-1 rounded-full bg-elixra-copper/10 text-elixra-copper text-xs font-bold uppercase tracking-wider border border-elixra-copper/20">
                       {question.topic}
                     </span>
                   </div>
@@ -521,8 +581,8 @@ export default function QuizPage() {
                 {config.include_timer && timeLeft !== null && (
                   <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
                     timeLeft <= 10 
-                      ? 'bg-red-500/10 border-red-500/20 text-red-400 animate-pulse' 
-                      : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                      ? 'bg-elixra-error/10 border-elixra-error/20 text-elixra-error animate-pulse' 
+                      : 'bg-elixra-bunsen/10 border-elixra-bunsen/20 text-elixra-bunsen'
                   }`}>
                     <Clock className="h-4 w-4" />
                     <span className="font-mono font-bold text-lg">{formatTime(timeLeft)}</span>
@@ -532,11 +592,11 @@ export default function QuizPage() {
 
               {/* Progress Bar */}
               <div className="mb-8">
-                <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-elixra-charcoal/10 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full"
+                    className="bg-elixra-bunsen h-full rounded-full"
                     transition={{ duration: 0.5 }}
                   />
                 </div>
@@ -544,7 +604,7 @@ export default function QuizPage() {
 
               {/* Question Text */}
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-white leading-relaxed">{question.question_text}</h3>
+                <h3 className="text-2xl font-bold text-elixra-charcoal dark:text-white leading-relaxed">{question.question_text}</h3>
               </div>
 
               {/* MCQ Options */}
@@ -555,23 +615,24 @@ export default function QuizPage() {
                       key={idx}
                       onClick={() => !showFeedback && setCurrentAnswer(option)}
                       disabled={showFeedback}
-                      className={`w-full text-left p-5 rounded-xl border transition-all duration-300 group relative overflow-hidden ${
+                      className={`w-full text-left p-5 rounded-xl border transition-all duration-300 group relative overflow-hidden h-24 ${
                         currentAnswer === option
-                          ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10'
-                          : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
+                          ? 'border-elixra-bunsen bg-elixra-bunsen/10 shadow-lg shadow-elixra-bunsen/10'
+                          : 'border-elixra-border-subtle bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 hover:border-elixra-bunsen/30'
                       } ${showFeedback ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
                     >
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+                      <div className="flex items-center gap-4 relative z-10 h-full">
+                        <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center border transition-colors ${
                           currentAnswer === option
-                            ? 'bg-blue-500 border-blue-500 text-white'
-                            : 'border-white/20 text-gray-400 group-hover:border-white/40 group-hover:text-white'
+                            ? 'bg-elixra-bunsen border-elixra-bunsen text-white'
+                            : 'border-elixra-border-subtle text-elixra-secondary group-hover:border-elixra-bunsen/50 group-hover:text-elixra-charcoal dark:group-hover:text-white'
                         }`}>
                           {String.fromCharCode(65 + idx)}
                         </div>
-                        <span className={`text-lg ${currentAnswer === option ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                          {option}
-                        </span>
+                        <ScalableText 
+                          text={option} 
+                          className={`text-lg ${currentAnswer === option ? 'text-elixra-bunsen-dark dark:text-elixra-bunsen-light font-medium' : 'text-elixra-charcoal dark:text-white'}`} 
+                        />
                       </div>
                     </button>
                   ))}
@@ -586,7 +647,7 @@ export default function QuizPage() {
                     onChange={(e) => !showFeedback && setCurrentAnswer(e.target.value)}
                     disabled={showFeedback}
                     placeholder="Type your answer here..."
-                    className="w-full p-5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all resize-none text-lg"
+                    className="w-full p-5 rounded-xl bg-white/40 dark:bg-white/5 border border-elixra-border-subtle text-elixra-charcoal dark:text-white placeholder-elixra-secondary focus:border-elixra-bunsen focus:outline-none focus:ring-1 focus:ring-elixra-bunsen/50 transition-all resize-none text-lg"
                     rows={4}
                   />
                 </div>
@@ -599,18 +660,18 @@ export default function QuizPage() {
                     initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                     animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                     exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                    className={`rounded-xl border overflow-hidden ${
+                    className={`rounded-xl border overflow-hidden shadow-md ${
                       currentUserAnswer.user_answer.toLowerCase() === question.correct_answer.toLowerCase()
-                        ? 'bg-green-500/10 border-green-500/20'
-                        : 'bg-red-500/10 border-red-500/20'
+                        ? 'bg-elixra-success/20 dark:bg-elixra-success/15 border-elixra-success/30'
+                        : 'bg-elixra-error/20 dark:bg-elixra-error/15 border-elixra-error/30'
                     }`}
                   >
                     <div className="p-5">
                       <div className="flex items-start gap-4">
                         <div className={`p-2 rounded-full ${
                           currentUserAnswer.user_answer.toLowerCase() === question.correct_answer.toLowerCase()
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-red-500/20 text-red-400'
+                            ? 'bg-elixra-success/20 text-elixra-success'
+                            : 'bg-elixra-error/20 text-elixra-error'
                         }`}>
                           {currentUserAnswer.user_answer.toLowerCase() === question.correct_answer.toLowerCase() ? (
                             <CheckCircle className="h-6 w-6" />
@@ -621,25 +682,25 @@ export default function QuizPage() {
                         <div className="flex-1">
                           <h4 className={`text-lg font-bold mb-1 ${
                             currentUserAnswer.user_answer.toLowerCase() === question.correct_answer.toLowerCase()
-                              ? 'text-green-400'
-                              : 'text-red-400'
+                              ? 'text-elixra-success'
+                              : 'text-elixra-error'
                           }`}>
                             {currentUserAnswer.user_answer.toLowerCase() === question.correct_answer.toLowerCase()
                               ? 'Correct Answer!'
                               : 'Incorrect Answer'}
                           </h4>
-                          <p className="text-gray-300 leading-relaxed mb-3">{question.explanation}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
+                          <p className="text-elixra-charcoal dark:text-white leading-relaxed mb-3">{question.explanation}</p>
+                          <div className="flex items-center gap-2 text-xs text-elixra-secondary font-mono uppercase tracking-wider">
                             <Clock className="h-3 w-3" />
                             Time taken: {formatTime(currentUserAnswer.time_taken)}
                           </div>
                           
                           {currentUserAnswer.suggestions && (
-                            <div className="mt-4 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 flex gap-3 items-start">
-                              <Lightbulb className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                              <div className="text-sm text-blue-300">
-                                <p className="font-semibold mb-1">Learning Tip:</p>
-                                <p>{currentUserAnswer.suggestions}</p>
+                            <div className="mt-4 p-3 bg-elixra-bunsen/20 dark:bg-elixra-bunsen/15 rounded-xl border border-elixra-bunsen/30 flex gap-3 items-start shadow-sm">
+                              <Lightbulb className="h-5 w-5 text-elixra-bunsen flex-shrink-0 mt-0.5" />
+                              <div className="text-sm">
+                                <p className="font-semibold mb-1 text-elixra-bunsen-dark dark:text-elixra-bunsen-light">Learning Tip:</p>
+                                <p className="text-elixra-charcoal dark:text-gray-100 leading-relaxed">{currentUserAnswer.suggestions}</p>
                               </div>
                             </div>
                           )}
@@ -651,11 +712,11 @@ export default function QuizPage() {
               </AnimatePresence>
 
               {/* Navigation Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between pt-6 border-t border-elixra-border-subtle">
                 <button
                   onClick={handlePreviousQuestion}
                   disabled={currentQuestionIndex === 0}
-                  className="px-6 py-3 rounded-xl font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 text-gray-400 hover:text-white hover:bg-white/5"
+                  className="px-6 py-3 rounded-xl font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 text-elixra-secondary hover:text-elixra-charcoal dark:hover:text-white hover:bg-white/10"
                 >
                   <ChevronLeft className="h-5 w-5" />
                   <span>Previous</span>
@@ -663,16 +724,16 @@ export default function QuizPage() {
 
                 {!showFeedback ? (
                   <button
-                    onClick={handleSubmitAnswer}
+                    onClick={() => handleSubmitAnswer()}
                     disabled={!currentAnswer.trim()}
-                    className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     Submit Answer
                   </button>
                 ) : (
                   <button
                     onClick={handleNextQuestion}
-                    className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+                    className="btn-primary flex items-center gap-2"
                   >
                     {currentQuestionIndex < totalQuestions - 1 ? (
                       <>
@@ -697,9 +758,9 @@ export default function QuizPage() {
               transition={{ delay: 0.2 }}
               className="lg:col-span-4 sticky top-24"
             >
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 shadow-xl">
-                <h4 className="text-white font-bold mb-6 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <div className="glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 backdrop-blur-xl border border-elixra-border-subtle rounded-[2rem] p-6 shadow-xl">
+                <h4 className="text-elixra-charcoal dark:text-white font-bold mb-6 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-elixra-bunsen/10 text-elixra-bunsen border border-elixra-bunsen/20">
                     <BookOpen className="h-5 w-5" />
                   </div>
                   Question Navigator
@@ -716,12 +777,12 @@ export default function QuizPage() {
                         onClick={() => handleJumpToQuestion(idx)}
                         className={`aspect-square rounded-xl font-bold text-sm transition-all flex items-center justify-center border ${
                           status === 'current'
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/25 scale-110 z-10'
+                            ? 'bg-elixra-bunsen text-white border-elixra-bunsen shadow-lg shadow-elixra-bunsen/25 scale-110 z-10'
                             : status === 'correct'
-                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                            ? 'bg-elixra-success/20 text-elixra-success border-elixra-success/30'
                             : status === 'incorrect'
-                            ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                            : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
+                            ? 'bg-elixra-error/20 text-elixra-error border-elixra-error/30'
+                            : 'bg-white/50 dark:bg-white/5 text-elixra-secondary border-elixra-border-subtle hover:bg-white/80 dark:hover:bg-white/10 hover:text-elixra-charcoal dark:hover:text-white'
                         }`}
                       >
                         {idx + 1}
@@ -743,12 +804,8 @@ export default function QuizPage() {
     const isPassed = scorePercentage >= 70
 
     return (
-      <div className="min-h-screen lg:h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex flex-col overflow-auto lg:overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-          <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-        </div>
+      <div className="min-h-screen lg:h-screen bg-elixra-cream dark:bg-elixra-charcoal flex flex-col overflow-auto lg:overflow-hidden relative transition-colors duration-300">
+        <PerspectiveGrid />
 
         <div className="flex-shrink-0 relative z-20">
           <ModernNavbar />
@@ -758,42 +815,43 @@ export default function QuizPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:h-full h-auto">
             {/* Left Side: Summary Card */}
             <div className="lg:col-span-5 lg:h-full h-auto">
-              <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] h-full flex flex-col overflow-hidden shadow-2xl">
-                <div className="lg:flex-1 lg:overflow-y-auto overflow-visible custom-scrollbar p-6 lg:p-10 flex flex-col">
+              <div className="glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 backdrop-blur-2xl border border-elixra-border-subtle rounded-[2.5rem] h-full flex flex-col overflow-hidden shadow-2xl relative">
+                <StaticGrid className="opacity-30" />
+                <div className="lg:flex-1 lg:overflow-y-auto overflow-visible custom-scrollbar p-6 lg:p-10 flex flex-col relative z-10">
                   {/* Score Visual */}
                   <div className="text-center mb-10 flex-shrink-0">
                   <div className={`relative w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                    isPassed ? 'bg-green-500/10 ring-4 ring-green-500/20' : 'bg-orange-500/10 ring-4 ring-orange-500/20'
+                    isPassed ? 'bg-elixra-success/10 ring-4 ring-elixra-success/20' : 'bg-elixra-copper/10 ring-4 ring-elixra-copper/20'
                   }`}>
-                    <div className={`absolute inset-0 rounded-full blur-xl ${isPassed ? 'bg-green-500/20' : 'bg-orange-500/20'}`}></div>
-                    <Trophy className={`relative z-10 h-16 w-16 ${isPassed ? 'text-green-400' : 'text-orange-400'}`} />
+                    <div className={`absolute inset-0 rounded-full blur-xl ${isPassed ? 'bg-elixra-success/20' : 'bg-elixra-copper/20'}`}></div>
+                    <Trophy className={`relative z-10 h-16 w-16 ${isPassed ? 'text-elixra-success' : 'text-elixra-copper'}`} />
                   </div>
                   
-                  <h2 className="text-4xl font-bold text-white mb-2">
+                  <h2 className="text-4xl font-bold text-elixra-charcoal dark:text-white mb-2">
                     {isPassed ? 'Great Job!' : 'Keep Practicing!'}
                   </h2>
-                  <p className="text-gray-400 text-lg">
-                    You scored <span className={isPassed ? 'text-green-400 font-bold' : 'text-orange-400 font-bold'}>{Math.round(scorePercentage)}%</span>
+                  <p className="text-elixra-secondary text-lg">
+                    You scored <span className={isPassed ? 'text-elixra-success font-bold' : 'text-elixra-copper font-bold'}>{Math.round(scorePercentage)}%</span>
                   </p>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4 mb-10">
-                  <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-3xl font-bold text-blue-400 mb-1">{results.correct_answers}</div>
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Correct</div>
+                  <div className="bg-white/40 dark:bg-white/5 rounded-2xl p-4 text-center border border-elixra-border-subtle hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                    <div className="text-3xl font-bold text-elixra-bunsen mb-1">{results.correct_answers}</div>
+                    <div className="text-xs text-elixra-secondary uppercase tracking-wider font-semibold">Correct</div>
                   </div>
-                  <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-3xl font-bold text-purple-400 mb-1">{results.total_questions - results.correct_answers}</div>
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Incorrect</div>
+                  <div className="bg-white/40 dark:bg-white/5 rounded-2xl p-4 text-center border border-elixra-border-subtle hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                    <div className="text-3xl font-bold text-elixra-copper mb-1">{results.total_questions - results.correct_answers}</div>
+                    <div className="text-xs text-elixra-secondary uppercase tracking-wider font-semibold">Incorrect</div>
                   </div>
-                  <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-3xl font-bold text-green-400 mb-1">{Math.round(scorePercentage)}%</div>
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Accuracy</div>
+                  <div className="bg-white/40 dark:bg-white/5 rounded-2xl p-4 text-center border border-elixra-border-subtle hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                    <div className="text-3xl font-bold text-elixra-success mb-1">{Math.round(scorePercentage)}%</div>
+                    <div className="text-xs text-elixra-secondary uppercase tracking-wider font-semibold">Accuracy</div>
                   </div>
-                  <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-3xl font-bold text-pink-400 mb-1">{formatTime(results.total_time_seconds)}</div>
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Time</div>
+                  <div className="bg-white/40 dark:bg-white/5 rounded-2xl p-4 text-center border border-elixra-border-subtle hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                    <div className="text-3xl font-bold text-pink-500 mb-1">{formatTime(results.total_time_seconds)}</div>
+                    <div className="text-xs text-elixra-secondary uppercase tracking-wider font-semibold">Time</div>
                   </div>
                 </div>
 
@@ -810,14 +868,14 @@ export default function QuizPage() {
                         time_limit_per_question: null
                       })
                     }}
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="w-full btn-primary flex items-center justify-center gap-2 shadow-lg shadow-elixra-bunsen/25 hover:shadow-elixra-bunsen/40 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <Zap className="h-5 w-5" />
                     Try Another Quiz
                   </button>
                   <Link
                     href="/lab"
-                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 hover:border-white/20 flex items-center justify-center gap-2"
+                    className="w-full btn-ghost flex items-center justify-center gap-2"
                   >
                     <ArrowLeft className="h-5 w-5" />
                     Return to Lab
@@ -834,13 +892,13 @@ export default function QuizPage() {
               transition={{ delay: 0.2 }}
               className="lg:col-span-7 lg:h-full h-auto flex flex-col lg:min-h-0"
             >
-              <div className="flex items-center gap-4 flex-shrink-0 mb-3 bg-slate-900/40 p-4 rounded-2xl border border-white/10 backdrop-blur-xl">
-                <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                  <BarChart3 className="h-6 w-6 text-purple-400" />
+              <div className="flex items-center gap-4 flex-shrink-0 mb-3 glass-panel bg-white/40 dark:bg-elixra-warm-gray/60 p-4 rounded-2xl border border-elixra-border-subtle backdrop-blur-xl">
+                <div className="p-3 bg-elixra-copper/10 rounded-xl border border-elixra-copper/20">
+                  <BarChart3 className="h-6 w-6 text-elixra-copper" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Detailed Analysis</h3>
-                  <p className="text-gray-400 text-sm">Review your answers and explanations</p>
+                  <h3 className="text-2xl font-bold text-elixra-charcoal dark:text-white">Detailed Analysis</h3>
+                  <p className="text-elixra-secondary text-sm">Review your answers and explanations</p>
                 </div>
               </div>
 
@@ -851,62 +909,62 @@ export default function QuizPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 + 0.3 }}
-                    className={`p-6 rounded-3xl border transition-all ${
+                    className={`p-6 rounded-3xl border transition-all shadow-md hover:shadow-lg ${
                       result.is_correct
-                        ? 'bg-green-500/5 border-green-500/20 hover:bg-green-500/10'
-                        : 'bg-red-500/5 border-red-500/20 hover:bg-red-500/10'
+                        ? 'bg-elixra-success/15 dark:bg-elixra-success/10 border-elixra-success/30 shadow-elixra-success/10 hover:bg-elixra-success/25 dark:hover:bg-elixra-success/20'
+                        : 'bg-elixra-error/15 dark:bg-elixra-error/10 border-elixra-error/30 shadow-elixra-error/10 hover:bg-elixra-error/25 dark:hover:bg-elixra-error/20'
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-2 rounded-full flex-shrink-0 mt-1 ${
-                        result.is_correct ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        result.is_correct ? 'bg-elixra-success/20 text-elixra-success' : 'bg-elixra-error/20 text-elixra-error'
                       }`}>
                         {result.is_correct ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                       </div>
                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-lg font-bold text-white">Question {idx + 1}</h4>
-                          <span className="text-xs font-mono text-gray-500 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                          <h4 className="text-lg font-bold text-elixra-charcoal dark:text-white">Question {idx + 1}</h4>
+                          <span className="text-xs font-mono text-elixra-secondary bg-white/10 px-2 py-1 rounded-lg border border-elixra-border-subtle">
                             {formatTime(result.time_taken)}
                           </span>
                         </div>
                         
-                        <p className="text-gray-300 mb-4 leading-relaxed font-medium">{result.question_text}</p>
+                        <p className="text-elixra-secondary mb-4 leading-relaxed font-medium">{result.question_text}</p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div className={`p-3 rounded-xl border ${
+                          <div className={`p-3 rounded-xl border shadow-sm ${
                             result.is_correct 
-                              ? 'bg-green-500/10 border-green-500/20' 
-                              : 'bg-red-500/10 border-red-500/20'
+                              ? 'bg-elixra-success/20 dark:bg-elixra-success/15 border-elixra-success/30' 
+                              : 'bg-elixra-error/20 dark:bg-elixra-error/15 border-elixra-error/30'
                           }`}>
-                            <span className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Your Answer</span>
-                            <span className={`font-semibold ${result.is_correct ? 'text-green-400' : 'text-red-400'}`}>
-                              {result.user_answer}
+                            <span className="text-xs text-elixra-secondary uppercase tracking-wider block mb-1">Your Answer</span>
+                            <span className={`font-semibold ${result.is_correct ? 'text-elixra-success' : 'text-elixra-error'}`}>
+                              {result.user_answer || 'Time Over'}
                             </span>
                           </div>
                           
                           {!result.is_correct && (
-                            <div className="p-3 rounded-xl border border-green-500/20 bg-green-500/5">
-                              <span className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Correct Answer</span>
-                              <span className="text-green-400 font-semibold">{result.correct_answer}</span>
+                            <div className="p-3 rounded-xl border border-elixra-success/30 bg-elixra-success/20 dark:bg-elixra-success/15 shadow-sm">
+                              <span className="text-xs text-elixra-secondary uppercase tracking-wider block mb-1">Correct Answer</span>
+                              <span className="text-elixra-success font-semibold">{result.correct_answer}</span>
                             </div>
                           )}
                         </div>
 
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/5">
-                          <p className="text-sm text-gray-400 italic">
-                            <span className="font-semibold text-blue-400 not-italic mr-2">Explanation:</span>
+                        <div className="bg-white/60 dark:bg-white/15 rounded-xl p-4 border border-elixra-border-subtle shadow-sm">
+                          <p className="text-sm text-elixra-charcoal dark:text-gray-200 italic leading-relaxed">
+                            <span className="font-semibold text-elixra-bunsen dark:text-elixra-bunsen-light not-italic mr-2">Explanation:</span>
                             {result.explanation}
                           </p>
                         </div>
 
                         {result.suggestions && (
-                          <div className="mt-4 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 flex gap-3 items-start">
-                            <Lightbulb className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm text-blue-300">
-                              <p className="font-semibold mb-1">Learning Tip:</p>
-                              <p>{result.suggestions}</p>
+                          <div className="mt-4 p-3 bg-elixra-bunsen/20 dark:bg-elixra-bunsen/15 rounded-xl border border-elixra-bunsen/30 flex gap-3 items-start shadow-sm">
+                            <Lightbulb className="h-5 w-5 text-elixra-bunsen flex-shrink-0 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-semibold mb-1 text-elixra-bunsen-dark dark:text-elixra-bunsen-light">Learning Tip:</p>
+                              <p className="text-elixra-charcoal dark:text-gray-100 leading-relaxed">{result.suggestions}</p>
                             </div>
                           </div>
                         )}

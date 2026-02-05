@@ -6,6 +6,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { getIntensityScale } from '@/lib/equipment-animations'
 import {
     getEquipmentPosition,
@@ -22,6 +23,18 @@ interface MagneticStirrerProps {
 
 export default function MagneticStirrer({ rpm, isActive, tubePosition }: MagneticStirrerProps) {
     const { level, percentage } = getIntensityScale('magnetic-stirrer', rpm)
+    
+    // Generate unique ID for gradients
+    const uniqueId = `ms-${Math.round(tubePosition.x)}-${Math.round(tubePosition.y)}`
+
+    useEffect(() => {
+        console.log(`🌀 MagneticStirrer Render:`, {
+            isActive,
+            rpm,
+            tubePosition,
+            uniqueId
+        })
+    }, [isActive, rpm, tubePosition, uniqueId])
 
     // Rotation speed: Higher RPM = faster rotation (more realistic)
     // At 100 RPM: 0.6s per rotation, At 1500 RPM: 0.04s per rotation
@@ -77,7 +90,9 @@ export default function MagneticStirrer({ rpm, isActive, tubePosition }: Magneti
                         cy="12"
                         rx={platformWidth / 2}
                         ry="10"
-                        fill="url(#stirrerGradient)"
+                        fill={`url(#stirrerGradient-${uniqueId})`}
+                        stroke="#4b5563"
+                        strokeWidth="0.5"
                     />
 
                     {/* Top surface highlight */}
@@ -86,7 +101,7 @@ export default function MagneticStirrer({ rpm, isActive, tubePosition }: Magneti
                         cy="10"
                         rx={platformWidth / 2 - 5}
                         ry="6"
-                        fill="url(#stirrerHighlight)"
+                        fill={`url(#stirrerHighlight-${uniqueId})`}
                         opacity="0.3"
                     />
 
@@ -171,12 +186,12 @@ export default function MagneticStirrer({ rpm, isActive, tubePosition }: Magneti
                     ))}
 
                     <defs>
-                        <radialGradient id="stirrerGradient">
+                        <radialGradient id={`stirrerGradient-${uniqueId}`}>
                             <stop offset="0%" stopColor="#4b5563" />
                             <stop offset="50%" stopColor="#374151" />
                             <stop offset="100%" stopColor="#1f2937" />
                         </radialGradient>
-                        <radialGradient id="stirrerHighlight">
+                        <radialGradient id={`stirrerHighlight-${uniqueId}`}>
                             <stop offset="0%" stopColor="#9ca3af" />
                             <stop offset="100%" stopColor="transparent" />
                         </radialGradient>

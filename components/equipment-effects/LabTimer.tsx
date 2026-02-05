@@ -8,6 +8,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
 import { getTimerColor } from '@/lib/equipment-animations'
+import { EQUIPMENT_Z_INDEX } from '@/lib/equipment-positioning'
 
 interface LabTimerProps {
     timeRemaining: number // in seconds (0-7200 for 0-120 min)
@@ -120,7 +121,7 @@ export default function LabTimer({
                     left: tubePosition.x + tubePosition.width / 2,
                     top: tubePosition.y - 80,
                     transform: 'translateX(-50%)',
-                    zIndex: 106,
+                    zIndex: EQUIPMENT_Z_INDEX.timer,
                 }}
                 initial={{ opacity: 0, y: 10, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -181,7 +182,7 @@ export default function LabTimer({
                     left: tubePosition.x + tubePosition.width / 2,
                     top: tubePosition.y + tubePosition.height / 2,
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 104,
+                    zIndex: EQUIPMENT_Z_INDEX.timer - 2,
                 }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -267,7 +268,7 @@ export default function LabTimer({
                             height: tubePosition.height,
                             boxShadow: '0 0 30px 10px rgba(239, 68, 68, 0.6)',
                             borderRadius: '0 0 24px 24px',
-                            zIndex: 103,
+                            zIndex: EQUIPMENT_Z_INDEX.timer - 3,
                         }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 1, 0] }}
@@ -285,7 +286,7 @@ export default function LabTimer({
                         left: tubePosition.x + tubePosition.width / 2,
                         top: tubePosition.y + tubePosition.height / 2,
                         transform: 'translate(-50%, -50%)',
-                        zIndex: 103,
+                        zIndex: EQUIPMENT_Z_INDEX.timer - 3,
                     }}
                 >
                     <svg

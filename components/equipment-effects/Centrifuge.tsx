@@ -7,6 +7,10 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import {
+    getEquipmentPosition,
+    EQUIPMENT_Z_INDEX
+} from '@/lib/equipment-positioning'
 import { getIntensityScale } from '@/lib/equipment-animations'
 
 interface CentrifugeProps {
@@ -22,6 +26,15 @@ export default function Centrifuge({ rpm, isActive, tubePosition, liquidLayers =
     const [isSpinning, setIsSpinning] = useState(false)
 
     const { level, percentage } = getIntensityScale('centrifuge', rpm)
+
+    useEffect(() => {
+        console.log(`🌀 Centrifuge Render:`, {
+            isActive,
+            rpm,
+            tubePosition,
+            zIndex: EQUIPMENT_Z_INDEX.centrifugeChamber
+        })
+    }, [isActive, rpm, tubePosition])
 
     // Rotation speed: RPM / 10
     const rotationDuration = rpm > 0 ? 60 / (rpm / 10) : 10
@@ -81,7 +94,7 @@ export default function Centrifuge({ rpm, isActive, tubePosition, liquidLayers =
                     left: tubePosition.x + tubePosition.width / 2,
                     top: tubePosition.y + tubePosition.height / 2,
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 110,
+                    zIndex: EQUIPMENT_Z_INDEX.centrifugeChamber,
                 }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -249,7 +262,7 @@ export default function Centrifuge({ rpm, isActive, tubePosition, liquidLayers =
                         left: tubePosition.x + tubePosition.width / 2,
                         top: tubePosition.y - 40,
                         transform: 'translateX(-50%)',
-                        zIndex: 111,
+                        zIndex: EQUIPMENT_Z_INDEX.centrifugeDisplay,
                     }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -274,7 +287,7 @@ export default function Centrifuge({ rpm, isActive, tubePosition, liquidLayers =
                         width: tubePosition.width + 80,
                         height: tubePosition.height + 100,
                         background: 'radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.3) 70%)',
-                        zIndex: 109,
+                        zIndex: EQUIPMENT_Z_INDEX.centrifugeBlur,
                     }}
                     animate={{ opacity: [0.3, 0.5, 0.3] }}
                     transition={{ duration: 0.5, repeat: Infinity }}
@@ -291,7 +304,7 @@ export default function Centrifuge({ rpm, isActive, tubePosition, liquidLayers =
                         transform: 'translate(-50%, -50%)',
                         width: tubePosition.width + 60,
                         height: tubePosition.height + 80,
-                        zIndex: 108,
+                        zIndex: EQUIPMENT_Z_INDEX.centrifugeVibration,
                     }}
                     animate={{
                         x: [0, 1, -1, 1, 0],

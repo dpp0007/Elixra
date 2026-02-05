@@ -10,6 +10,7 @@ import SpectrumComparison from '@/components/SpectrumComparison'
 import { Peak, Sample, SpectroscopyType } from '@/types/spectroscopy'
 import { getAllSamples } from '@/lib/spectrumData'
 import { formatSpectrumForDisplay } from '@/lib/spectrumHandlers'
+import { PerspectiveGrid, StaticGrid } from '@/components/GridBackground'
 
 const SPECTROSCOPY_TYPES = [
   {
@@ -170,67 +171,67 @@ export default function SpectroscopyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-1/4 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-1/3 right-1/4 animate-pulse delay-1000"></div>
-        <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-0 left-1/2 animate-pulse delay-2000"></div>
-      </div>
+    <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
+      <PerspectiveGrid />
 
       <ModernNavbar />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{spectType.name}</h1>
-          <p className="text-gray-300 text-lg">{spectType.description}</p>
+          <h1 className="text-4xl font-bold text-elixra-charcoal dark:text-white mb-2">{spectType.name}</h1>
+          <p className="text-elixra-secondary text-lg">{spectType.description}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Spectroscopy Type */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Analysis Type</h2>
-              <div className="space-y-3">
-                {SPECTROSCOPY_TYPES.map((type) => {
-                  const Icon = type.icon
-                  return (
-                    <button
-                      key={type.id}
-                      onClick={() => {
-                        setSelectedType(type.id)
-                        setSelectedPeak(null)
-                      }}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                        selectedType === type.id
-                          ? 'border-blue-500 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 shadow-lg shadow-blue-500/30'
-                          : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-xl bg-gradient-to-br ${type.color}`}>
-                          <Icon className="h-5 w-5 text-white" />
+            <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-2xl p-6 relative overflow-hidden group">
+               <StaticGrid className="opacity-30" />
+               <div className="relative z-10">
+                <h2 className="text-lg font-bold text-elixra-charcoal dark:text-white mb-4">Analysis Type</h2>
+                <div className="space-y-3">
+                    {SPECTROSCOPY_TYPES.map((type) => {
+                    const Icon = type.icon
+                    return (
+                        <button
+                        key={type.id}
+                        onClick={() => {
+                            setSelectedType(type.id)
+                            setSelectedPeak(null)
+                        }}
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 ${
+                            selectedType === type.id
+                            ? 'border-elixra-bunsen bg-elixra-bunsen/10 shadow-lg shadow-elixra-bunsen/20'
+                            : 'border-elixra-border-subtle bg-white/50 dark:bg-white/5 hover:border-elixra-bunsen/30 hover:bg-white/80 dark:hover:bg-white/10'
+                        }`}
+                        >
+                        <div className="flex items-center gap-3">
+                            <div className={`p-3 rounded-xl ${
+                                selectedType === type.id ? 'bg-elixra-bunsen text-white' : 'bg-elixra-charcoal/10 dark:bg-white/10 text-elixra-secondary'
+                            }`}>
+                            <Icon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                            <div className={`font-semibold text-sm ${selectedType === type.id ? 'text-elixra-bunsen-dark dark:text-elixra-bunsen-light' : 'text-elixra-charcoal dark:text-white'}`}>
+                                {type.name.split(' ')[0]}
+                            </div>
+                            <div className="text-xs text-elixra-secondary">
+                                {type.name.split(' ').slice(1).join(' ')}
+                            </div>
+                            </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-white text-sm">
-                            {type.name.split(' ')[0]}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {type.name.split(' ').slice(1).join(' ')}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
+                        </button>
+                    )
+                    })}
+                </div>
               </div>
             </div>
 
             {/* Sample Selection */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Sample</h2>
+            <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-elixra-charcoal dark:text-white mb-4">Sample</h2>
               
               {/* Toggle between preset and custom */}
               <div className="flex gap-2 mb-4">
@@ -238,8 +239,8 @@ export default function SpectroscopyPage() {
                   onClick={() => setUseCustom(false)}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                     !useCustom
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      ? 'bg-elixra-bunsen text-white shadow-md'
+                      : 'bg-white/50 dark:bg-white/10 text-elixra-secondary hover:bg-white/80 dark:hover:bg-white/20'
                   }`}
                 >
                   Preset
@@ -248,8 +249,8 @@ export default function SpectroscopyPage() {
                   onClick={() => setUseCustom(true)}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                     useCustom
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      ? 'bg-elixra-bunsen text-white shadow-md'
+                      : 'bg-white/50 dark:bg-white/10 text-elixra-secondary hover:bg-white/80 dark:hover:bg-white/20'
                   }`}
                 >
                   Custom
@@ -258,7 +259,7 @@ export default function SpectroscopyPage() {
 
               {!useCustom ? (
                 // Preset samples
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-lg [&::-webkit-scrollbar-thumb]:bg-purple-500/50 [&::-webkit-scrollbar-thumb]:rounded-lg [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/70">
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                   {allSamples.map((sample) => (
                     <button
                       key={sample.id}
@@ -269,12 +270,12 @@ export default function SpectroscopyPage() {
                       }}
                       className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                         selectedSampleId === sample.id && !useCustom
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
+                          ? 'border-elixra-bunsen bg-elixra-bunsen/10'
+                          : 'border-elixra-border-subtle bg-white/50 dark:bg-white/5 hover:border-elixra-bunsen/30 hover:bg-white/80 dark:hover:bg-white/10'
                       }`}
                     >
-                      <div className="font-semibold text-white text-sm">{sample.name}</div>
-                      <div className="text-xs text-gray-400 font-mono">{sample.formula}</div>
+                      <div className={`font-semibold text-sm ${selectedSampleId === sample.id && !useCustom ? 'text-elixra-bunsen-dark dark:text-elixra-bunsen-light' : 'text-elixra-charcoal dark:text-white'}`}>{sample.name}</div>
+                      <div className="text-xs text-elixra-secondary font-mono">{sample.formula}</div>
                     </button>
                   ))}
                 </div>
@@ -286,19 +287,19 @@ export default function SpectroscopyPage() {
                     placeholder="Compound name"
                     value={customName}
                     onChange={(e) => setCustomName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 text-sm focus:border-purple-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-white/50 dark:bg-white/10 border border-elixra-border-subtle rounded-lg text-elixra-charcoal dark:text-elixra-cream placeholder-elixra-secondary text-sm focus:border-elixra-bunsen focus:outline-none"
                   />
                   <input
                     type="text"
                     placeholder="Formula (e.g., C₆H₆)"
                     value={customFormula}
                     onChange={(e) => setCustomFormula(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 text-sm font-mono focus:border-purple-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-white/50 dark:bg-white/10 border border-elixra-border-subtle rounded-lg text-elixra-charcoal dark:text-white placeholder-elixra-secondary text-sm font-mono focus:border-elixra-bunsen focus:outline-none"
                   />
                   <button
                     onClick={handleAddCustom}
                     disabled={!customName || !customFormula}
-                    className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                    className="w-full btn-primary disabled:opacity-50 text-sm flex items-center justify-center gap-2"
                   >
                     <Plus className="h-4 w-4" />
                     Analyze Compound
@@ -306,8 +307,8 @@ export default function SpectroscopyPage() {
 
                   {/* Custom samples list */}
                   {customSamples.length > 0 && (
-                    <div className="mt-4 space-y-2 max-h-48 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-lg [&::-webkit-scrollbar-thumb]:bg-purple-500/50 [&::-webkit-scrollbar-thumb]:rounded-lg [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/70">
-                      <div className="text-xs text-gray-400 uppercase font-semibold">Your Compounds</div>
+                    <div className="mt-4 space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="text-xs text-elixra-secondary uppercase font-semibold">Your Compounds</div>
                       {customSamples.map((sample) => (
                         <button
                           key={sample.id}
@@ -317,21 +318,21 @@ export default function SpectroscopyPage() {
                           }}
                           className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                             selectedSampleId === sample.id && useCustom
-                              ? 'border-purple-500 bg-purple-500/20'
-                              : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
+                              ? 'border-elixra-bunsen bg-elixra-bunsen/10'
+                              : 'border-elixra-border-subtle bg-white/50 dark:bg-white/5 hover:border-elixra-bunsen/30 hover:bg-white/80 dark:hover:bg-white/10'
                           }`}
                         >
-                          <div className="font-semibold text-white text-sm">{sample.name}</div>
-                          <div className="text-xs text-gray-400 font-mono">{sample.formula}</div>
+                          <div className={`font-semibold text-sm ${selectedSampleId === sample.id && useCustom ? 'text-elixra-bunsen-dark dark:text-elixra-bunsen-light' : 'text-elixra-charcoal dark:text-elixra-cream'}`}>{sample.name}</div>
+                          <div className="text-xs text-elixra-secondary font-mono">{sample.formula}</div>
                         </button>
                       ))}
                     </div>
                   )}
 
                   {/* Show preset samples as reference */}
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <div className="text-xs text-gray-400 uppercase font-semibold mb-2">Preset Samples</div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-lg [&::-webkit-scrollbar-thumb]:bg-purple-500/50 [&::-webkit-scrollbar-thumb]:rounded-lg [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/70">
+                  <div className="mt-4 pt-4 border-t border-elixra-border-subtle">
+                    <div className="text-xs text-elixra-secondary uppercase font-semibold mb-2">Preset Samples</div>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
                       {allSamples.map((sample) => (
                         <button
                           key={`preset-${sample.id}`}
@@ -340,10 +341,10 @@ export default function SpectroscopyPage() {
                             setSelectedPeak(null)
                             setUseCustom(false)
                           }}
-                          className="w-full text-left p-2 rounded-lg border border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10 transition-all"
+                          className="w-full text-left p-2 rounded-lg border border-elixra-border-subtle bg-white/50 dark:bg-white/5 hover:border-elixra-bunsen/30 hover:bg-white/80 dark:hover:bg-white/10 transition-all"
                         >
-                          <div className="font-semibold text-white text-xs">{sample.name}</div>
-                          <div className="text-xs text-gray-500 font-mono">{sample.formula}</div>
+                          <div className="font-semibold text-elixra-charcoal dark:text-white text-xs">{sample.name}</div>
+                          <div className="text-xs text-elixra-secondary font-mono">{sample.formula}</div>
                         </button>
                       ))}
                     </div>
@@ -358,21 +359,21 @@ export default function SpectroscopyPage() {
             {selectedSample && formattedSpectrum ? (
               <>
                 {/* Sample Info */}
-                <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl p-6">
+                <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-2xl p-6">
                   <div className="flex items-center gap-4 flex-wrap">
-                    <div className="px-4 py-2 bg-purple-500/20 border border-purple-400/30 rounded-lg">
-                      <span className="text-sm text-purple-200">Sample: </span>
-                      <span className="font-bold text-white">{selectedSample.name}</span>
+                    <div className="px-4 py-2 bg-elixra-bunsen/10 border border-elixra-bunsen/20 rounded-lg">
+                      <span className="text-sm text-elixra-secondary">Sample: </span>
+                      <span className="font-bold text-elixra-bunsen-dark dark:text-elixra-bunsen-light">{selectedSample.name}</span>
                     </div>
-                    <div className="px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-lg">
-                      <span className="text-sm text-blue-200">Formula: </span>
-                      <span className="font-mono font-bold text-white">{selectedSample.formula}</span>
+                    <div className="px-4 py-2 bg-elixra-copper/10 border border-elixra-copper/20 rounded-lg">
+                      <span className="text-sm text-elixra-secondary">Formula: </span>
+                      <span className="font-mono font-bold text-elixra-copper">{selectedSample.formula}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Interactive Graph */}
-                <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl p-6">
+                <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-2xl p-6">
                   <SpectrumGraph
                     spectrum={formattedSpectrum}
                     onPeakSelected={setSelectedPeak}
@@ -398,8 +399,8 @@ export default function SpectroscopyPage() {
                 />
               </>
             ) : (
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-2xl p-12 text-center">
-                <p className="text-gray-300 text-lg">
+              <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-2xl p-12 text-center">
+                <p className="text-elixra-secondary text-lg">
                   {!selectedSample
                     ? 'Select a sample to view its spectrum'
                     : 'This sample does not have data for the selected spectroscopy type'}

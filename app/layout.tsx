@@ -1,13 +1,11 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import DndWrapper from '@/components/DndWrapper'
 import Providers from '@/components/Providers'
 import ConditionalFooter from '@/components/ConditionalFooter'
 import PageLoader from '@/components/PageLoader'
 import TopLoadingBar from '@/components/TopLoadingBar'
-
-const inter = Inter({ subsets: ['latin'] })
+import GrainOverlay from '@/components/GrainOverlay'
 
 export const metadata = {
   title: 'Elixra - Virtual Chem Lab',
@@ -42,7 +40,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} flex flex-col min-h-screen overflow-x-hidden`}>
+      <body className="flex flex-col min-h-screen overflow-x-hidden font-sans">
         <Providers>
           <ThemeProvider>
             <DndWrapper>
@@ -56,6 +54,7 @@ export default function RootLayout({
             </DndWrapper>
           </ThemeProvider>
         </Providers>
+        <GrainOverlay />
       </body>
     </html>
   )
