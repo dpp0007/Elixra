@@ -70,9 +70,7 @@ export default function SignInPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <div className="flex items-center justify-center space-x-3">
-              <div className="bg-gradient-to-tr from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
-                <Atom className="h-8 w-8 text-white" />
-              </div>
+              <img src="/Assets/Main Logo.svg" alt="Elixra Logo" className="h-12 w-12" />
               <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
                 Elixra
               </span>
