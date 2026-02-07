@@ -9,7 +9,8 @@ interface SpectrumComparisonProps {
   currentSample: Sample
   allSamples: Sample[]
   spectroscopyType: SpectroscopyType
-  onComparisonChange?: (spectrum1: SpectrumData | null, spectrum2: SpectrumData | null) => void
+  onComparisonChange?: (spectrum: SpectrumData | null) => void // Updated to lift state up
+  onModeChange?: (mode: 'side-by-side' | 'overlay') => void // Updated to lift state up
 }
 
 export default function SpectrumComparison({
@@ -18,6 +19,7 @@ export default function SpectrumComparison({
   allSamples,
   spectroscopyType,
   onComparisonChange,
+  onModeChange
 }: SpectrumComparisonProps) {
   const [isComparing, setIsComparing] = useState(false)
   const [comparisonMode, setComparisonMode] = useState<'side-by-side' | 'overlay'>(
@@ -36,14 +38,19 @@ export default function SpectrumComparison({
     setSelectedSample(sample)
     const spectrum2 = sample.spectra[spectroscopyType]
     if (spectrum2) {
-      onComparisonChange?.(currentSpectrum, spectrum2)
+      onComparisonChange?.(spectrum2) // Only send the comparison spectrum
     }
+  }
+
+  const handleModeChange = (mode: 'side-by-side' | 'overlay') => {
+    setComparisonMode(mode)
+    onModeChange?.(mode)
   }
 
   const handleClearComparison = () => {
     setIsComparing(false)
     setSelectedSample(null)
-    onComparisonChange?.(null, null)
+    onComparisonChange?.(null)
   }
 
   if (!isComparing) {
@@ -81,7 +88,7 @@ export default function SpectrumComparison({
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setComparisonMode('side-by-side')}
+            onClick={() => handleModeChange('side-by-side')}
             className={`flex-1 px-4 py-2 rounded-lg transition-all ${
               comparisonMode === 'side-by-side'
                 ? 'bg-blue-600 text-white'
@@ -91,7 +98,7 @@ export default function SpectrumComparison({
             Side-by-Side
           </button>
           <button
-            onClick={() => setComparisonMode('overlay')}
+            onClick={() => handleModeChange('overlay')}
             className={`flex-1 px-4 py-2 rounded-lg transition-all ${
               comparisonMode === 'overlay'
                 ? 'bg-blue-600 text-white'

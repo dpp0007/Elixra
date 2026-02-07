@@ -62,7 +62,7 @@ export default function SpectrumExplanation({
         return {
           title: `${peak.label} (${peak.multiplicity || 'singlet'})`,
           description: peak.interpretation,
-          feature: `Integration: ${peak.integration || 1}H`,
+          feature: peak.molecularFeature ? `${peak.molecularFeature} (${peak.integration || 1}H)` : `Integration: ${peak.integration || 1}H`,
         }
       default:
         return {

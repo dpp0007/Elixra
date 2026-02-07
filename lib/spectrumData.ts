@@ -194,6 +194,56 @@ const acetoneIR: SpectrumData = {
   ],
 }
 
+const acetylacetoneIR: SpectrumData = {
+  type: 'ir',
+  sampleName: 'Acetylacetone',
+  xMin: 400,
+  xMax: 4000,
+  yMin: 0,
+  yMax: 100,
+  xLabel: 'Wavenumber (cm⁻¹)',
+  yLabel: 'Transmittance (%)',
+  xInverted: true,
+  peaks: [
+    {
+      id: 'acac-ir-1',
+      x: 3000,
+      y: 30,
+      label: 'Enol O-H',
+      interpretation: 'Enol O–H (broad)',
+      molecularFeature: 'O-H bond (enol)',
+      functionalGroup: 'Enol',
+    },
+    {
+      id: 'acac-ir-2',
+      x: 1710,
+      y: 15,
+      label: 'C=O (keto)',
+      interpretation: 'C=O stretch (keto form)',
+      molecularFeature: 'C=O bond',
+      functionalGroup: 'Ketone',
+    },
+    {
+      id: 'acac-ir-3',
+      x: 1620,
+      y: 10,
+      label: 'C=O (enol)',
+      interpretation: 'H-bonded C=O / C=C (enol)',
+      molecularFeature: 'Conjugated system',
+      functionalGroup: 'Enol',
+    },
+    {
+      id: 'acac-ir-4',
+      x: 2950,
+      y: 60,
+      label: 'C-H',
+      interpretation: 'C-H stretch',
+      molecularFeature: 'C-H bonds',
+      functionalGroup: 'Alkyl',
+    },
+  ],
+}
+
 // ============================================================================
 // NMR SPECTRA
 // ============================================================================
@@ -287,6 +337,69 @@ const benzeneNMR: SpectrumData = {
   ],
 }
 
+const acetylacetoneNMR: SpectrumData = {
+  type: 'nmr',
+  sampleName: 'Acetylacetone',
+  xMin: 0,
+  xMax: 16, // Extended range for enol OH
+  yMin: 0,
+  yMax: 100,
+  xLabel: 'Chemical Shift (ppm)',
+  yLabel: 'Intensity',
+  peaks: [
+    {
+      id: 'acac-nmr-1',
+      x: 15.5,
+      y: 20, // Broad
+      label: 'Enol OH',
+      interpretation: 'Enol O–H (broad)',
+      molecularFeature: 'Enolic proton',
+      multiplicity: 'singlet',
+      integration: 1,
+    },
+    {
+      id: 'acac-nmr-2',
+      x: 5.6,
+      y: 60,
+      label: 'Vinyl H',
+      interpretation: 'Vinyl C-H (enol form)',
+      molecularFeature: 'Vinyl proton',
+      multiplicity: 'singlet',
+      integration: 1,
+    },
+    {
+      id: 'acac-nmr-3',
+      x: 3.6,
+      y: 50,
+      label: 'Keto CH₂',
+      interpretation: 'CH₂ between carbonyls',
+      molecularFeature: 'Methylene group',
+      multiplicity: 'singlet',
+      integration: 2,
+    },
+    {
+      id: 'acac-nmr-4',
+      x: 2.2,
+      y: 90,
+      label: 'Keto CH₃',
+      interpretation: 'Methyl protons (keto)',
+      molecularFeature: 'Methyl group',
+      multiplicity: 'singlet',
+      integration: 6,
+    },
+    {
+      id: 'acac-nmr-5',
+      x: 2.0,
+      y: 100,
+      label: 'Enol CH₃',
+      interpretation: 'Methyl protons (enol)',
+      molecularFeature: 'Methyl group',
+      multiplicity: 'singlet',
+      integration: 6,
+    },
+  ],
+}
+
 // ============================================================================
 // FUNCTIONAL GROUP REGIONS (IR)
 // ============================================================================
@@ -372,6 +485,16 @@ export const samples: Sample[] = [
       'uv-vis': undefined, // Acetone has weak UV-Vis
       'ir': acetoneIR,
       'nmr': undefined, // Simplified for now
+    },
+  },
+  {
+    id: 'acetylacetone',
+    name: 'Acetylacetone',
+    formula: 'C₅H₈O₂',
+    spectra: {
+      'uv-vis': undefined,
+      'ir': acetylacetoneIR,
+      'nmr': acetylacetoneNMR,
     },
   },
 ]

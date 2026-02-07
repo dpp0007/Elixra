@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, useMemo } from 'react'
+import React, { useRef, useEffect, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Outlines } from '@react-three/drei'
 import * as THREE from 'three'
@@ -22,6 +22,56 @@ function SelectedAtomHighlight({ atom }: { atom: Atom | null }) {
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       <Outlines thickness={0.05} color="#ffff00" />
     </mesh>
+  )
+}
+
+function ElementInstancedMesh({ 
+  atoms, 
+  onSelect, 
+  quality 
+}: { 
+  atoms: Atom[]
+  onSelect: (id: string) => void
+  quality: string 
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  
+  useLayoutEffect(() => {
+    if (!meshRef.current) return
+    const tempObject = new THREE.Object3D()
+    
+    atoms.forEach((atom, i) => {
+      tempObject.position.set(atom.x, atom.y, atom.z)
+      tempObject.updateMatrix()
+      meshRef.current!.setMatrixAt(i, tempObject.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [atoms])
+
+  const geometry = useMemo(() => new THREE.SphereGeometry(
+    quality === 'low' ? 0.3 : quality === 'medium' ? 0.4 : 0.5,
+    quality === 'low' ? 8 : quality === 'medium' ? 16 : 32,
+    quality === 'low' ? 6 : quality === 'medium' ? 12 : 16
+  ), [quality])
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, undefined, atoms.length]}
+      onClick={(e) => {
+        e.stopPropagation()
+        const instanceId = e.instanceId
+        if (instanceId !== undefined && atoms[instanceId]) {
+          onSelect(atoms[instanceId].id)
+        }
+      }}
+    >
+      <meshStandardMaterial
+        color={atoms[0]?.color || '#ffffff'}
+        metalness={quality === 'low' ? 0.1 : 0.3}
+        roughness={quality === 'low' ? 0.8 : 0.4}
+      />
+    </instancedMesh>
   )
 }
 
@@ -50,33 +100,14 @@ function InstancedAtomMesh({ atoms, onSelect, selectedAtomId, performanceMonitor
 
   return (
     <>
-      {Array.from(atomsByElement.entries()).map(([element, elementAtoms]) => {
-        const geometry = new THREE.SphereGeometry(
-          quality === 'low' ? 0.3 : quality === 'medium' ? 0.4 : 0.5,
-          quality === 'low' ? 8 : quality === 'medium' ? 16 : 32,
-          quality === 'low' ? 6 : quality === 'medium' ? 12 : 16
-        )
-        
-        return (
-          <instancedMesh
-            key={element}
-            args={[geometry, undefined, elementAtoms.length]}
-            onClick={(e) => {
-              e.stopPropagation()
-              const instanceId = e.instanceId
-              if (instanceId !== undefined && elementAtoms[instanceId]) {
-                onSelect(elementAtoms[instanceId].id)
-              }
-            }}
-          >
-            <meshStandardMaterial
-              color={elementAtoms[0]?.color || '#ffffff'}
-              metalness={quality === 'low' ? 0.1 : 0.3}
-              roughness={quality === 'low' ? 0.8 : 0.4}
-            />
-          </instancedMesh>
-        )
-      })}
+      {Array.from(atomsByElement.entries()).map(([element, elementAtoms]) => (
+        <ElementInstancedMesh
+          key={element}
+          atoms={elementAtoms}
+          onSelect={onSelect}
+          quality={quality}
+        />
+      ))}
     </>
   )
 }

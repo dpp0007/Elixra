@@ -133,7 +133,7 @@ export default function AtomBondDialog({
                 <span className="w-1 h-1 bg-purple-400 rounded-full"></span>
                 Bond configuration ({selectedBonds.length})
               </p>
-              <div className="space-y-3">
+              <div className="space-y-3 h-48 overflow-y-auto pr-2 custom-scrollbar">
                 {selectedBonds.map(bond => {
                   const atom = existingAtoms.find(a => a.id === bond.atomId)
                   if (!atom) return null

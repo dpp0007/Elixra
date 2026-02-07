@@ -620,7 +620,7 @@ export default function EnhancedMoleculesPage() {
                   <div className="text-elixra-secondary text-sm mb-2">Functional Groups</div>
                   <div className="flex flex-wrap gap-2">
                     {analysis.structure.functionalGroups.map(group => (
-                      <span key={group} className="px-2 py-1 bg-elixra-bunsen/20 text-elixra-bunsen-dark rounded text-xs">
+                      <span key={group} className="px-2 py-1 bg-elixra-bunsen/20 text-elixra-bunsen-dark dark:text-elixra-bunsen-light rounded text-xs">
                         {group}
                       </span>
                     ))}
@@ -729,7 +729,7 @@ export default function EnhancedMoleculesPage() {
 
       <ModernNavbar />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 mt-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Sidebar */}
           <div className="lg:col-span-1 space-y-4">
@@ -812,6 +812,35 @@ export default function EnhancedMoleculesPage() {
                 {PERIODIC_TABLE.slice(0, 16).map(element => (
                   <button
                     key={element.symbol}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      // @ts-ignore
+                      window.__draggedElement = element
+                      // @ts-ignore
+                      if (e.dataTransfer) {
+                        e.dataTransfer.effectAllowed = 'copy'
+                        e.dataTransfer.setData('text/plain', element.symbol)
+                      }
+                    }}
+                    onTouchStart={() => {
+                      // @ts-ignore
+                      window.__draggedElement = element
+                    }}
+                    onTouchEnd={(e) => {
+                      // @ts-ignore
+                      const touch = e.changedTouches[0]
+                      const target = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const dropZone = target?.closest('#molecule-drop-zone')
+                      
+                      if (dropZone) {
+                        setPendingDropElement(element)
+                        setPendingDropPosition(null)
+                        setShowBondDialog(true)
+                      }
+                      
+                      // @ts-ignore
+                      window.__draggedElement = null
+                    }}
                     onClick={() => setSelectedElement(element)}
                     className={`
                       p-2 rounded-lg border transition-all text-xs
@@ -822,7 +851,8 @@ export default function EnhancedMoleculesPage() {
                     `}
                     style={{
                       backgroundColor: `${element.color}20`,
-                      borderColor: selectedElement?.symbol === element.symbol ? '#2E6B6B' : `${element.color}40`
+                      borderColor: selectedElement?.symbol === element.symbol ? '#2E6B6B' : `${element.color}40`,
+                      touchAction: 'none'
                     }}
                   >
                     <div className="font-bold">{element.symbol}</div>
@@ -839,9 +869,9 @@ export default function EnhancedMoleculesPage() {
               <StaticGrid className="opacity-30" />
               
               {/* Header */}
-              <div className="flex items-center justify-between mb-6 relative z-10">
+              <div className="flex items-start justify-between mb-6 relative z-10">
                 <div>
-                  <h2 className="text-xl font-bold text-elixra-charcoal dark:text-white">{moleculeName}</h2>
+                  <h2 className="text-lg font-bold text-elixra-charcoal dark:text-white whitespace-nowrap mb-1">{moleculeName}</h2>
                   {atoms.length > 0 && (
                     <p className="text-sm text-elixra-secondary font-mono">
                       {getMolecularFormula(atoms)} • {calculateMolecularWeight(atoms).toFixed(2)} g/mol
@@ -849,7 +879,7 @@ export default function EnhancedMoleculesPage() {
                   )}
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-3">
                   {selectedElement && (
                     <button
                       onClick={() => {
@@ -867,7 +897,7 @@ export default function EnhancedMoleculesPage() {
                   <button
                     onClick={handleAnalyze}
                     disabled={analyzing || atoms.length === 0}
-                    className="btn-secondary flex items-center gap-2 text-sm disabled:opacity-50"
+                    className="btn-secondary flex items-center gap-2 text-sm disabled:opacity-50 whitespace-nowrap"
                   >
                     {analyzing ? (
                       <>
@@ -933,9 +963,10 @@ export default function EnhancedMoleculesPage() {
                       </div>
                       <button
                         onClick={() => removeAtom(selectedAtomId)}
-                        className="text-sm text-elixra-error hover:text-elixra-error-dark"
+                        className="flex items-center gap-2 px-4 py-2 mt-2 bg-elixra-error hover:bg-elixra-error-dark text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95 w-full justify-center"
                       >
-                        Remove Atom
+                        <Trash2 className="h-4 w-4" />
+                        Delete Atom
                       </button>
                     </div>
                   )}
@@ -947,9 +978,10 @@ export default function EnhancedMoleculesPage() {
                       </div>
                       <button
                         onClick={() => removeBond(selectedBondId)}
-                        className="text-sm text-elixra-error hover:text-elixra-error-dark"
+                        className="flex items-center gap-2 px-4 py-2 mt-2 bg-elixra-error hover:bg-elixra-error-dark text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95 w-full justify-center"
                       >
-                        Remove Bond
+                        <Trash2 className="h-4 w-4" />
+                        Delete Bond
                       </button>
                     </div>
                   )}
@@ -957,7 +989,7 @@ export default function EnhancedMoleculesPage() {
               )}
 
               {/* Stats */}
-              <div className="grid grid-cols-4 gap-3 mb-6 relative z-10">
+              <div className="grid grid-cols-3 gap-3 mb-6 relative z-10">
                 <div className="glass-panel bg-white/40 dark:bg-elixra-bunsen/10 border border-elixra-bunsen/20 rounded-xl p-3 text-center backdrop-blur-sm hover:border-elixra-bunsen/40 transition-all">
                   <div className="text-2xl font-bold text-elixra-bunsen">{atoms.length}</div>
                   <div className="text-xs text-elixra-secondary uppercase tracking-wide">Atoms</div>
@@ -973,11 +1005,6 @@ export default function EnhancedMoleculesPage() {
                     {new Set(atoms.map(a => a.element)).size}
                   </div>
                   <div className="text-xs text-elixra-secondary uppercase tracking-wide">Elements</div>
-                </div>
-
-                <div className="glass-panel bg-white/40 dark:bg-white/10 border border-elixra-border-subtle rounded-xl p-3 text-center backdrop-blur-sm hover:border-elixra-border-subtle/40 transition-all">
-                  <div className="text-2xl font-bold text-elixra-charcoal dark:text-white">{qualityLevel.toUpperCase()}</div>
-                  <div className="text-xs text-elixra-secondary uppercase tracking-wide">Quality</div>
                 </div>
               </div>
             </div>

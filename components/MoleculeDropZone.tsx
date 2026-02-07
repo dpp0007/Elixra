@@ -47,23 +47,44 @@ export default function MoleculeDropZone({
     setIsOver(false)
 
     try {
+      // Get the data from dataTransfer if available (standard way)
+      const elementSymbol = e.dataTransfer.getData('text/plain')
+      
+      // Fallback to window global if needed (for custom drag implementation)
       const draggedElement = typeof window !== 'undefined' ? window.__draggedElement : null
       
-      console.log('Drop handler called, draggedElement:', draggedElement)
+      console.log('Drop handler called, symbol:', elementSymbol, 'draggedElement:', draggedElement)
       
-      if (!draggedElement) {
-        console.log('No dragged element')
+      if (!draggedElement && !elementSymbol) {
+        console.log('No dragged element found')
         return
       }
 
-      console.log('✅ Drop detected:', draggedElement.symbol)
+      // If we have the symbol but not the full object, we might need to find it
+      // For now, prioritize the full object if available, as onDrop expects an Element
+      const elementToDrop = draggedElement 
+        
+      if (elementToDrop) {
+        console.log('✅ Drop detected:', elementToDrop.symbol)
 
-      // Place at center (0, 0, 0) - the dialog will handle positioning
-      onDrop(draggedElement, { 
-        x: 0, 
-        y: 0, 
-        z: 0 
-      })
+        // Calculate drop position relative to container center if possible
+        // This is a rough estimation, as we don't have the exact 3D coordinates here
+        // The 3D viewer will likely handle precise positioning or use (0,0,0) as default
+        
+        onDrop(elementToDrop, { 
+          x: 0, 
+          y: 0, 
+          z: 0 
+        })
+        
+        // Clear the global
+        if (typeof window !== 'undefined') {
+          window.__draggedElement = null
+        }
+      } else {
+         console.warn('Could not resolve dragged element object')
+      }
+
     } catch (error) {
       console.error('Drop error:', error)
     }
@@ -71,6 +92,7 @@ export default function MoleculeDropZone({
 
   return (
     <div
+      id="molecule-drop-zone"
       ref={containerRef}
       className="relative w-full h-full"
       onDragEnter={handleDragEnter}

@@ -34,6 +34,8 @@ function formatUVVisSpectrum(spectrum: SpectrumData): SpectrumData {
   if (spectrum.type !== 'uv-vis') return spectrum
 
   // Find λmax (peak with highest absorbance)
+  if (spectrum.peaks.length === 0) return spectrum;
+
   const lambdaMax = spectrum.peaks.reduce((max, peak) =>
     peak.y > max.y ? peak : max
   )
@@ -41,11 +43,8 @@ function formatUVVisSpectrum(spectrum: SpectrumData): SpectrumData {
   // Enhance λmax peak
   const enhancedPeaks = spectrum.peaks.map((peak) => ({
     ...peak,
-    label: peak.id === lambdaMax.id ? `λmax (${peak.x} nm)` : peak.label,
-    interpretation:
-      peak.id === lambdaMax.id
-        ? `Maximum absorption at ${peak.x} nm. This is the strongest absorption for this chromophore.`
-        : peak.interpretation,
+    label: peak.label, // Trust AI label
+    interpretation: peak.interpretation || `Absorption at ${peak.x} nm` // Trust AI interpretation
   }))
 
   return {
@@ -67,24 +66,10 @@ function formatIRSpectrum(spectrum: SpectrumData): SpectrumData {
 
   // IR x-axis is typically displayed inverted (high to low)
   const enhancedPeaks = spectrum.peaks.map((peak) => {
-    let vibrationLabel = peak.label
-
-    // Categorize by wavenumber region
-    if (peak.x >= 3000 && peak.x <= 3500) {
-      vibrationLabel = `${peak.label} (O-H/N-H stretch)`
-    } else if (peak.x >= 2800 && peak.x < 3000) {
-      vibrationLabel = `${peak.label} (C-H stretch)`
-    } else if (peak.x >= 1650 && peak.x <= 1750) {
-      vibrationLabel = `${peak.label} (C=O stretch)`
-    } else if (peak.x >= 1600 && peak.x < 1650) {
-      vibrationLabel = `${peak.label} (C=C stretch)`
-    } else if (peak.x >= 1000 && peak.x < 1300) {
-      vibrationLabel = `${peak.label} (C-O stretch)`
-    }
-
     return {
       ...peak,
-      label: vibrationLabel,
+      label: peak.label, // Trust AI label
+      interpretation: peak.interpretation || `Peak at ${peak.x} cm⁻¹` // Trust AI interpretation
     }
   })
 
@@ -113,7 +98,7 @@ function formatNMRSpectrum(spectrum: SpectrumData): SpectrumData {
     return {
       ...peak,
       label: `${peak.label} (${multiplicity}, ${integration}H)`,
-      interpretation: `${multiplicity.charAt(0).toUpperCase() + multiplicity.slice(1)} at ${peak.x.toFixed(2)} ppm. ${peak.interpretation}`,
+      interpretation: peak.interpretation || `Signal at ${peak.x.toFixed(2)} ppm`, // Trust AI interpretation
     }
   })
 
@@ -146,6 +131,11 @@ export function getPeakInterpretation(
 }
 
 function getUVVisInterpretation(peak: Peak): string {
+  // If specific interpretation exists from AI, prefer it
+  if (peak.interpretation && peak.interpretation !== 'Electronic transition') {
+      return peak.interpretation
+  }
+
   if (peak.transitionType === 'π→π*') {
     return `This peak shows a π→π* transition, typical of aromatic rings or conjugated systems. The molecule absorbs light at ${peak.x} nm, indicating extended conjugation.`
   } else if (peak.transitionType === 'n→π*') {
@@ -155,6 +145,11 @@ function getUVVisInterpretation(peak: Peak): string {
 }
 
 function getIRInterpretation(peak: Peak): string {
+  // If specific interpretation exists from AI, prefer it
+  if (peak.interpretation && peak.interpretation !== 'Functional group vibration') {
+      return peak.interpretation
+  }
+  
   const wavenumber = peak.x
 
   if (wavenumber >= 3000 && wavenumber <= 3500) {
@@ -195,7 +190,14 @@ function getNMRInterpretation(peak: Peak): string {
       multiplicityExplanation = `This ${multiplicity} indicates coupling to neighboring protons.`
   }
 
-  return `Peak at ${shift.toFixed(2)} ppm representing ${integration} proton(s). ${multiplicityExplanation} The chemical shift indicates the electronic environment of these protons.`
+  const baseExplanation = `Peak at ${shift.toFixed(2)} ppm representing ${integration} proton(s). ${multiplicityExplanation}`
+  
+  // If specific interpretation exists from AI, append it
+  if (peak.interpretation && peak.interpretation !== 'Proton environment') {
+      return `${baseExplanation} ${peak.interpretation}`
+  }
+
+  return `${baseExplanation} The chemical shift indicates the electronic environment of these protons.`
 }
 
 /**

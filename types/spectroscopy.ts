@@ -12,7 +12,7 @@ export interface Peak {
   label: string // e.g., "λmax", "C=O stretch", "CH₃"
   interpretation: string // Short explanation
   molecularFeature?: string // Related bond/group
-  multiplicity?: 'singlet' | 'doublet' | 'triplet' | 'quartet' // NMR only
+  multiplicity?: 'singlet' | 'doublet' | 'triplet' | 'quartet' | 'broad singlet' // NMR only
   integration?: number // NMR only (relative)
   transitionType?: 'π→π*' | 'n→π*' // UV-Vis only
   functionalGroup?: string // IR only
@@ -39,6 +39,7 @@ export interface TooltipData {
   peakLabel: string
   interpretation: string
   visible: boolean
+  placement?: 'top' | 'bottom'
 }
 
 export interface SelectionState {

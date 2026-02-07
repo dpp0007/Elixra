@@ -909,10 +909,10 @@ export default function QuizPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 + 0.3 }}
-                    className={`p-6 rounded-3xl border transition-all shadow-md hover:shadow-lg ${
+                    className={`p-6 rounded-3xl border transition-all shadow-md hover:shadow-lg relative z-10 ${
                       result.is_correct
-                        ? 'bg-elixra-success/15 dark:bg-elixra-success/10 border-elixra-success/30 shadow-elixra-success/10 hover:bg-elixra-success/25 dark:hover:bg-elixra-success/20'
-                        : 'bg-elixra-error/15 dark:bg-elixra-error/10 border-elixra-error/30 shadow-elixra-error/10 hover:bg-elixra-error/25 dark:hover:bg-elixra-error/20'
+                        ? 'bg-elixra-success/25 dark:bg-elixra-success/20 border-elixra-success/50 shadow-elixra-success/10 hover:bg-elixra-success/35 dark:hover:bg-elixra-success/30'
+                        : 'bg-elixra-error/25 dark:bg-elixra-error/20 border-elixra-error/50 shadow-elixra-error/10 hover:bg-elixra-error/35 dark:hover:bg-elixra-error/30'
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -922,39 +922,39 @@ export default function QuizPage() {
                         {result.is_correct ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                       </div>
                       
-                      <div className="flex-1">
+                      <div className="flex-1 relative z-20">
                         <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-lg font-bold text-elixra-charcoal dark:text-white">Question {idx + 1}</h4>
-                          <span className="text-xs font-mono text-elixra-secondary bg-white/10 px-2 py-1 rounded-lg border border-elixra-border-subtle">
+                          <h4 className="text-lg font-bold text-elixra-charcoal dark:text-white relative z-20">Question {idx + 1}</h4>
+                          <span className="text-xs font-mono text-elixra-secondary bg-white/10 px-2 py-1 rounded-lg border border-elixra-border-subtle relative z-20">
                             {formatTime(result.time_taken)}
                           </span>
                         </div>
                         
-                        <p className="text-elixra-secondary mb-4 leading-relaxed font-medium">{result.question_text}</p>
+                        <p className="text-elixra-charcoal dark:text-white mb-4 leading-relaxed font-medium relative z-20">{result.question_text}</p>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 relative z-20">
                           <div className={`p-3 rounded-xl border shadow-sm ${
                             result.is_correct 
-                              ? 'bg-elixra-success/20 dark:bg-elixra-success/15 border-elixra-success/30' 
-                              : 'bg-elixra-error/20 dark:bg-elixra-error/15 border-elixra-error/30'
+                              ? 'bg-elixra-success/30 dark:bg-elixra-success/25 border-elixra-success/40' 
+                              : 'bg-elixra-error/30 dark:bg-elixra-error/25 border-elixra-error/40'
                           }`}>
-                            <span className="text-xs text-elixra-secondary uppercase tracking-wider block mb-1">Your Answer</span>
-                            <span className={`font-semibold ${result.is_correct ? 'text-elixra-success' : 'text-elixra-error'}`}>
+                            <span className="text-xs text-elixra-charcoal dark:text-white uppercase tracking-wider block mb-1 font-bold">Your Answer</span>
+                            <span className={`font-bold ${result.is_correct ? 'text-elixra-success-dark dark:text-elixra-success-light' : 'text-elixra-error-dark dark:text-elixra-error-light'}`}>
                               {result.user_answer || 'Time Over'}
                             </span>
                           </div>
                           
                           {!result.is_correct && (
-                            <div className="p-3 rounded-xl border border-elixra-success/30 bg-elixra-success/20 dark:bg-elixra-success/15 shadow-sm">
-                              <span className="text-xs text-elixra-secondary uppercase tracking-wider block mb-1">Correct Answer</span>
-                              <span className="text-elixra-success font-semibold">{result.correct_answer}</span>
+                            <div className="p-3 rounded-xl border border-elixra-success/40 bg-elixra-success/30 dark:bg-elixra-success/25 shadow-sm">
+                              <span className="text-xs text-elixra-charcoal dark:text-white uppercase tracking-wider block mb-1 font-bold">Correct Answer</span>
+                              <span className="text-elixra-success-dark dark:text-elixra-success-light font-bold">{result.correct_answer}</span>
                             </div>
                           )}
                         </div>
 
-                        <div className="bg-white/60 dark:bg-white/15 rounded-xl p-4 border border-elixra-border-subtle shadow-sm">
-                          <p className="text-sm text-elixra-charcoal dark:text-gray-200 italic leading-relaxed">
-                            <span className="font-semibold text-elixra-bunsen dark:text-elixra-bunsen-light not-italic mr-2">Explanation:</span>
+                        <div className="bg-white/80 dark:bg-white/20 rounded-xl p-4 border border-elixra-border-subtle shadow-sm relative z-20">
+                          <p className="text-sm text-elixra-charcoal dark:text-white italic leading-relaxed font-medium">
+                            <span className="font-bold text-elixra-bunsen dark:text-elixra-bunsen-light not-italic mr-2">Explanation:</span>
                             {result.explanation}
                           </p>
                         </div>
