@@ -70,7 +70,7 @@ export function getUsedValence(atomId: string, bonds: Bond[]): number {
   return bonds
     .filter(b => b.from === atomId || b.to === atomId)
     .reduce((sum, bond) => {
-      const multiplier = bond.type === 'single' ? 1 : bond.type === 'double' ? 2 : 3
+      const multiplier = bond.type === 'single' ? 1 : bond.type === 'double' ? 2 : bond.type === 'triple' ? 3 : bond.type === 'dative' ? 1 : 0
       return sum + multiplier
     }, 0)
 }
@@ -79,10 +79,11 @@ export function canFormBond(
   fromAtom: Atom,
   toAtom: Atom,
   bonds: Bond[],
-  bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' = 'single'
+  bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative' = 'single'
 ): boolean {
   // Hydrogen bonds are always allowed (intermolecular)
   if (bondType === 'hydrogen') return true
+  if (bondType === 'dative') return true // Allow dative bonds generally (simplified)
 
   // Ionic bonds are allowed between different elements
   if (bondType === 'ionic') {
@@ -97,7 +98,7 @@ export function canFormBond(
   const fromUsed = getUsedValence(fromAtom.id, bonds)
   const toUsed = getUsedValence(toAtom.id, bonds)
 
-  const multiplier = bondType === 'single' ? 1 : bondType === 'double' ? 2 : 3
+  const multiplier = bondType === 'single' ? 1 : bondType === 'double' ? 2 : bondType === 'triple' ? 3 : 1
 
   return fromUsed + multiplier <= fromValence && toUsed + multiplier <= toValence
 }
@@ -106,11 +107,12 @@ export function getAvailableBondTypes(
   fromAtom: Atom,
   toAtom: Atom,
   bonds: Bond[]
-): Array<'single' | 'double' | 'triple' | 'ionic' | 'hydrogen'> {
-  const available: Array<'single' | 'double' | 'triple' | 'ionic' | 'hydrogen'> = []
+): Array<'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative'> {
+  const available: Array<'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative'> = []
 
   // Always allow hydrogen bonds
   available.push('hydrogen')
+  available.push('dative')
 
   // Check covalent bonds
   if (canFormBond(fromAtom, toAtom, bonds, 'single')) available.push('single')

@@ -7,7 +7,7 @@ import { Atom, Element } from '@/types/molecule'
 interface AtomBondDialogProps {
   newElement: Element
   existingAtoms: Atom[]
-  onConfirm: (bonds: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' }>) => void
+  onConfirm: (bonds: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative' }>) => void
   onCancel: () => void
 }
 
@@ -17,7 +17,7 @@ export default function AtomBondDialog({
   onConfirm,
   onCancel,
 }: AtomBondDialogProps) {
-  const [selectedBonds, setSelectedBonds] = useState<Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' }>>([])
+  const [selectedBonds, setSelectedBonds] = useState<Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative' }>>([])
 
   const handleAddBond = (atomId: string) => {
     if (!selectedBonds.find(b => b.atomId === atomId)) {
@@ -29,7 +29,7 @@ export default function AtomBondDialog({
     setSelectedBonds(selectedBonds.filter(b => b.atomId !== atomId))
   }
 
-  const handleChangeBondType = (atomId: string, bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen') => {
+  const handleChangeBondType = (atomId: string, bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative') => {
     setSelectedBonds(selectedBonds.map(b => b.atomId === atomId ? { ...b, bondType } : b))
   }
 
@@ -44,6 +44,7 @@ export default function AtomBondDialog({
       case 'triple': return '≡'
       case 'ionic': return '↔'
       case 'hydrogen': return '⋯'
+      case 'dative': return '→'
       default: return type
     }
   }
@@ -53,8 +54,9 @@ export default function AtomBondDialog({
       case 'single': return 'Single'
       case 'double': return 'Double'
       case 'triple': return 'Triple'
-      case 'ionic': return 'Ionic'
-      case 'hydrogen': return 'Hydrogen'
+      case 'ionic': return 'Ionic (Double Arrow)'
+      case 'hydrogen': return 'Hydrogen (Dotted)'
+      case 'dative': return 'Coordinate (Arrow)'
       default: return type
     }
   }
@@ -154,8 +156,8 @@ export default function AtomBondDialog({
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="grid grid-cols-5 gap-2">
-                        {(['single', 'double', 'triple', 'ionic', 'hydrogen'] as const).map(type => (
+                      <div className="grid grid-cols-6 gap-2">
+                        {(['single', 'double', 'triple', 'ionic', 'hydrogen', 'dative'] as const).map(type => (
                           <button
                             key={type}
                             onClick={() => handleChangeBondType(bond.atomId, type)}

@@ -1,4 +1,5 @@
 import { Atom, Bond } from '@/types/molecule'
+import { GeometryGenerator } from '@/lib/geometryGenerator'
 
 export interface MolecularTemplate {
   id: string
@@ -27,9 +28,58 @@ const ELEMENT_COLORS = {
   I: '#940094',   // Purple
   P: '#FF8000',   // Orange
   S: '#FFFF30',   // Yellow
+  B: '#FFB5B5',   // Pink (Boron)
+  I: '#940094',   // Purple (Iodine)
+  Xe: '#429EB0',  // Teal (Xenon)
+}
+
+function createGeometricTemplate(
+  name: string, 
+  sides: number, 
+  center: string, 
+  outer: string, 
+  isVSEPR: boolean = false
+): MolecularTemplate {
+  const config = {
+    centerElement: center,
+    outerElement: outer,
+    bondLength: 1.5,
+    centerColor: ELEMENT_COLORS[center as keyof typeof ELEMENT_COLORS] || '#909090',
+    outerColor: ELEMENT_COLORS[outer as keyof typeof ELEMENT_COLORS] || '#FFFFFF'
+  };
+
+  const { atoms, bonds } = isVSEPR 
+    ? GeometryGenerator.generateVSEPR(sides, config)
+    : GeometryGenerator.generatePolygon(sides, config);
+
+  return {
+    id: `geo-${name.toLowerCase()}`,
+    name: `${name} Geometry`,
+    category: 'basic-molecule',
+    description: `A ${name.toLowerCase()} arrangement of atoms (${isVSEPR ? '3D VSEPR' : 'Planar Polygon'}).`,
+    formula: `${center}${outer}${sides}`,
+    molecularWeight: 0, 
+    tags: ['geometry', name.toLowerCase(), isVSEPR ? 'vsepr' : 'planar'],
+    difficulty: 'intermediate',
+    atoms,
+    bonds
+  };
 }
 
 export const MOLECULAR_TEMPLATES: MolecularTemplate[] = [
+  // New Geometries
+  createGeometricTemplate('Triangular Planar', 3, 'B', 'H'),
+  createGeometricTemplate('Pentagonal Planar', 5, 'Xe', 'F'),
+  createGeometricTemplate('Hexagonal Planar', 6, 'C', 'H'), 
+  createGeometricTemplate('Heptagonal Planar', 7, 'C', 'H'),
+  createGeometricTemplate('Octagonal Planar', 8, 'C', 'H'),
+  
+  // VSEPR 3D Geometries
+  createGeometricTemplate('Trigonal Bipyramidal', 5, 'P', 'Cl', true),
+  createGeometricTemplate('Octahedral', 6, 'S', 'F', true),
+  createGeometricTemplate('Pentagonal Bipyramidal', 7, 'I', 'F', true),
+  createGeometricTemplate('Square Antiprismatic', 8, 'Xe', 'F', true),
+
   // Functional Groups
   {
     id: 'methyl-group',

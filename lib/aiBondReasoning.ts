@@ -43,6 +43,13 @@ export const BOND_DEFINITIONS = {
     strength: 'Weak (~5 kcal/mol)',
     role: 'Intermolecular force, affects physical properties',
   },
+  dative: {
+    label: '→',
+    name: 'Coordinate Bond',
+    definition: 'One atom provides both electrons for the bond',
+    strength: 'Variable',
+    role: 'Formation of complexes and Lewis adducts',
+  },
 }
 
 // Forbidden inferences - AI must NEVER infer these
@@ -143,7 +150,7 @@ export function validateMoleculeState(atoms: Atom[], bonds: Bond[]): {
     }
 
     // Check bond type
-    const validTypes = ['single', 'double', 'triple', 'ionic', 'hydrogen']
+    const validTypes = ['single', 'double', 'triple', 'ionic', 'hydrogen', 'dative']
     if (!validTypes.includes(bond.type)) {
       errors.push(`Bond ${bond.id} has invalid type: ${bond.type}`)
     }
@@ -186,7 +193,7 @@ export function createMoleculeState(
       id: bond.id,
       atomA_id: bond.from,
       atomB_id: bond.to,
-      bond_type: bond.type as 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen',
+      bond_type: bond.type as 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative',
       created_at: new Date().toISOString(),
       user_created: true,
     })),
@@ -247,6 +254,13 @@ export function explainHydrogenBond(atom1: Atom, atom2: Atom): string {
 }
 
 /**
+ * Generates educational explanation for a dative bond
+ */
+export function explainDativeBond(atom1: Atom, atom2: Atom): string {
+  return `This molecule contains a coordinate (dative) bond between ${atom1.element} and ${atom2.element}, where both electrons in the bond come from the same atom. This is common in Lewis acid-base adducts and transition metal complexes. It highlights the versatility of electron sharing beyond simple covalent bonding.`
+}
+
+/**
  * Generates explanation for a specific bond
  */
 export function explainBond(bond: Bond, atoms: Atom[]): string {
@@ -268,6 +282,8 @@ export function explainBond(bond: Bond, atoms: Atom[]): string {
       return explainIonicBond(atom1, atom2)
     case 'hydrogen':
       return explainHydrogenBond(atom1, atom2)
+    case 'dative':
+      return explainDativeBond(atom1, atom2)
     default:
       return 'Unknown bond type'
   }

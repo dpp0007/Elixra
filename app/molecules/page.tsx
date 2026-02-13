@@ -72,6 +72,7 @@ export default function EnhancedMoleculesPage() {
   const [pendingDropPosition, setPendingDropPosition] = useState<{ x: number; y: number; z: number } | null>(null)
   
   // Performance optimization
+  const orbitControlsRef = useRef<any>(null)
   const spatialHashRef = useRef<SpatialHash>(new SpatialHash())
   const bondWorkerRef = useRef<BondCalculationWorker>(new BondCalculationWorker())
   const performanceMonitorRef = useRef<PerformanceMonitor>(new PerformanceMonitor())
@@ -419,7 +420,7 @@ export default function EnhancedMoleculesPage() {
     }
   }, [atoms, bonds])
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (silent = false) => {
     if (atoms.length === 0) return
 
     setAnalyzing(true)
@@ -427,13 +428,24 @@ export default function EnhancedMoleculesPage() {
       const formula = getMolecularFormula(atoms)
       const analysis = await aiAnalyzerRef.current.analyzeMolecule(atoms, bonds)
       setAnalysis(analysis)
-      setShowAnalysis(true)
+      if (!silent) setShowAnalysis(true)
     } catch (error) {
       console.error('Analysis failed:', error)
     } finally {
       setAnalyzing(false)
     }
   }
+
+  // Auto-analyze on structural changes (debounced)
+  useEffect(() => {
+    if (atoms.length === 0) return
+
+    const timer = setTimeout(() => {
+      handleAnalyze(true)
+    }, 2000) // 2 second debounce
+
+    return () => clearTimeout(timer)
+  }, [atoms, bonds])
 
   const handleValidate = () => {
     setShowValidation(true)
@@ -637,7 +649,8 @@ export default function EnhancedMoleculesPage() {
     }
   }
 
-  const orbitControlsRef = useRef<any>(null)
+  // Mobile Tab State
+  const [activeMobileTab, setActiveMobileTab] = useState<'editor' | 'library' | 'analysis'>('editor')
 
   return (
     <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
@@ -678,7 +691,7 @@ export default function EnhancedMoleculesPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 max-w-6xl max-h-[90vh] overflow-auto"
+              className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 w-full max-w-6xl max-h-[85vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -696,9 +709,13 @@ export default function EnhancedMoleculesPage() {
                 onElementSelect={(element) => {
                   setSelectedElement(element)
                   setShowPeriodicTable(false)
+                  // On mobile, switch to editor after selection
+                  if (window.innerWidth < 1024) {
+                    setActiveMobileTab('editor')
+                  }
                 }}
                 selectedElement={selectedElement?.symbol || null}
-                className="max-w-5xl"
+                className="max-w-5xl overflow-x-auto pb-4"
               />
             </motion.div>
           </motion.div>
@@ -719,12 +736,12 @@ export default function EnhancedMoleculesPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 max-w-5xl max-h-[90vh] overflow-auto"
+              className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 w-full max-w-5xl max-h-[85vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-elixra-charcoal dark:text-white">
+                  <h2 className="text-xl md:text-2xl font-bold text-elixra-charcoal dark:text-white">
                     Molecular Templates Library
                   </h2>
                   <button
@@ -746,23 +763,27 @@ export default function EnhancedMoleculesPage() {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto">
                   {searchTemplates(templateSearch).map(template => (
                     <motion.button
                       key={template.id}
                       onClick={() => {
                         loadTemplate(template)
                         setShowTemplates(false)
+                        // On mobile, switch to editor
+                        if (window.innerWidth < 1024) {
+                          setActiveMobileTab('editor')
+                        }
                       }}
                       className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-xl p-4 transition-all text-left shadow-lg"
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="font-bold text-elixra-charcoal dark:text-white text-lg">
+                        <div className="font-bold text-elixra-charcoal dark:text-white text-lg truncate pr-2">
                           {template.name}
                         </div>
                         {template.hotkey && (
-                          <div className="px-2 py-1 bg-elixra-bunsen text-white text-xs rounded font-mono font-bold shadow-sm">
+                          <div className="px-2 py-1 bg-elixra-bunsen text-white text-xs rounded font-mono font-bold shadow-sm hidden sm:block">
                             {template.hotkey.toUpperCase()}
                           </div>
                         )}
@@ -782,45 +803,9 @@ export default function EnhancedMoleculesPage() {
                             {tag}
                           </span>
                         ))}
-                        {template.tags.length > 3 && (
-                          <span className="px-2 py-1 bg-elixra-bunsen text-white text-xs rounded font-bold shadow-sm">
-                            +{template.tags.length - 3}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className={`mt-3 px-2 py-1 text-xs rounded font-bold inline-block shadow-sm text-white ${
-                        template.difficulty === 'beginner' 
-                          ? 'bg-elixra-success' 
-                          : template.difficulty === 'intermediate'
-                          ? 'bg-elixra-copper'
-                          : 'bg-elixra-error'
-                      }`}>
-                        {template.difficulty.charAt(0).toUpperCase() + template.difficulty.slice(1)}
                       </div>
                     </motion.button>
                   ))}
-                </div>
-                
-                <div className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-bold text-elixra-charcoal dark:text-white">
-                      Quick Insert Hotkeys
-                    </div>
-                    <div className="text-[10px] text-elixra-secondary italic hidden lg:block">
-                      * Desktop only
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    {MOLECULAR_TEMPLATES.filter(t => t.hotkey).slice(0, 8).map(template => (
-                      <div key={template.id} className="flex items-center justify-between p-2 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
-                        <span className="text-elixra-charcoal dark:text-white font-medium">{template.name}</span>
-                        <kbd className="px-2 py-1 bg-elixra-bunsen text-white rounded font-mono font-bold shadow-sm min-w-[24px] text-center">
-                          {template.hotkey?.toUpperCase()}
-                        </kbd>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -835,7 +820,7 @@ export default function EnhancedMoleculesPage() {
             initial={{ opacity: 0, x: 300 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 300 }}
-            className="fixed right-4 top-20 w-[450px] glass-panel bg-white/95 dark:bg-elixra-charcoal/95 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 max-h-[80vh] overflow-y-auto z-40 shadow-2xl"
+            className="fixed inset-0 sm:inset-auto sm:right-4 sm:top-20 w-full sm:w-[450px] glass-panel bg-white/95 dark:bg-elixra-charcoal/95 backdrop-blur-xl border border-elixra-border-subtle rounded-none sm:rounded-2xl p-6 h-full sm:h-auto sm:max-h-[80vh] overflow-y-auto z-40 shadow-2xl pt-20 sm:pt-6"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-elixra-charcoal dark:text-white flex items-center gap-2">
@@ -850,7 +835,7 @@ export default function EnhancedMoleculesPage() {
               </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20 sm:pb-0">
               {/* Basic Info */}
               <div className="glass-panel bg-white/60 dark:bg-white/15 backdrop-blur-xl border border-elixra-border-subtle rounded-xl p-4">
                 <div className="text-lg font-semibold text-elixra-charcoal dark:text-white mb-2">
@@ -974,7 +959,7 @@ export default function EnhancedMoleculesPage() {
             initial={{ opacity: 0, x: -300 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
-            className="fixed left-4 top-20 w-[400px] glass-panel bg-white/95 dark:bg-elixra-charcoal/95 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-6 max-h-[80vh] overflow-y-auto z-40 shadow-2xl"
+            className="fixed inset-0 sm:inset-auto sm:left-4 sm:top-20 w-full sm:w-[400px] glass-panel bg-white/95 dark:bg-elixra-charcoal/95 backdrop-blur-xl border border-elixra-border-subtle rounded-none sm:rounded-2xl p-6 h-full sm:h-auto sm:max-h-[80vh] overflow-y-auto z-40 shadow-2xl pt-20 sm:pt-6"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-elixra-charcoal dark:text-white flex items-center gap-2">
@@ -991,7 +976,7 @@ export default function EnhancedMoleculesPage() {
               </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20 sm:pb-0">
               {/* Status */}
               <div className={`p-4 rounded-xl border ${
                 validation.isValid 
@@ -1091,10 +1076,10 @@ export default function EnhancedMoleculesPage() {
 
       <ModernNavbar />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 mt-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-6 py-4 sm:py-12 mt-4 sm:mb-0 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
+          {/* Left Sidebar - Mobile Hidden by default */}
+          <div className={`${activeMobileTab === 'library' ? 'block' : 'hidden'} lg:block lg:col-span-1 space-y-4`}>
             {/* Element Quick Access */}
             <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-3xl p-4">
               <div className="flex items-center justify-between mb-3">
@@ -1173,14 +1158,6 @@ export default function EnhancedMoleculesPage() {
                     </div>
                     <div className="text-[9px] text-white/90 font-semibold truncate w-full text-center">
                       {element.name}
-                    </div>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      <div className="glass-panel bg-white/90 dark:bg-elixra-charcoal/90 backdrop-blur-xl border border-elixra-border-subtle rounded-lg p-2 text-xs whitespace-nowrap">
-                        <div className="font-medium">{element.name}</div>
-                        <div className="text-elixra-secondary">{element.category}</div>
-                      </div>
                     </div>
                   </motion.button>
                 ))}
@@ -1282,12 +1259,12 @@ export default function EnhancedMoleculesPage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-3xl p-6 hover:border-elixra-bunsen/30 transition-all duration-300 relative overflow-hidden group">
+          <div className={`${activeMobileTab === 'editor' ? 'block' : 'hidden'} lg:block lg:col-span-3`}>
+            <div className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-elixra-border-subtle rounded-3xl p-4 sm:p-6 hover:border-elixra-bunsen/30 transition-all duration-300 relative overflow-hidden group">
               <StaticGrid className="opacity-30" />
               
               {/* Header */}
-              <div className="flex items-start justify-between mb-6 relative z-10 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 relative z-10 gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-elixra-charcoal dark:text-white whitespace-nowrap mb-1">{moleculeName}</h2>
                   {atoms.length > 0 && (
@@ -1297,7 +1274,7 @@ export default function EnhancedMoleculesPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                   {selectedElement && (
                     <motion.button
                       onClick={() => {
@@ -1305,7 +1282,7 @@ export default function EnhancedMoleculesPage() {
                         setPendingDropPosition(null)
                         setShowBondDialog(true)
                       }}
-                      className="btn-primary flex items-center gap-2 text-sm"
+                      className="btn-primary flex items-center gap-2 text-sm px-3 py-1.5"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1317,7 +1294,7 @@ export default function EnhancedMoleculesPage() {
                   <button
                     onClick={handleAnalyze}
                     disabled={analyzing || atoms.length === 0}
-                    className="px-4 py-2 bg-gradient-to-r from-elixra-bunsen to-elixra-bunsen-dark text-white rounded-lg shadow-lg shadow-elixra-bunsen/20 hover:shadow-elixra-bunsen/40 hover:scale-105 transition-all flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none whitespace-nowrap"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-elixra-bunsen to-elixra-bunsen-dark text-white rounded-lg shadow-lg shadow-elixra-bunsen/20 hover:shadow-elixra-bunsen/40 hover:scale-105 transition-all flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none whitespace-nowrap"
                   >
                     {analyzing ? (
                       <>
@@ -1332,18 +1309,57 @@ export default function EnhancedMoleculesPage() {
                     )}
                   </button>
                   
-
+                  {/* Mobile Quick Validate */}
+                  <button
+                    onClick={handleValidate}
+                    disabled={atoms.length === 0}
+                    className="lg:hidden px-3 py-1.5 bg-elixra-charcoal/10 dark:bg-white/10 text-elixra-charcoal dark:text-white rounded-lg hover:bg-elixra-charcoal/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    <div className={`w-2 h-2 rounded-full ${validation?.isValid === false ? 'bg-red-500' : 'bg-green-500'}`} />
+                    Check
+                  </button>
                 </div>
               </div>
 
               {/* 3D Viewer */}
-              <div style={{ height: '500px' }} className="mb-6 relative z-10">
+              <div className="h-[50vh] sm:h-[500px] mb-6 relative z-10 rounded-xl overflow-hidden border border-elixra-border-subtle bg-black/5 dark:bg-black/20">
                 {isGenerating && (
                   <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm rounded-2xl">
                     <div className="w-12 h-12 border-4 border-elixra-bunsen border-t-transparent rounded-full animate-spin mb-4" />
                     <div className="text-white font-medium">Generating Structure with AI...</div>
                   </div>
                 )}
+                
+                {/* AI Geometry Insight Overlay */}
+                <AnimatePresence>
+                  {analysis && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="absolute top-4 left-4 z-40 max-w-[200px] pointer-events-none"
+                    >
+                      <div className="glass-panel bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 shadow-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="w-3 h-3 text-elixra-bunsen" />
+                          <span className="text-xs font-bold text-white uppercase tracking-wider">AI Insight</span>
+                        </div>
+                        <div className="text-sm font-semibold text-white mb-0.5">
+                          {analysis.structure.geometry}
+                        </div>
+                        <div className="text-xs text-white/70">
+                          Angles: {analysis.structure.bondAngles}
+                        </div>
+                        {analysis.structure.hybridization && Object.keys(analysis.structure.hybridization).length > 0 && (
+                           <div className="text-xs text-white/70 mt-1 pt-1 border-t border-white/10">
+                              Hybridization: {Object.values(analysis.structure.hybridization)[0]}
+                           </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <MoleculeDropZone onDrop={handleDropAtom}>
                   <EnhancedMolecule3DViewer
                     atoms={atoms}
@@ -1357,6 +1373,16 @@ export default function EnhancedMoleculesPage() {
                     enablePerformanceOptimizations={atoms.length > 50}
                   />
                 </MoleculeDropZone>
+                
+                {/* Mobile Viewer Controls Overlay */}
+                <div className="absolute bottom-4 right-4 lg:hidden flex flex-col gap-2">
+                   <button 
+                     onClick={() => orbitControlsRef.current?.reset()}
+                     className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white border border-white/20 shadow-lg"
+                   >
+                     <RotateCw className="w-5 h-5" />
+                   </button>
+                </div>
               </div>
 
               {/* Selected Atom/Bond Info */}
@@ -1404,27 +1430,72 @@ export default function EnhancedMoleculesPage() {
               )}
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 mb-6 relative z-10">
-                <div className="glass-panel bg-white/40 dark:bg-elixra-bunsen/10 border border-elixra-bunsen/20 rounded-xl p-3 text-center backdrop-blur-sm hover:border-elixra-bunsen/40 transition-all">
-                  <div className="text-2xl font-bold text-elixra-bunsen">{atoms.length}</div>
-                  <div className="text-xs text-elixra-secondary uppercase tracking-wide">Atoms</div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6 relative z-10">
+                <div className="glass-panel bg-white/40 dark:bg-elixra-bunsen/10 border border-elixra-bunsen/20 rounded-xl p-2 sm:p-3 text-center backdrop-blur-sm hover:border-elixra-bunsen/40 transition-all">
+                  <div className="text-xl sm:text-2xl font-bold text-elixra-bunsen">{atoms.length}</div>
+                  <div className="text-[10px] sm:text-xs text-elixra-secondary uppercase tracking-wide">Atoms</div>
                 </div>
 
-                <div className="glass-panel bg-white/40 dark:bg-elixra-success/10 border border-elixra-success/20 rounded-xl p-3 text-center backdrop-blur-sm hover:border-elixra-success/40 transition-all">
-                  <div className="text-2xl font-bold text-elixra-success">{bonds.length}</div>
-                  <div className="text-xs text-elixra-secondary uppercase tracking-wide">Bonds</div>
+                <div className="glass-panel bg-white/40 dark:bg-elixra-success/10 border border-elixra-success/20 rounded-xl p-2 sm:p-3 text-center backdrop-blur-sm hover:border-elixra-success/40 transition-all">
+                  <div className="text-xl sm:text-2xl font-bold text-elixra-success">{bonds.length}</div>
+                  <div className="text-[10px] sm:text-xs text-elixra-secondary uppercase tracking-wide">Bonds</div>
                 </div>
 
-                <div className="glass-panel bg-white/40 dark:bg-elixra-copper/10 border border-elixra-copper/20 rounded-xl p-3 text-center backdrop-blur-sm hover:border-elixra-copper/40 transition-all">
-                  <div className="text-2xl font-bold text-elixra-copper">
+                <div className="glass-panel bg-white/40 dark:bg-elixra-copper/10 border border-elixra-copper/20 rounded-xl p-2 sm:p-3 text-center backdrop-blur-sm hover:border-elixra-copper/40 transition-all">
+                  <div className="text-xl sm:text-2xl font-bold text-elixra-copper">
                     {new Set(atoms.map(a => a.element)).size}
                   </div>
-                  <div className="text-xs text-elixra-secondary uppercase tracking-wide">Elements</div>
+                  <div className="text-[10px] sm:text-xs text-elixra-secondary uppercase tracking-wide">Elements</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-elixra-charcoal border-t border-elixra-copper/10 z-50 px-4 flex items-center justify-around shadow-lg-up pb-safe">
+        <button
+          onClick={() => setActiveMobileTab('library')}
+          className={`flex flex-col items-center justify-center space-y-1 w-20 py-1 rounded-xl transition-all ${
+            activeMobileTab === 'library' 
+            ? 'text-elixra-bunsen bg-elixra-bunsen/10' 
+            : 'text-gray-400 hover:text-gray-500'
+          }`}
+        >
+          <Search className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Library</span>
+        </button>
+
+        <button
+          onClick={() => setActiveMobileTab('editor')}
+          className={`flex flex-col items-center justify-center space-y-1 w-20 py-1 rounded-xl transition-all ${
+            activeMobileTab === 'editor' 
+            ? 'text-elixra-bunsen bg-elixra-bunsen/10' 
+            : 'text-gray-400 hover:text-gray-500'
+          }`}
+        >
+          <AtomIcon className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Editor</span>
+        </button>
+
+        <button
+          onClick={() => {
+             // Only show analysis if there is data, or if user wants to see stats
+             if (analysis) {
+               setShowAnalysis(true)
+             } else {
+               setShowValidation(true)
+             }
+          }}
+          className={`flex flex-col items-center justify-center space-y-1 w-20 py-1 rounded-xl transition-all relative text-gray-400 hover:text-gray-500`}
+        >
+          <Sparkles className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Insights</span>
+          {validation?.isValid === false && (
+             <span className="absolute top-1 right-5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-elixra-charcoal animate-pulse"></span>
+          )}
+        </button>
       </div>
     </div>
   )

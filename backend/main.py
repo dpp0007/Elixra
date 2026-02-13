@@ -94,7 +94,13 @@ async def analyze_molecule(request: MoleculeAnalysisRequest):
           "name": "IUPAC Name or Common Name",
           "formula": "Chemical Formula (e.g. C2H6O)",
           "molecularWeight": 0.0,
-          "properties": {{
+          "structure": {
+            "geometry": "Molecular geometry (e.g., Trigonal Planar, Octahedral, Tetrahedral)",
+            "bondAngles": "Approximate bond angles (e.g., 120°)",
+            "hybridization": "Central atom hybridization (e.g., sp2)",
+            "polarity": "Dipole moment description"
+          },
+          "properties": {
             "state": "Gas/Liquid/Solid at room temp",
             "solubility": "Solubility description",
             "polarity": "Polar/Non-polar",
@@ -423,6 +429,18 @@ If no instrument is used, set instrumentAnalysis to null.
                     
                     # Normalize data for frontend
                     result = {
+                        "name": data.get("name", "Unknown Molecule"),
+                        "formula": data.get("formula", "Unknown"),
+                        "molecularWeight": data.get("molecularWeight", 0.0),
+                        "structure": data.get("structure", {}),
+                        "properties": data.get("properties", {}),
+                        "stability": data.get("stability", "Unknown"),
+                        "safety": data.get("safety", {}),
+                        "uses": data.get("uses", []),
+                        "description": data.get("description", ""),
+                        "functionalGroups": data.get("functionalGroups", []),
+                        
+                        # Keep existing fields just in case
                         "balancedEquation": data.get("balancedEquation", "Unknown equation"),
                         "reactionType": data.get("reactionType", "Unknown"),
                         "visualObservation": data.get("visualObservation", "Reaction occurred"),
@@ -440,13 +458,6 @@ If no instrument is used, set instrumentAnalysis to null.
                             "bondBreaking": "Unknown",
                             "atomicLevel": "Analysis unavailable",
                             "keyConcept": "Unknown"
-                        }),
-                        "safety": data.get("safety", {
-                            "riskLevel": "Low",
-                            "precautions": "Standard lab safety",
-                            "disposal": "Follow local regulations",
-                            "firstAid": "Consult safety data sheet",
-                            "generalHazards": "Handle with care"
                         }),
                         "precipitate": data.get("precipitate", False),
                         "precipitateColor": data.get("precipitateColor"),
