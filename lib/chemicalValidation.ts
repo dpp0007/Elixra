@@ -113,6 +113,7 @@ export class ChemicalValidator {
         if (b.type === 'single') totalBonds += 1
         if (b.type === 'double') totalBonds += 2
         if (b.type === 'triple') totalBonds += 3
+        if (b.type === 'dative') totalBonds += 1
         if (b.type === 'ionic') totalBonds += 0 // Ionic doesn't count as covalent bond
       })
       result.bondCounts[atom.id] = totalBonds
@@ -131,6 +132,11 @@ export class ChemicalValidator {
           case 'single': contributedElectrons += 1; break
           case 'double': contributedElectrons += 2; break
           case 'triple': contributedElectrons += 3; break
+          case 'dative': 
+            // Donor (from) gives 2, Acceptor (to) gives 0
+            if (bond.from === atomId) contributedElectrons += 2;
+            else contributedElectrons += 0;
+            break;
           // Ionic bonds involve transfer, simplified here
         }
       }
@@ -157,6 +163,7 @@ export class ChemicalValidator {
           case 'single': sharedElectrons += 2; break
           case 'double': sharedElectrons += 4; break
           case 'triple': sharedElectrons += 6; break
+          case 'dative': sharedElectrons += 2; break
         }
       }
     })

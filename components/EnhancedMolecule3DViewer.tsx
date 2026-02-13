@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, Outlines } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera, Outlines, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { Atom, Bond } from '@/types/molecule'
 import { InstancedMeshManager, PerformanceMonitor } from '@/lib/spatialHash'
@@ -108,8 +108,35 @@ function InstancedAtomMesh({ atoms, onSelect, selectedAtomId, performanceMonitor
           quality={quality}
         />
       ))}
+      
+      {/* Atom Labels */}
+      {atoms.map((atom) => (
+        <Text
+          key={`label-${atom.id}`}
+          position={[atom.x, atom.y, atom.z]}
+          fontSize={0.25}
+          color={getContrastingColor(atom.color || '#ffffff')}
+          anchorX="center"
+          anchorY="middle"
+          renderOrder={1}
+          depthTest={false}
+          outlineWidth={0.02}
+          outlineColor="#000000"
+        >
+          {atom.element}
+        </Text>
+      ))}
     </>
   )
+}
+
+function getContrastingColor(hex: string) {
+  // Simple contrast check
+  const r = parseInt(hex.substr(1, 2), 16)
+  const g = parseInt(hex.substr(3, 2), 16)
+  const b = parseInt(hex.substr(5, 2), 16)
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
+  return yiq >= 128 ? 'black' : 'white'
 }
 
 interface OptimizedBondMeshProps {
@@ -160,6 +187,7 @@ function OptimizedBondMesh({ bonds, atoms, onSelect, selectedBondId, performance
         if (bond.type === 'triple') return '#4ecdc4'
         if (bond.type === 'ionic') return '#ffa500'
         if (bond.type === 'hydrogen') return '#87ceeb'
+        if (bond.type === 'dative') return '#a855f7' // Purple for coordinate
         return '#888888'
       }
       
@@ -182,7 +210,62 @@ function OptimizedBondMesh({ bonds, atoms, onSelect, selectedBondId, performance
       
       const meshes = []
       
-      if (bond.type === 'double') {
+      if (bond.type === 'dative') {
+         // Single Arrow bond (Start -> End)
+         const coneHeight = 0.6 // Slightly larger head
+         const cylinderLen = Math.max(0.1, distance - coneHeight)
+         const cylinderPos = start.clone().add(direction.clone().multiplyScalar(cylinderLen / 2))
+         const conePos = start.clone().add(direction.clone().multiplyScalar(cylinderLen + coneHeight/2))
+         
+         // Cylinder
+         meshes.push({
+           bond, mid: cylinderPos, quaternion, distance: cylinderLen, color, radius, opacity, segments, keySuffix: '-cyl'
+         })
+         
+         // Cone (Arrow Head)
+         meshes.push({
+           bond, mid: conePos, quaternion, distance: coneHeight, color, radius, opacity, segments, keySuffix: '-cone', isCone: true
+         })
+      } else if (bond.type === 'ionic') {
+         // Double Arrow bond (<->)
+         const coneHeight = 0.5
+         const cylinderLen = Math.max(0.1, distance - (coneHeight * 2))
+         
+         // Center cylinder
+         meshes.push({
+           bond, mid: mid, quaternion, distance: cylinderLen, color, radius, opacity, segments, keySuffix: '-cyl'
+         })
+         
+         // End Cone (pointing to End)
+         const endConePos = end.clone().sub(direction.clone().multiplyScalar(coneHeight/2))
+         meshes.push({
+           bond, mid: endConePos, quaternion, distance: coneHeight, color, radius, opacity, segments, keySuffix: '-cone-end', isCone: true
+         })
+
+         // Start Cone (pointing to Start)
+         const startConePos = start.clone().add(direction.clone().multiplyScalar(coneHeight/2))
+         // Calculate reverse rotation
+         const reverseQuaternion = new THREE.Quaternion()
+         reverseQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().negate())
+         
+         meshes.push({
+           bond, mid: startConePos, quaternion: reverseQuaternion, distance: coneHeight, color, radius, opacity, segments, keySuffix: '-cone-start', isCone: true
+         })
+      } else if (bond.type === 'hydrogen' || bond.type === 'aromatic') {
+         // Dotted/Dashed bond
+         const segmentCount = Math.max(3, Math.floor(distance * 3)) // 3 segments per unit
+         const segmentLen = distance / segmentCount
+         const drawLen = segmentLen * 0.6 // 60% filled, 40% gap
+         
+         for(let i=0; i<segmentCount; i++) {
+            const centerDist = (i + 0.5) * segmentLen
+            const pos = start.clone().add(direction.clone().multiplyScalar(centerDist))
+            
+            meshes.push({
+               bond, mid: pos, quaternion, distance: drawLen, color, radius, opacity, segments, keySuffix: `-seg-${i}`
+            })
+         }
+      } else if (bond.type === 'double') {
         const offset = 0.2
         // Robust perpendicular vector calculation
         let perp = new THREE.Vector3(0, 1, 0).cross(direction)
@@ -229,24 +312,47 @@ function OptimizedBondMesh({ bonds, atoms, onSelect, selectedBondId, performance
       {bondMeshes.map((meshData, index) => {
         if (!meshData) return null
         
-        const { bond, mid, quaternion, distance, color, radius, opacity, segments, keySuffix } = meshData
+        // @ts-ignore
+        const { bond, mid, quaternion, distance, color, radius, opacity, segments, keySuffix, isCone } = meshData
         
         return (
-          <mesh
-            key={`${bond.id}${keySuffix || ''}`}
-            position={mid}
-            quaternion={quaternion}
-            onClick={(e) => { e.stopPropagation(); onSelect(bond.id) }}
-          >
-            <cylinderGeometry args={[radius, radius, distance, segments]} />
-            <meshStandardMaterial 
-              color={color} 
-              metalness={0.5} 
-              roughness={0.5}
-              transparent={opacity < 1}
-              opacity={opacity}
-            />
-          </mesh>
+          <group key={`${bond.id}${keySuffix || ''}`}>
+            <mesh
+              position={mid}
+              quaternion={quaternion}
+              onClick={(e) => { e.stopPropagation(); onSelect(bond.id) }}
+            >
+              {isCone ? (
+                <cylinderGeometry args={[0, radius * 3, distance, segments]} />
+              ) : (
+                <cylinderGeometry args={[radius, radius, distance, segments]} />
+              )}
+              <meshStandardMaterial 
+                color={color} 
+                metalness={0.5} 
+                roughness={0.5}
+                transparent={opacity < 1}
+                opacity={opacity}
+              />
+            </mesh>
+            
+            {/* Bond Type Label - Only for the main cylinder/segment to avoid duplicates */}
+            {(!keySuffix || keySuffix === '-cyl' || keySuffix === '-1' || keySuffix === '-seg-1') && !isCone && (
+              <Text
+                position={mid.clone().add(new THREE.Vector3(0, radius + 0.15, 0))}
+                quaternion={new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0))} // Always face up roughly, or use billboard
+                fontSize={0.15}
+                color="white"
+                anchorX="center"
+                anchorY="bottom"
+                outlineWidth={0.02}
+                outlineColor="black"
+                renderOrder={2}
+              >
+                {bond.type}
+              </Text>
+            )}
+          </group>
         )
       })}
     </group>
@@ -288,13 +394,37 @@ function SceneContent({
     }
   }, [performanceMonitor])
 
-  // Auto-center view when first atom is added
+  // Auto-center view when atoms are loaded or cleared
+  const prevAtomCount = useRef(0)
+  
   useEffect(() => {
-    if (atoms.length === 1 && controlsRef?.current) {
-      const atom = atoms[0]
-      controlsRef.current.target.set(atom.x, atom.y, atom.z)
-      controlsRef.current.update()
+    const currentCount = atoms.length
+    const prevCount = prevAtomCount.current
+    
+    // Center view if:
+    // 1. We went from 0 atoms to some atoms (initial load or template load)
+    // 2. We have exactly 1 atom (first atom added)
+    if ((prevCount === 0 && currentCount > 0) || currentCount === 1) {
+      if (controlsRef?.current) {
+        // Calculate centroid
+        const centroid = atoms.reduce((acc, atom) => ({
+          x: acc.x + atom.x,
+          y: acc.y + atom.y,
+          z: acc.z + atom.z
+        }), { x: 0, y: 0, z: 0 })
+        
+        if (currentCount > 0) {
+          centroid.x /= currentCount
+          centroid.y /= currentCount
+          centroid.z /= currentCount
+        }
+        
+        controlsRef.current.target.set(centroid.x, centroid.y, centroid.z)
+        controlsRef.current.update()
+      }
     }
+    
+    prevAtomCount.current = currentCount
   }, [atoms, controlsRef])
 
   const selectedAtom = useMemo(() => 
@@ -357,10 +487,81 @@ function SceneContent({
                  if (bond.type === 'triple') return '#4ecdc4'
                  if (bond.type === 'ionic') return '#ffa500'
                  if (bond.type === 'hydrogen') return '#87ceeb'
+                 if (bond.type === 'dative') return '#a855f7'
                  return '#888888'
               }
 
               const color = getBondColor()
+
+              if (bond.type === 'dative') {
+                 // Single Arrow bond (Start -> End)
+                 const coneHeight = 0.6
+                 const cylinderLen = Math.max(0.1, distance - coneHeight)
+                 const cylinderPos = start.clone().add(direction.clone().multiplyScalar(cylinderLen / 2))
+                 const conePos = start.clone().add(direction.clone().multiplyScalar(cylinderLen + coneHeight/2))
+                 
+                 return (
+                    <group key={bond.id}>
+                       <mesh position={cylinderPos} quaternion={quaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                          <cylinderGeometry args={[0.08, 0.08, cylinderLen, 16]} />
+                          <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
+                       </mesh>
+                       <mesh position={conePos} quaternion={quaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                          <cylinderGeometry args={[0, 0.24, coneHeight, 16]} />
+                          <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
+                       </mesh>
+                    </group>
+                 )
+              }
+
+              if (bond.type === 'ionic') {
+                 // Double Arrow bond (<->)
+                 const coneHeight = 0.5
+                 const cylinderLen = Math.max(0.1, distance - (coneHeight * 2))
+                 const endConePos = end.clone().sub(direction.clone().multiplyScalar(coneHeight/2))
+                 const startConePos = start.clone().add(direction.clone().multiplyScalar(coneHeight/2))
+                 
+                 const reverseQuaternion = new THREE.Quaternion()
+                 reverseQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().negate())
+
+                 return (
+                    <group key={bond.id}>
+                       <mesh position={mid} quaternion={quaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                          <cylinderGeometry args={[0.08, 0.08, cylinderLen, 16]} />
+                          <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
+                       </mesh>
+                       <mesh position={endConePos} quaternion={quaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                          <cylinderGeometry args={[0, 0.24, coneHeight, 16]} />
+                          <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
+                       </mesh>
+                       <mesh position={startConePos} quaternion={reverseQuaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                          <cylinderGeometry args={[0, 0.24, coneHeight, 16]} />
+                          <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
+                       </mesh>
+                    </group>
+                 )
+              }
+
+              if (bond.type === 'hydrogen' || bond.type === 'aromatic') {
+                 const segmentCount = Math.max(3, Math.floor(distance * 3))
+                 const segmentLen = distance / segmentCount
+                 const drawLen = segmentLen * 0.6
+                 
+                 return (
+                    <group key={bond.id}>
+                       {Array.from({length: segmentCount}).map((_, i) => {
+                          const centerDist = (i + 0.5) * segmentLen
+                          const pos = start.clone().add(direction.clone().multiplyScalar(centerDist))
+                          return (
+                             <mesh key={i} position={pos} quaternion={quaternion} onClick={(e) => { e.stopPropagation(); onSelectBond(bond.id) }}>
+                                <cylinderGeometry args={[0.05, 0.05, drawLen, 8]} />
+                                <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} opacity={0.5} transparent />
+                             </mesh>
+                          )
+                       })}
+                    </group>
+                 )
+              }
 
               if (bond.type === 'double') {
                  const offset = 0.2
@@ -433,17 +634,23 @@ function SceneContent({
                   metalness={0.3}
                   roughness={0.4}
                 />
+                <Text
+                  position={[0, 0, 0]}
+                  fontSize={0.25}
+                  color={getContrastingColor(atom.color || '#ffffff')}
+                  anchorX="center"
+                  anchorY="middle"
+                  renderOrder={1}
+                  outlineWidth={0.02}
+                  outlineColor="#000000"
+                >
+                  {atom.element}
+                </Text>
               </mesh>
             ))}
           </>
         )}
       </group>
-      
-      {/* Performance Stats Display */}
-      <mesh position={[-7, 4, 0]}>
-        <planeGeometry args={[2, 1]} />
-        <meshBasicMaterial transparent opacity={0.7} color="#000000" />
-      </mesh>
     </>
   )
 }
@@ -462,7 +669,6 @@ export default function EnhancedMolecule3DViewer({
   return (
     <div 
       className="w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900/50 to-slate-800/50 border border-white/10"
-      style={{ pointerEvents: 'none' }}
     >
       <Canvas style={{ pointerEvents: 'auto' }}>
         <SceneContent

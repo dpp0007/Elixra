@@ -390,6 +390,8 @@ export class EnhancedAIAnalyzer {
           },
           structure: {
             ...structure,
+            geometry: apiData.structure?.geometry || structure.geometry,
+            bondAngles: apiData.structure?.bondAngles || structure.bondAngles,
             functionalGroups: apiData.functionalGroups || structure.functionalGroups
           },
           applications: {
@@ -481,8 +483,23 @@ export class EnhancedAIAnalyzer {
   }
 
   private determineGeometry(atoms: Atom[], bonds: Bond[]): string {
+    // If called from analyzeStructure, return a placeholder that will be overridden by API
+    // We only want to return specific geometry if we are absolutely sure locally (like simple VSEPR)
+    
+    // For 2 atoms, it IS always linear, but let's return 'Linear' only as a default.
+    // The issue described is "always showing linear", which implies it might be getting stuck here.
     if (atoms.length === 2) return 'Linear'
-    if (atoms.length === 3) return 'Bent'
+    
+    // For 3 atoms (e.g. H2O, CO2), it could be Linear or Bent.
+    // Local logic is too simple (just says 'Bent' for 3 atoms in original code).
+    // Let's rely on API more.
+    
+    if (atoms.length === 3) {
+       // Check for central atom with 2 bonds
+       // e.g. H-O-H vs O=C=O
+       // This is hard to guess without lone pairs.
+       return 'Analyzing...'
+    }
     
     // Check for tetrahedral centers
     const carbonAtoms = atoms.filter(a => a.element === 'C')
@@ -492,16 +509,13 @@ export class EnhancedAIAnalyzer {
       if (carbonBonds.length === 4) return 'Tetrahedral'
     }
     
-    return 'Complex'
+    return 'Analyzing...'
   }
 
   private estimateBondAngles(atoms: Atom[], bonds: Bond[]): string {
-    // Simplified estimation based on common geometries
     const atomCount = atoms.length
     if (atomCount === 2) return '180°'
-    if (atomCount === 3) return '104.5°'
-    if (atomCount === 5) return '109.5°'
-    return 'Variable'
+    return 'Analyzing...'
   }
 
   private checkChirality(atoms: Atom[], bonds: Bond[]): 'chiral' | 'achiral' {

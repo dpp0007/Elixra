@@ -49,8 +49,6 @@ function generateRtcToken(channelName: string, uid: number): string {
       expirationTimeInSeconds
     );
     
-    console.log('Generated RTC token for channel:', channelName, 'uid:', uid);
-    console.log('Token generated successfully');
     return token;
   } catch (error) {
     console.error('Error generating RTC token:', error);
@@ -189,20 +187,6 @@ async function createAgent(
   const appId = process.env.AGORA_APP_ID;
   const url = `${AGORA_BASE_URL}/projects/${appId}/join`;
 
-  console.log('=== Creating Agora Agent ===');
-  console.log('URL:', url);
-  console.log('Agent name:', agentName);
-  console.log('Channel:', channelName);
-  console.log('Agent UID:', agentUid);
-  console.log('User UID:', userUid);
-  console.log('Token length:', token.length);
-  console.log('LLM Model:', payload.properties.llm.params.model);
-  console.log('Greeting Message:', payload.properties.llm.greeting_message);
-  console.log('Greeting Timeout:', payload.properties.llm.greeting_timeout);
-  console.log('TTS Vendor:', payload.properties.tts.vendor);
-  console.log('ASR Vendor:', payload.properties.asr.vendor);
-  console.log('=== Sending Request ===');
-
   const response = await fetch(url, {
     method: 'POST',
     headers: getAgoraHeaders(),
@@ -218,10 +202,6 @@ async function createAgent(
   }
 
   const result = await response.json();
-  console.log('=== Agent created successfully ===');
-  console.log('Agent ID:', result.agent_id);
-  console.log('Status:', result.status);
-  console.log('Created at:', result.create_ts);
   return result;
 }
 
@@ -253,7 +233,6 @@ export async function POST(request: NextRequest) {
     const action = request.nextUrl.searchParams.get('action');
 
     if (action === 'start') {
-      console.log('=== Starting Voice Chat Session ===');
       const { userProfile } = body as StartVoiceChatRequest;
       const timestamp = Date.now();
       const userId = (session.user as any).id || (session.user as any).email || 'user';
@@ -261,11 +240,6 @@ export async function POST(request: NextRequest) {
       const channelName = `voicechat_${userId}_${timestamp}`;
       const userUid = 1000 + (Math.abs(userId.charCodeAt(0)) % 9000);
       const agentUid = 2000 + (Math.abs(channelName.charCodeAt(0)) % 9000);
-
-      console.log('User ID:', userId);
-      console.log('Channel Name:', channelName);
-      console.log('User UID:', userUid);
-      console.log('Agent UID:', agentUid);
 
       const userToken = generateRtcToken(channelName, userUid);
       const agentToken = generateRtcToken(channelName, agentUid);
@@ -277,8 +251,6 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-
-      console.log('Tokens generated successfully');
 
       const enhancedProfile = {
         ...userProfile,
