@@ -90,7 +90,7 @@ export default function AvatarPage() {
             {/* Overlay Info */}
             <div className="absolute bottom-4 left-4 right-4 p-4 glass-panel bg-white/60 dark:bg-black/40 backdrop-blur-md rounded-xl border border-white/20">
                <p className="text-sm text-elixra-charcoal dark:text-white/90 text-center font-medium">
-                 "I am here to help you understand chemistry concepts. Ask me anything!"
+                 &quot;I am here to help you understand chemistry concepts. Ask me anything!&quot;
                </p>
             </div>
           </div>

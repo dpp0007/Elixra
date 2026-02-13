@@ -119,7 +119,6 @@ function InstancedAtomMesh({ atoms, onSelect, selectedAtomId, performanceMonitor
           anchorX="center"
           anchorY="middle"
           renderOrder={1}
-          depthTest={false}
           outlineWidth={0.02}
           outlineColor="#000000"
         >

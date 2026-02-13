@@ -166,7 +166,7 @@ export default function EnhancedMoleculesPage() {
     )
   }
 
-  const addAtom = useCallback((element?: Element, position?: { x: number; y: number; z: number } | null, bondsToCreate?: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' }>) => {
+  const addAtom = useCallback((element?: Element, position?: { x: number; y: number; z: number } | null, bondsToCreate?: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative' }>) => {
     if (!element) return
 
     let finalPosition: { x: number; y: number; z: number } | null = null

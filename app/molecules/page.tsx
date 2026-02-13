@@ -226,7 +226,7 @@ export default function EnhancedMoleculesPage() {
     )
   }
 
-  const addAtom = useCallback((element?: Element, position?: { x: number; y: number; z: number } | null, bondsToCreate?: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' }>) => {
+  const addAtom = useCallback((element?: Element, position?: { x: number; y: number; z: number } | null, bondsToCreate?: Array<{ atomId: string; bondType: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative' }>) => {
     if (!element) return
 
     // If we have existing atoms and bonds are not specified, open the dialog to let user configure bonding
@@ -1292,7 +1292,7 @@ export default function EnhancedMoleculesPage() {
                   )}
                   
                   <button
-                    onClick={handleAnalyze}
+                    onClick={() => handleAnalyze()}
                     disabled={analyzing || atoms.length === 0}
                     className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-elixra-bunsen to-elixra-bunsen-dark text-white rounded-lg shadow-lg shadow-elixra-bunsen/20 hover:shadow-elixra-bunsen/40 hover:scale-105 transition-all flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none whitespace-nowrap"
                   >

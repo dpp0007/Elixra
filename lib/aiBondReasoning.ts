@@ -97,7 +97,7 @@ export interface MoleculeState {
     id: string
     atomA_id: string
     atomB_id: string
-    bond_type: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen'
+    bond_type: 'single' | 'double' | 'triple' | 'ionic' | 'hydrogen' | 'dative'
     created_at: string
     user_created: boolean
   }>

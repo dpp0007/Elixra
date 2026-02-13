@@ -3,11 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { Phone, PhoneOff, Mic, MicOff, Loader, Volume2, VolumeX } from 'lucide-react';
-
-// Dynamically import Agora RTC to avoid SSR issues
-const AgoraRTC = dynamic(() => import('agora-rtc-sdk-ng'), { ssr: false });
 
 interface VoiceChatTeacherProps {
   onSpeakingChange?: (speaking: boolean) => void;

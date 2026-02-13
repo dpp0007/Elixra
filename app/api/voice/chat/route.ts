@@ -46,9 +46,12 @@ function generateRtcToken(channelName: string, uid: number): string {
       channelName,
       uid,
       1, // PUBLISHER role
-      expirationTimeInSeconds
+      expirationTimeInSeconds,
+      expirationTimeInSeconds // privilegeExpiredTs
     );
     
+    console.log('Generated RTC token for channel:', channelName, 'uid:', uid);
+    console.log('Token generated successfully');
     return token;
   } catch (error) {
     console.error('Error generating RTC token:', error);

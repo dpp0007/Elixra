@@ -29,7 +29,6 @@ const ELEMENT_COLORS = {
   P: '#FF8000',   // Orange
   S: '#FFFF30',   // Yellow
   B: '#FFB5B5',   // Pink (Boron)
-  I: '#940094',   // Purple (Iodine)
   Xe: '#429EB0',  // Teal (Xenon)
 }
 
