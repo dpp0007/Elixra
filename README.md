@@ -137,7 +137,277 @@ python main.py
 
 ---
 
+<<<<<<< HEAD
 ## 📜 Scripts
+=======
+## 🎙️ Avatar Voice Configuration (NEW!)
+
+### **Available Voice Options** 🗣️
+
+The avatar uses the **Web Speech API** which provides different voices depending on your operating system:
+
+#### **Windows Voices** 🪟
+
+```
+✅ Microsoft Zira (Female) - Default, natural sounding
+✅ Microsoft David (Male) - Professional, clear
+✅ Microsoft Mark (Male) - Friendly, casual
+✅ Microsoft Hazel (Female) - Warm, engaging
+✅ Microsoft Aria (Female) - Modern, professional
+```
+
+#### **macOS Voices** 🍎
+
+```
+✅ Samantha (Female) - Default, natural
+✅ Victoria (Female) - British accent
+✅ Karen (Female) - Australian accent
+✅ Moira (Female) - Irish accent
+✅ Alex (Male) - Professional
+✅ Bruce (Male) - Australian
+```
+
+#### **Linux Voices** 🐧
+
+```
+✅ eSpeak (Multiple languages)
+✅ Festival (Open source)
+✅ MBROLA (Multilingual)
+```
+
+### **How to Change the Avatar's Voice** 🎵
+
+#### **Option 1: Browser Settings (Easiest)**
+
+**Chrome/Edge:**
+1. Open Settings → Advanced → Accessibility
+2. Look for "Text-to-speech" or "Speech"
+3. Select your preferred voice
+4. The avatar will use this voice automatically
+
+**macOS Safari:**
+1. System Preferences → Accessibility → Speech
+2. Select "System voice"
+3. Choose your preferred voice
+4. Restart the browser
+
+#### **Option 2: Modify the Code** 💻
+
+Edit `components/StreamingChat.tsx` to select a specific voice:
+
+```typescript
+// Find this section in the speakNextInQueue function:
+const voices = synthRef.current.getVoices()
+
+// Option A: Select by name (Windows)
+const selectedVoice = voices.find(voice => 
+  voice.name.includes('Zira') ||  // Change to: David, Mark, Hazel, Aria
+  voice.name.includes('Female')
+)
+
+// Option B: Select by language
+const selectedVoice = voices.find(voice => 
+  voice.lang.includes('en-US')  // or en-GB, en-AU, etc.
+)
+
+// Option C: Select by index
+const selectedVoice = voices[0]  // First available voice
+
+// Apply the voice
+if (selectedVoice) {
+  utterance.voice = selectedVoice
+}
+```
+
+#### **Option 3: Add Voice Selection UI** 🎛️
+
+Create a voice selector dropdown in the chat interface:
+
+```typescript
+// Add this state to StreamingChat
+const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
+
+// Add this effect to load available voices
+useEffect(() => {
+  if (synthRef.current) {
+    const voices = synthRef.current.getVoices()
+    console.log('Available voices:', voices.map(v => v.name))
+    if (voices.length > 0) {
+      setSelectedVoice(voices[0])
+    }
+  }
+}, [])
+
+// In the UI, add a select dropdown:
+<select onChange={(e) => {
+  const voices = synthRef.current?.getVoices() || []
+  const voice = voices.find(v => v.name === e.target.value)
+  if (voice) setSelectedVoice(voice)
+}}>
+  {synthRef.current?.getVoices().map((voice, i) => (
+    <option key={i} value={voice.name}>
+      {voice.name} ({voice.lang})
+    </option>
+  ))}
+</select>
+
+// Use the selected voice in speakNextInQueue:
+if (selectedVoice) {
+  utterance.voice = selectedVoice
+}
+```
+
+### **Voice Properties You Can Adjust** 🎚️
+
+In `components/StreamingChat.tsx`, modify these properties:
+
+```typescript
+const utterance = new SpeechSynthesisUtterance(cleanedSentence)
+
+// Adjust these properties:
+utterance.rate = 1.1        // Speed: 0.1 (slow) to 2.0 (fast)
+utterance.pitch = 1.0       // Pitch: 0.0 (low) to 2.0 (high)
+utterance.volume = 1.0      // Volume: 0.0 (silent) to 1.0 (loud)
+utterance.voice = voice     // Select specific voice
+
+// Examples:
+utterance.rate = 0.9        // Slower, more deliberate
+utterance.pitch = 1.2       // Higher pitched
+utterance.volume = 0.8      // Slightly quieter
+```
+
+### **Recommended Voice Combinations** 🎭
+
+**For Professional Teaching:**
+```
+Voice: Microsoft Zira (Windows) or Samantha (Mac)
+Rate: 1.0-1.1 (normal to slightly fast)
+Pitch: 1.0 (neutral)
+Volume: 1.0 (full)
+```
+
+**For Friendly Learning:**
+```
+Voice: Microsoft Hazel (Windows) or Victoria (Mac)
+Rate: 1.1 (slightly faster)
+Pitch: 1.1 (slightly higher)
+Volume: 1.0 (full)
+```
+
+**For Engaging Explanations:**
+```
+Voice: Microsoft Aria (Windows) or Moira (Mac)
+Rate: 0.95 (slightly slower)
+Pitch: 1.05 (slightly higher)
+Volume: 1.0 (full)
+```
+
+### **Troubleshooting Voice Issues** 🔧
+
+**No voice is playing:**
+```bash
+# Check if speech synthesis is supported
+console.log(window.speechSynthesis)
+
+# Check available voices
+console.log(window.speechSynthesis.getVoices())
+
+# If empty, wait for voices to load
+window.speechSynthesis.onvoiceschanged = () => {
+  console.log(window.speechSynthesis.getVoices())
+}
+```
+
+**Voice sounds robotic:**
+- Reduce rate to 0.9-1.0
+- Adjust pitch to 0.9-1.1
+- Try different voice options
+
+**Voice is too quiet:**
+- Increase volume to 1.0
+- Check system volume settings
+- Try different voice (some are naturally quieter)
+
+**Voice not changing:**
+- Clear browser cache
+- Restart browser
+- Check if voice is available on your OS
+- Try selecting voice by language instead of name
+
+### **Advanced: Custom Voice Synthesis** 🚀
+
+For more control, consider using external TTS services:
+
+**Option 1: Google Cloud Text-to-Speech**
+```bash
+# Install
+npm install @google-cloud/text-to-speech
+
+# Use in code
+const textToSpeech = require('@google-cloud/text-to-speech')
+const client = new textToSpeech.TextToSpeechClient()
+
+const request = {
+  input: {text: 'Hello world'},
+  voice: {
+    languageCode: 'en-US',
+    name: 'en-US-Neural2-C'  // Premium neural voices
+  },
+  audioConfig: {audioEncoding: 'MP3'}
+}
+
+const [response] = await client.synthesizeSpeech(request)
+```
+
+**Option 2: Azure Speech Services**
+```bash
+# Install
+npm install microsoft-cognitiveservices-speech-sdk
+
+# Use in code
+const sdk = require('microsoft-cognitiveservices-speech-sdk')
+const speechConfig = sdk.SpeechConfig.fromSubscription(key, region)
+const synthesizer = new sdk.SpeechSynthesizer(speechConfig)
+
+synthesizer.speakTextAsync(
+  'Hello world',
+  result => console.log(result),
+  error => console.log(error)
+)
+```
+
+**Option 3: ElevenLabs (Premium AI Voices)**
+```bash
+# Install
+npm install elevenlabs
+
+# Use in code
+const { ElevenLabsClient } = require('elevenlabs')
+const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY })
+
+const audio = await client.generate({
+  voice: 'Bella',  // Premium voice
+  text: 'Hello world',
+  model_id: 'eleven_monolingual_v1'
+})
+```
+
+### **Voice Selection Best Practices** ✨
+
+```
+✅ Test different voices with your students
+✅ Choose voices that match your teaching style
+✅ Adjust rate/pitch for clarity
+✅ Use consistent voice throughout session
+✅ Consider accessibility (clear pronunciation)
+✅ Match voice to avatar personality
+✅ Test on different devices/browsers
+```
+
+---
+
+## 🤖 AI Avatar Teacher with Conversational Support (NEW!)
+>>>>>>> upstream/main
 
 - `npm run dev` — Starts the Next.js development server on port 3000
 - `npm run build` — Generates an optimized production build
