@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, Users, Plus, LogIn, Copy, CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { ArrowLeft, Users, Plus, LogIn, Copy, CheckCircle, Lock } from 'lucide-react'
 import ModernNavbar from '@/components/ModernNavbar'
 import { PerspectiveGrid } from '@/components/GridBackground'
 
@@ -12,12 +14,24 @@ export default function CollaboratePage() {
   const [createdRoom, setCreatedRoom] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { data: session, status } = useSession()
+  const router = useRouter()
   
+  const isAuthenticated = status === 'authenticated'
+
   const createSession = async () => {
+    if (!isAuthenticated) return
     setLoading(true)
     try {
       const response = await fetch('/api/collaboration/session', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId: session?.user?.email || 'unknown',
+            name: session?.user?.name || 'Host'
+        })
       })
       const data = await response.json()
       if (data.success) {
@@ -32,6 +46,7 @@ export default function CollaboratePage() {
   }
   
   const joinSession = async () => {
+    if (!isAuthenticated) return
     if (!roomCode.trim()) {
       alert('Please enter a room code')
       return
@@ -72,13 +87,28 @@ export default function CollaboratePage() {
       <ModernNavbar />
       
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-elixra-text-primary mb-4">Collaboration Hub</h1>
+            {!isAuthenticated && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-full border border-amber-200 dark:border-amber-700">
+                    <Lock className="w-4 h-4" />
+                    <span className="text-sm font-medium">Please sign in to access collaboration features</span>
+                </div>
+            )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Create Session */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg"
+            className={`glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg relative ${!isAuthenticated ? 'opacity-75' : ''}`}
           >
+            {!isAuthenticated && (
+                <div className="absolute inset-0 z-20 bg-gray-100/50 dark:bg-black/50 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+                    <Link href="/auth/signin" className="btn-primary px-6 py-2 shadow-lg">Sign In to Create</Link>
+                </div>
+            )}
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-elixra-bunsen/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-elixra-bunsen/20">
                 <Plus className="h-8 w-8 text-elixra-bunsen" />
@@ -127,7 +157,7 @@ export default function CollaboratePage() {
             ) : (
               <button
                 onClick={createSession}
-                disabled={loading}
+                disabled={loading || !isAuthenticated}
                 className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creating...' : 'Create Session'}
@@ -140,8 +170,13 @@ export default function CollaboratePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg"
+            className={`glass-panel bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-elixra-border-subtle rounded-2xl p-8 shadow-lg relative ${!isAuthenticated ? 'opacity-75' : ''}`}
           >
+            {!isAuthenticated && (
+                <div className="absolute inset-0 z-20 bg-gray-100/50 dark:bg-black/50 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+                    <Link href="/auth/signin" className="btn-secondary px-6 py-2 shadow-lg">Sign In to Join</Link>
+                </div>
+            )}
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-elixra-copper/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-elixra-copper/20">
                 <LogIn className="h-8 w-8 text-elixra-copper" />
@@ -165,13 +200,14 @@ export default function CollaboratePage() {
                   onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                   placeholder="Enter 6-digit code"
                   maxLength={6}
+                  disabled={!isAuthenticated}
                   className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-elixra-border-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-elixra-copper/50 focus:border-elixra-copper/50 text-elixra-charcoal dark:text-white font-mono text-center text-2xl uppercase tracking-widest placeholder-elixra-secondary/50"
                 />
               </div>
               
               <button
                 onClick={joinSession}
-                disabled={loading || !roomCode.trim()}
+                disabled={loading || !roomCode.trim() || !isAuthenticated}
                 className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Joining...' : 'Join Session'}

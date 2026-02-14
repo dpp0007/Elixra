@@ -37,10 +37,13 @@ import { calculatePH, formatPH } from '@/lib/ph-calculator'
 import { EQUIPMENT_CONFIG } from '@/lib/equipment-config'
 import { EquipmentAttachment } from '@/lib/equipment-animations'
 
+import { useSession } from 'next-auth/react'
+
 function CollaborativeLabContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const roomCode = searchParams.get('room')
+  const { data: sessionData, status } = useSession()
   
   const {
     session,
@@ -56,9 +59,18 @@ function CollaborativeLabContent() {
   const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
   const [reactionResult, setReactionResult] = useState<ReactionResult | null>(null)
   const [isReacting, setIsReacting] = useState(false)
-  const [userName, setUserName] = useState('')
   const [hasJoined, setHasJoined] = useState(false)
   const [copied, setCopied] = useState(false)
+  
+  // Auto-join if authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && sessionData?.user?.name && !hasJoined && isConnected) {
+        joinSession(sessionData.user.name)
+        setHasJoined(true)
+    } else if (status === 'unauthenticated') {
+        router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href))
+    }
+  }, [status, sessionData, hasJoined, isConnected, joinSession, router])
   
   // Sync remote state to local state
   useEffect(() => {
@@ -176,10 +188,7 @@ function CollaborativeLabContent() {
   }
 
   const handleJoin = async () => {
-    if (userName.trim()) {
-      await joinSession(userName)
-      setHasJoined(true)
-    }
+      // No manual join needed anymore, handled by useEffect
   }
   
   const handleReaction = async (experiment: Experiment) => {
@@ -305,57 +314,29 @@ function CollaborativeLabContent() {
     setPendingEquipmentId(null)
   }
   
-  if (!hasJoined) {
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+      return null // Will redirect via useEffect
+  }
+  
+  if (!isConnected && !session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+          className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center"
         >
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="h-8 w-8 text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Join Collaboration
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Room: <span className="font-mono font-bold">{roomCode}</span>
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleJoin()}
-                placeholder="Enter your name"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                autoFocus
-              />
-            </div>
-            
-            <button
-              onClick={handleJoin}
-              disabled={!userName.trim()}
-              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Join Lab
-            </button>
-            
-            <Link
-              href="/collaborate"
-              className="block text-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600"
-            >
-              Back to Collaboration Hub
-            </Link>
-          </div>
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Connecting to Lab...</h2>
+            <p className="text-gray-600 dark:text-gray-400">Please wait while we join the session.</p>
         </motion.div>
       </div>
     )
@@ -520,6 +501,28 @@ function CollaborativeLabContent() {
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-elixra-text-primary">Analysis</h2>
                             <p className="text-xs text-elixra-text-secondary">AI-powered results</p>
+                        </div>
+                        <div className="flex gap-2">
+                            {reactionResult && (
+                                <>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className="p-2 rounded-lg bg-elixra-bunsen/10 text-elixra-bunsen hover:bg-elixra-bunsen/20 transition-all"
+                                        title="Save to History"
+                                    >
+                                        {isSaving ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
+                                    </button>
+                                    <button
+                                        onClick={handleExport}
+                                        disabled={isExporting}
+                                        className="p-2 rounded-lg bg-elixra-copper/10 text-elixra-copper hover:bg-elixra-copper/20 transition-all"
+                                        title="Export PDF"
+                                    >
+                                        {isExporting ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-5 h-5" />}
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

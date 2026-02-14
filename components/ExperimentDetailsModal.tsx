@@ -1,9 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { X, FlaskConical, Atom, AlertTriangle, FileText, Activity, Beaker, Flame } from 'lucide-react'
+import { X, FlaskConical, Atom, AlertTriangle, FileText, Activity, Beaker, Flame, Download } from 'lucide-react'
 import { ExperimentLog } from '@/types/chemistry'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { generateExperimentPDF } from '@/lib/pdfExport'
 
 interface ExperimentDetailsModalProps {
     experiment: ExperimentLog | null
@@ -11,6 +12,8 @@ interface ExperimentDetailsModalProps {
 }
 
 export default function ExperimentDetailsModal({ experiment, onClose }: ExperimentDetailsModalProps) {
+    const [isExporting, setIsExporting] = useState(false)
+
     useEffect(() => {
         if (experiment) {
             document.body.style.overflow = 'hidden'
@@ -21,6 +24,27 @@ export default function ExperimentDetailsModal({ experiment, onClose }: Experime
     }, [experiment])
 
     if (!experiment) return null
+
+    const handleExport = async () => {
+        if (!experiment) return
+        setIsExporting(true)
+        try {
+            await generateExperimentPDF({
+                experiment: {
+                    name: experiment.experimentName,
+                    chemicals: experiment.chemicals,
+                    glassware: [], // Mock or empty for saved logs
+                },
+                result: experiment.reactionDetails,
+                date: new Date(experiment.timestamp),
+                author: experiment.userId || 'User'
+            })
+        } catch (error) {
+            console.error('Export failed:', error)
+        } finally {
+            setIsExporting(false)
+        }
+    }
 
     const formatDate = (date: Date | string) => {
         return new Date(date).toLocaleDateString('en-US', {
@@ -57,12 +81,26 @@ export default function ExperimentDetailsModal({ experiment, onClose }: Experime
                                 {formatDate(experiment.timestamp)}
                             </p>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
-                        >
-                            <X className="h-6 w-6" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleExport}
+                                disabled={isExporting}
+                                className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full transition-colors"
+                                title="Export PDF"
+                            >
+                                {isExporting ? (
+                                    <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <Download className="h-6 w-6" />
+                                )}
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Scrollable Content */}

@@ -12,6 +12,9 @@ import { getAllSamples } from '@/lib/spectrumData'
 import { formatSpectrumForDisplay } from '@/lib/spectrumHandlers'
 import { PerspectiveGrid, StaticGrid } from '@/components/GridBackground'
 import { useToast } from '@/components/Toast'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { useEffect } from 'react'
 
 const SPECTROSCOPY_TYPES = [
   {
@@ -44,6 +47,15 @@ function getSample(sampleId: string) {
 }
 
 export default function SpectroscopyPage() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
+  
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/signin')
+    }
+  }, [isLoading, isAuthenticated, router])
+
   const { addToast } = useToast() // Hook for notifications
   
   const allSamples = getAllSamples()
@@ -213,6 +225,18 @@ export default function SpectroscopyPage() {
     return formula.split(/(\d+)/).map((part, index) => 
       /^\d+$/.test(part) ? <sub key={index}>{part}</sub> : part
     )
+  }
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-[#020617]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

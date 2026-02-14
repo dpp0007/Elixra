@@ -40,8 +40,15 @@ import SaveConfirmation from '@/components/SaveConfirmation'
 
 export default function LabPage() {
     const router = useRouter()
-    const { syncExperiments, experiments, saveExperiment } = useAuth()
+    const { syncExperiments, experiments, saveExperiment, isAuthenticated, isLoading } = useAuth()
     const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push('/auth/signin')
+        }
+    }, [isLoading, isAuthenticated, router])
+
     const [saveStatus, setSaveStatus] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' }>({
         isVisible: false,
         message: '',
@@ -414,6 +421,18 @@ export default function LabPage() {
         setPendingEquipmentId(null)
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-[#020617]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return null
+    }
+
     return (
         <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-500">
             {/* Background Grid */}
@@ -556,6 +575,28 @@ export default function LabPage() {
                             <div className="flex-1">
                                 <h2 className="text-lg font-bold text-elixra-text-primary">Analysis</h2>
                                 <p className="text-xs text-elixra-text-secondary">AI-powered results</p>
+                            </div>
+                            <div className="flex gap-2">
+                                {reactionResult && (
+                                    <>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={isSaving}
+                                            className="p-2 rounded-lg bg-elixra-bunsen/10 text-elixra-bunsen hover:bg-elixra-bunsen/20 transition-all"
+                                            title="Save to History"
+                                        >
+                                            {isSaving ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
+                                        </button>
+                                        <button
+                                            onClick={handleExport}
+                                            disabled={isExporting}
+                                            className="p-2 rounded-lg bg-elixra-copper/10 text-elixra-copper hover:bg-elixra-copper/20 transition-all"
+                                            title="Export PDF"
+                                        >
+                                            {isExporting ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-5 h-5" />}
+                                        </button>
+                                    </>
+                                )}
                             </div>
                             {reactionResult && (
                                 <motion.div

@@ -48,6 +48,8 @@ const EnhancedMolecule3DViewer = dynamic(() => import('@/components/EnhancedMole
 
 import { Atom, Bond } from '@/types/molecule'
 import { getBackendUrl } from '@/lib/api-config'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   calculateBonds,
   getMolecularFormula,
@@ -57,6 +59,15 @@ import {
 } from '@/lib/bondingLogic'
 
 export default function EnhancedMoleculesPage() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading, saveExperiment, syncExperiments, experiments } = useAuth()
+  
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/signin')
+    }
+  }, [isLoading, isAuthenticated, router])
+
   const [atoms, setAtoms] = useState<Atom[]>([])
   const [bonds, setBonds] = useState<Bond[]>([])
   const [selectedElement, setSelectedElement] = useState<PeriodicElement | null>(null)
@@ -70,6 +81,15 @@ export default function EnhancedMoleculesPage() {
   const [showBondDialog, setShowBondDialog] = useState(false)
   const [pendingDropElement, setPendingDropElement] = useState<Element | null>(null)
   const [pendingDropPosition, setPendingDropPosition] = useState<{ x: number; y: number; z: number } | null>(null)
+  
+  // Save/Export states
+  const [isSaving, setIsSaving] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' }>({
+      isVisible: false,
+      message: '',
+      type: 'success'
+  })
   
   // Performance optimization
   const orbitControlsRef = useRef<any>(null)
@@ -436,6 +456,163 @@ export default function EnhancedMoleculesPage() {
     }
   }
 
+  const handleSave = async () => {
+    if (atoms.length === 0) return
+
+    // 1. Map Atoms to Chemicals
+    const chemicalsMap = new Map<string, { count: number, element: string }>()
+    atoms.forEach(atom => {
+         const current = chemicalsMap.get(atom.element) || { count: 0, element: atom.element }
+         chemicalsMap.set(atom.element, { count: current.count + 1, element: atom.element })
+    })
+
+    const chemicals: ChemicalContent[] = Array.from(chemicalsMap.values()).map(item => ({
+         chemical: {
+             id: item.element.toLowerCase(),
+             name: item.element,
+             formula: item.element,
+             color: '#ffffff', // default
+             state: 'solid', // default
+             category: 'Other'
+         },
+         amount: item.count,
+         unit: 'mol' // using mol as a proxy for atom count
+    }))
+
+    // 2. Map Analysis to ReactionResult
+    const formula = getMolecularFormula(atoms)
+    const reactionDetails: ReactionResult = {
+         balancedEquation: formula,
+         reactionType: 'Molecular Structure',
+         visualObservation: `Structure with ${atoms.length} atoms and ${bonds.length} bonds.`,
+         color: 'N/A',
+         smell: 'N/A',
+         temperatureChange: 'none',
+         gasEvolution: null,
+         emission: null,
+         stateChange: null,
+         phChange: null,
+         productsInfo: [],
+         explanation: {
+             mechanism: analysis?.structure.geometry || 'N/A',
+             bondBreaking: `Contains ${bonds.length} bonds.`,
+             energyProfile: 'Stable structure',
+             atomicLevel: `Hybridization: ${Object.values(analysis?.structure.hybridization || {}).join(', ') || 'N/A'}`,
+             keyConcept: analysis?.properties.polarity || 'Molecular Chemistry'
+         },
+         safety: {
+             riskLevel: analysis?.safety.toxicity || 'Unknown',
+             precautions: analysis?.safety.handling.join(', ') || 'Handle with care',
+             disposal: 'Standard chemical disposal',
+             firstAid: 'Standard first aid',
+             generalHazards: 'N/A'
+         },
+         precipitate: false,
+         products: [],
+         observations: [],
+         confidence: 1.0
+    }
+
+    const experimentData = {
+         name: moleculeName,
+         chemicals: chemicals,
+         reactionDetails: reactionDetails,
+         savedAt: new Date().toISOString(),
+         isSaved: true,
+         glassware: [] // Empty for molecule editor
+    }
+
+    setIsSaving(true)
+    try {
+         // @ts-ignore
+         await saveExperiment(experimentData)
+         setSaveStatus({ isVisible: true, message: 'Structure saved to history!', type: 'success' })
+         await syncExperiments()
+    } catch (error) {
+         console.error('Save failed', error)
+         setSaveStatus({ isVisible: true, message: 'Failed to save.', type: 'error' })
+    } finally {
+         setIsSaving(false)
+    }
+  }
+
+  const handleExport = async () => {
+    if (atoms.length === 0) return
+
+    setIsExporting(true)
+    try {
+        const { generateExperimentPDF } = await import('@/lib/pdfExport')
+        
+        // Mock Experiment data for the PDF generator
+        const chemicalsMap = new Map<string, { count: number, element: string }>()
+        atoms.forEach(atom => {
+             const current = chemicalsMap.get(atom.element) || { count: 0, element: atom.element }
+             chemicalsMap.set(atom.element, { count: current.count + 1, element: atom.element })
+        })
+
+        const chemicals: ChemicalContent[] = Array.from(chemicalsMap.values()).map(item => ({
+             chemical: {
+                 id: item.element.toLowerCase(),
+                 name: item.element,
+                 formula: item.element,
+                 color: '#ffffff',
+                 state: 'solid',
+                 category: 'Other'
+             },
+             amount: item.count,
+             unit: 'mol'
+        }))
+
+        const formula = getMolecularFormula(atoms)
+        
+        await generateExperimentPDF({
+            experiment: {
+                name: moleculeName,
+                chemicals: chemicals,
+                glassware: []
+            },
+            result: {
+                balancedEquation: formula,
+                reactionType: 'Molecular Structure',
+                visualObservation: `Structure with ${atoms.length} atoms and ${bonds.length} bonds.`,
+                color: 'N/A',
+                smell: 'N/A',
+                temperatureChange: 'none',
+                gasEvolution: null,
+                emission: null,
+                stateChange: null,
+                phChange: null,
+                productsInfo: [],
+                explanation: {
+                    mechanism: analysis?.structure.geometry || 'N/A',
+                    bondBreaking: `Contains ${bonds.length} bonds.`,
+                    energyProfile: 'Stable structure',
+                    atomicLevel: `Hybridization: ${Object.values(analysis?.structure.hybridization || {}).join(', ') || 'N/A'}`,
+                    keyConcept: analysis?.properties.polarity || 'Molecular Chemistry'
+                },
+                safety: {
+                    riskLevel: analysis?.safety.toxicity || 'Unknown',
+                    precautions: analysis?.safety.handling.join(', ') || 'Handle with care',
+                    disposal: 'Standard chemical disposal',
+                    firstAid: 'Standard first aid',
+                    generalHazards: 'N/A'
+                },
+                precipitate: false,
+                products: [],
+                observations: [],
+                confidence: 1.0
+            },
+            date: new Date(),
+            author: 'Lab User'
+        })
+    } catch (error) {
+        console.error('Export failed:', error)
+        alert('Failed to export PDF')
+    } finally {
+        setIsExporting(false)
+    }
+  }
+
   // Auto-analyze on structural changes (debounced)
   useEffect(() => {
     if (atoms.length === 0) return
@@ -652,6 +829,18 @@ export default function EnhancedMoleculesPage() {
   // Mobile Tab State
   const [activeMobileTab, setActiveMobileTab] = useState<'editor' | 'library' | 'analysis'>('editor')
 
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-[#020617]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-elixra-cream dark:bg-elixra-charcoal relative overflow-hidden transition-colors duration-300">
       <PerspectiveGrid />
@@ -827,12 +1016,30 @@ export default function EnhancedMoleculesPage() {
                 <Sparkles className="h-5 w-5 text-elixra-bunsen" />
                 AI Analysis
               </h3>
-              <button
-                onClick={() => setShowAnalysis(false)}
-                className="p-2 rounded-lg glass-panel bg-white/40 dark:bg-white/10 border border-elixra-border-subtle hover:border-elixra-bunsen/30 transition-all"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="p-2 rounded-lg bg-elixra-bunsen/10 text-elixra-bunsen hover:bg-elixra-bunsen/20 transition-all"
+                    title="Save to History"
+                >
+                    {isSaving ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
+                </button>
+                <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="p-2 rounded-lg bg-elixra-copper/10 text-elixra-copper hover:bg-elixra-copper/20 transition-all"
+                    title="Export PDF"
+                >
+                    {isExporting ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Download className="w-5 h-5" />}
+                </button>
+                <button
+                    onClick={() => setShowAnalysis(false)}
+                    className="p-2 rounded-lg glass-panel bg-white/40 dark:bg-white/10 border border-elixra-border-subtle hover:border-elixra-bunsen/30 transition-all"
+                >
+                    ✕
+                </button>
+              </div>
             </div>
             
             <div className="space-y-6 pb-20 sm:pb-0">
@@ -1497,6 +1704,13 @@ export default function EnhancedMoleculesPage() {
           )}
         </button>
       </div>
+
+      <SaveConfirmation
+        isVisible={saveStatus.isVisible}
+        message={saveStatus.message}
+        type={saveStatus.type}
+        onClose={() => setSaveStatus(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   )
 }
