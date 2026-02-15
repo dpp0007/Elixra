@@ -7,8 +7,10 @@
   
   [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-  [![Gemini AI](https://img.shields.io/badge/AI-Gemini%20Pro-blue?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+  [![Gemini AI](https://img.shields.io/badge/AI-Gemini%202.0-blue?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
   [![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Three.js](https://img.shields.io/badge/Three.js-3D-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 </div>
 
 ---
@@ -16,12 +18,18 @@
 ## 📑 Table of Contents
 - [Overview](#-overview)
 - [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
 - [Architecture](#-architecture)
 - [Project Structure](#-project-structure)
 - [Installation & Setup](#-installation--setup)
 - [Configuration](#-configuration)
+- [Scripts & Commands](#-scripts--commands)
 - [API Documentation](#-api-documentation)
-- [Virtual Lab Equipment](#-virtual-lab-equipment)
+- [Core Modules](#-core-modules)
+- [Avatar Voice Configuration](#-avatar-voice-configuration)
+- [Development Workflow](#-development-workflow)
+- [Troubleshooting](#-troubleshooting)
+- [AWS Services Migration](#-aws-services-migration)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -29,12 +37,14 @@
 
 ## 🔭 Overview
 
-**Elixra** is a next-generation educational platform that bridges the gap between theoretical chemistry and practical application. By leveraging **Google's Gemini AI**, 3D visualization technologies, and gamified learning paths, Elixra provides students with a safe, interactive, and intelligent environment to master complex chemical concepts.
+**Elixra** is a next-generation educational platform that bridges the gap between theoretical chemistry and practical application. By leveraging **Google's Gemini 2.0 Flash AI**, 3D visualization technologies, voice interaction, and gamified learning paths, Elixra provides students with a safe, interactive, and intelligent environment to master complex chemical concepts.
 
 ### Value Proposition
-- **Safe Experimentation**: Perform dangerous or costly reactions in a risk-free virtual environment.
-- **Personalized Tutoring**: **ERA (Elixra Reactive Assistant)** provides real-time, context-aware guidance tailored to the student's learning pace.
-- **Visual Learning**: Interact with 3D molecular structures and simulated lab equipment to build intuitive understanding.
+- **Safe Experimentation**: Perform dangerous or costly reactions in a risk-free virtual environment with realistic physics simulation.
+- **Personalized AI Tutoring**: **ERA (Elixra Reactive Assistant)** provides real-time, context-aware guidance with voice interaction and avatar animation.
+- **Visual Learning**: Interact with 3D molecular structures, spectroscopy data, and simulated lab equipment to build intuitive understanding.
+- **Collaborative Learning**: Real-time collaboration features for group experiments and peer learning.
+- **Gamified Progress**: Achievements, challenges, and progress tracking to maintain engagement.
 
 ---
 
@@ -42,53 +52,160 @@
 
 | Feature | Description |
 |:---:|:---|
-| <img src="public/Assets/Cards/Virtual Lab.svg" width="50" /> <br> **Virtual Lab** | Interactive workbench with realistic equipment physics and chemical reaction simulations. |
-| <img src="public/Assets/Cards/Ai Teacher.svg" width="50" /> <br> **AI Tutor (ERA)** | Intelligent assistant for Q&A, experiment guidance, and concept explanation. |
-| <img src="public/Assets/Cards/Quize.svg" width="50" /> <br> **Adaptive Quizzes** | Dynamic question generation (MCQ, Reactions) with detailed performance analysis. |
-| <img src="public/Assets/Cards/Molecule.svg" width="50" /> <br> **3D Molecules** | Interactive 3D viewer for atomic structures, bonding, and molecular geometry. |
-| <img src="public/Assets/Cards/Collabrate.svg" width="50" /> <br> **Collaboration** | Real-time collaborative features for group experiments and peer learning. |
+| <img src="public/Assets/Cards/Virtual Lab.svg" width="50" /> <br> **Virtual Lab** | Interactive workbench with realistic equipment physics, chemical reaction simulations, and drag-and-drop interface. |
+| <img src="public/Assets/Cards/Ai Teacher.svg" width="50" /> <br> **AI Tutor (ERA)** | Intelligent assistant with streaming chat, voice interaction, avatar animation, and context-aware explanations. |
+| <img src="public/Assets/Cards/Quize.svg" width="50" /> <br> **Adaptive Quizzes** | Dynamic question generation (MCQ, Reactions, Explanations) with detailed performance analysis and difficulty scaling. |
+| <img src="public/Assets/Cards/Molecule.svg" width="50" /> <br> **3D Molecules** | Interactive 3D viewer for atomic structures, bonding visualization, molecular geometry, and template library. |
+| <img src="public/Assets/Cards/Collabrate.svg" width="50" /> <br> **Collaboration** | Real-time collaborative features for group experiments, shared workspaces, and peer learning. |
+| 🔬 **Spectroscopy** | NMR, IR, and Mass Spectrometry analysis tools with interactive visualization and interpretation guidance. |
+| 🎤 **Voice Interaction** | Voice commands, avatar voice synthesis with customizable voices, and speech-to-text transcription. |
+| 🏆 **Gamification** | Achievement system, challenges, leaderboards, and progress tracking to maintain engagement. |
+| 📓 **Notebook** | Experiment documentation, note-taking, and PDF export for lab reports. |
+| ⚠️ **Safety System** | Chemical safety guidelines, hazard warnings, and best practices for each experiment. |
 
 ---
 
 ## 🏗 Architecture
 
-Elixra follows a modern **Service-Oriented Architecture (SOA)**:
+Elixra follows a modern **Service-Oriented Architecture (SOA)** with real-time streaming capabilities:
 
 ```mermaid
 graph TD
-    Client[Next.js Client] -->|HTTP/REST| API[FastAPI Backend]
-    Client -->|WebSocket| WS[Real-time Comms]
-    API -->|Prompting| AI[Google Gemini API]
-    API -->|Auth/Data| DB[(MongoDB)]
-    Client -->|3D Rendering| Three[Three.js/Fiber]
+    Client[Next.js Client<br/>React + Three.js] -->|HTTP/REST| API[FastAPI Backend<br/>Python + Async]
+    Client -->|WebSocket| WS[Real-time Streaming<br/>NDJSON Format]
+    API -->|Prompting| AI[Google Gemini 2.0<br/>LLM]
+    API -->|Auth/Data| DB[(MongoDB<br/>User Data)]
+    Client -->|3D Rendering| Three[Three.js/Fiber<br/>3D Graphics]
+    Client -->|Voice| Voice[Web Speech API<br/>TTS/STT]
+    Client -->|Auth| OAuth[Google OAuth<br/>Authentication]
 ```
 
-- **Frontend**: Next.js 14 (App Router), Tailwind CSS, Framer Motion, React Three Fiber.
-- **Backend**: FastAPI (Python), Uvicorn.
-- **AI Engine**: Google Generative AI (Gemini 2.5 Flash).
-- **Database**: MongoDB (User data, progress tracking).
+### Technology Stack
+
+**Frontend:**
+- **Framework**: Next.js 14 (App Router) with React 18.2
+- **Language**: TypeScript 5.2
+- **3D Graphics**: Three.js 0.169, React Three Fiber 8.17, React Three Drei 9.113
+- **Styling**: Tailwind CSS 3.3, Framer Motion 10.16
+- **State**: React Context + Hooks
+- **Auth**: NextAuth 4.24 with MongoDB adapter
+- **Testing**: Vitest 4.0, Testing Library
+
+**Backend:**
+- **Framework**: FastAPI 0.115 with Uvicorn 0.30
+- **Language**: Python 3.10+
+- **AI/LLM**: Google Generative AI (Gemini 2.0 Flash)
+- **Real-time**: WebSockets 13.1 with streaming
+- **Validation**: Pydantic 2.9
+- **Async**: Python async/await
+
+**Database & Services:**
+- **Database**: MongoDB 6.0 (user data, progress, experiments)
+- **Authentication**: Google OAuth 2.0
+- **Voice**: Agora SDK (TTS/ASR)
+- **Deployment**: Elixra.in (production)
 
 ---
 
 ## 📂 Project Structure
 
 ```bash
-d:\Elixra\build-o-thon
-├── 📁 app/                 # Next.js App Router pages & API routes
-│   ├── 📁 quiz/            # Quiz module (UI & Logic)
-│   ├── 📁 lab/             # Virtual Lab environment
-│   ├── 📁 api/             # Next.js Serverless Functions
+build-o-thon/
+├── 📁 app/                          # Next.js App Router
+│   ├── 📁 api/                      # Serverless API routes
+│   │   ├── analytics/               # User analytics
+│   │   ├── auth/                    # Authentication endpoints
+│   │   ├── challenges/              # Challenge management
+│   │   ├── collaboration/           # Real-time collaboration
+│   │   ├── experiments/             # Experiment data
+│   │   ├── gamification/            # Achievements & rewards
+│   │   ├── inventory/               # Equipment inventory
+│   │   ├── marketplace/             # Content marketplace
+│   │   ├── molecules/               # Molecule generation
+│   │   ├── notebook/                # Experiment notes
+│   │   ├── quiz/                    # Quiz generation
+│   │   ├── reactions/               # Reaction analysis
+│   │   ├── safety/                  # Safety guidelines
+│   │   ├── spectroscopy/            # Spectroscopy analysis
+│   │   ├── user/                    # User management
+│   │   └── voice/                   # Voice synthesis
+│   ├── 📁 lab/                      # Virtual lab page
+│   ├── 📁 quiz/                     # Quiz module
+│   ├── 📁 molecules/                # Molecule viewer
+│   ├── 📁 spectroscopy/             # Spectroscopy tools
+│   ├── 📁 experiments/              # Experiment templates
+│   ├── 📁 equipment/                # Equipment catalog
+│   ├── 📁 avatar/                   # AI tutor interface
+│   ├── 📁 collaborate/              # Collaboration features
+│   ├── 📁 auth/                     # Auth pages
+│   ├── layout.tsx                   # Root layout
+│   └── page.tsx                     # Home page
+│
+├── 📁 components/                   # Reusable React components
+│   ├── StreamingChat.tsx            # Real-time chat with AI
+│   ├── AvatarTeacher.tsx            # Avatar animation & lip-sync
+│   ├── VoiceChatTeacher.tsx         # Voice interaction
+│   ├── VoiceCommandSystem.tsx       # Voice commands
+│   ├── EnhancedMolecule3DViewer.tsx # 3D molecule viewer
+│   ├── SpectrumGraph.tsx            # Spectroscopy visualization
+│   ├── PeriodicTable.tsx            # Interactive periodic table
+│   ├── LabTable.tsx                 # Virtual lab workbench
+│   ├── 📁 equipment-effects/        # Lab equipment effects
+│   ├── 📁 collaborative/            # Collaboration components
 │   └── ...
-├── 📁 backend/             # Python FastAPI Server
-│   ├── main.py             # Entry point & API definitions
-│   └── requirements.txt    # Python dependencies
-├── 📁 components/          # Reusable React components
-│   ├── 📁 equipment-effects/ # Visual effects for lab gear
-│   └── ...
-├── 📁 public/              # Static assets
-│   └── 📁 Assets/          # SVGs and icons
-├── 📁 lib/                 # Utility functions & configs
-└── ...
+│
+├── 📁 lib/                          # Utility functions
+│   ├── bondingLogic.ts              # Chemical bonding calculations
+│   ├── chemicalValidation.ts        # Molecular validation
+│   ├── spectrumHandlers.ts          # Spectroscopy processing
+│   ├── geometryGenerator.ts         # 3D geometry generation
+│   ├── molecularTemplates.ts        # Molecule templates
+│   ├── periodicTable.ts             # Periodic table data
+│   ├── ph-calculator.ts             # pH calculations
+│   ├── pdfExport.ts                 # PDF report generation
+│   ├── mongodb.ts                   # Database connection
+│   ├── auth.ts                      # Auth utilities
+│   ├── achievements.ts              # Gamification logic
+│   └── curriculum.ts                # Learning curriculum
+│
+├── 📁 types/                        # TypeScript definitions
+│   ├── chemistry.ts                 # Chemistry domain types
+│   ├── molecule.ts                  # Molecule structure types
+│   ├── spectroscopy.ts              # Spectroscopy types
+│   ├── features.ts                  # Feature types
+│   └── next-auth.d.ts               # NextAuth extensions
+│
+├── 📁 contexts/                     # React Context providers
+├── 📁 hooks/                        # Custom React hooks
+├── 📁 public/                       # Static assets
+│   └── 📁 Assets/                   # SVGs, icons, images
+│
+├── 📁 backend/                      # FastAPI Python backend
+│   ├── main.py                      # FastAPI app & endpoints
+│   ├── requirements.txt             # Python dependencies
+│   ├── setup.ps1                    # Windows setup script
+│   ├── start.ps1                    # Windows startup script
+│   └── .env                         # Backend environment config
+│
+├── 📁 .kiro/                        # Kiro IDE configuration
+│   └── 📁 specs/                    # Project specifications
+│       └── 📁 aws-services-replacement/
+│           ├── README.md            # Spec overview
+│           ├── INTEGRATION_SUMMARY.md
+│           ├── CODEBASE_ANALYSIS.md
+│           ├── requirements.md
+│           ├── design.md
+│           └── tasks.md
+│
+├── package.json                     # Node.js dependencies
+├── tsconfig.json                    # TypeScript config
+├── next.config.js                   # Next.js config
+├── tailwind.config.js               # Tailwind config
+├── postcss.config.js                # PostCSS config
+├── vitest.config.ts                 # Vitest config
+├── .eslintrc.json                   # ESLint config
+├── .env.example                     # Environment template
+└── README.md                         # This file
 ```
 
 ---
@@ -100,6 +217,7 @@ d:\Elixra\build-o-thon
 - **Python** (v3.10+)
 - **MongoDB** (Local or Atlas)
 - **Google Cloud API Key** (for Gemini)
+- **Agora App ID & Certificate** (for voice features)
 
 ### 1. Clone the Repository
 ```bash
@@ -112,6 +230,9 @@ cd build-o-thon
 # Install Node dependencies
 npm install
 
+# Create .env.local file with required variables (see Configuration section)
+cp .env.example .env.local
+
 # Start Development Server
 npm run dev
 # > Ready on http://localhost:3000
@@ -121,201 +242,349 @@ npm run dev
 ```bash
 cd backend
 
-# Create Virtual Environment (Optional but recommended)
+# Option A: Windows PowerShell
+.\setup.ps1          # Creates virtual environment and installs dependencies
+.\start.ps1          # Starts FastAPI server
+
+# Option B: Manual setup (all platforms)
 python -m venv venv
 # Windows: venv\Scripts\activate
 # Mac/Linux: source venv/bin/activate
 
-# Install Python dependencies
 pip install -r requirements.txt
-
-# Start FastAPI Server
 python main.py
 # > Chemistry Avatar API Starting...
 # > Backend URL: http://localhost:8000
 ```
 
+### 4. Verify Installation
+- Frontend: Open http://localhost:3000 in your browser
+- Backend API Docs: Open http://localhost:8000/docs
+- Backend Health: Open http://localhost:8000/health
+
 ---
 
-<<<<<<< HEAD
-## 📜 Scripts
-=======
-## 🎙️ Avatar Voice Configuration (NEW!)
+## 🔧 Configuration
 
-### **Available Voice Options** 🗣️
+Create a `.env.local` file in the root directory for frontend configuration:
 
-The avatar uses the **Web Speech API** which provides different voices depending on your operating system:
+| Variable | Description | Required |
+|:---|:---|:---:|
+| `NEXT_PUBLIC_BACKEND_URL` | Backend API URL (e.g., http://localhost:8000) | ✅ |
+| `GEMINI_API_KEY` | Google Gemini API Key | ✅ |
+| `MONGODB_URI` | MongoDB connection string | ✅ |
+| `NEXTAUTH_SECRET` | Secret key for session encryption | ✅ |
+| `NEXTAUTH_URL` | Base URL (e.g., http://localhost:3000) | ✅ |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | ✅ |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | ✅ |
+| `AGORA_APP_ID` | Agora SDK App ID | ✅ |
+| `AGORA_CERTIFICATE` | Agora SDK Certificate | ✅ |
+| `NODE_ENV` | Environment (development/production) | ❌ |
 
-#### **Windows Voices** 🪟
+Create a `backend/.env` file for backend configuration:
 
-```
-✅ Microsoft Zira (Female) - Default, natural sounding
-✅ Microsoft David (Male) - Professional, clear
-✅ Microsoft Mark (Male) - Friendly, casual
-✅ Microsoft Hazel (Female) - Warm, engaging
-✅ Microsoft Aria (Female) - Modern, professional
-```
+| Variable | Description | Default |
+|:---|:---|:---|
+| `GEMINI_API_KEY` | Google Gemini API Key | Required |
+| `MONGODB_URI` | MongoDB connection string | Required |
+| `BACKEND_URL` | Backend URL | http://localhost:8000 |
+| `FRONTEND_URL` | Frontend URL for CORS | http://localhost:3000 |
+| `AGORA_APP_ID` | Agora App ID | Required |
+| `AGORA_CERTIFICATE` | Agora Certificate | Required |
 
-#### **macOS Voices** 🍎
+### Environment Setup Example
 
-```
-✅ Samantha (Female) - Default, natural
-✅ Victoria (Female) - British accent
-✅ Karen (Female) - Australian accent
-✅ Moira (Female) - Irish accent
-✅ Alex (Male) - Professional
-✅ Bruce (Male) - Australian
-```
-
-#### **Linux Voices** 🐧
-
-```
-✅ eSpeak (Multiple languages)
-✅ Festival (Open source)
-✅ MBROLA (Multilingual)
-```
-
-### **How to Change the Avatar's Voice** 🎵
-
-#### **Option 1: Browser Settings (Easiest)**
-
-**Chrome/Edge:**
-1. Open Settings → Advanced → Accessibility
-2. Look for "Text-to-speech" or "Speech"
-3. Select your preferred voice
-4. The avatar will use this voice automatically
-
-**macOS Safari:**
-1. System Preferences → Accessibility → Speech
-2. Select "System voice"
-3. Choose your preferred voice
-4. Restart the browser
-
-#### **Option 2: Modify the Code** 💻
-
-Edit `components/StreamingChat.tsx` to select a specific voice:
-
-```typescript
-// Find this section in the speakNextInQueue function:
-const voices = synthRef.current.getVoices()
-
-// Option A: Select by name (Windows)
-const selectedVoice = voices.find(voice => 
-  voice.name.includes('Zira') ||  // Change to: David, Mark, Hazel, Aria
-  voice.name.includes('Female')
-)
-
-// Option B: Select by language
-const selectedVoice = voices.find(voice => 
-  voice.lang.includes('en-US')  // or en-GB, en-AU, etc.
-)
-
-// Option C: Select by index
-const selectedVoice = voices[0]  // First available voice
-
-// Apply the voice
-if (selectedVoice) {
-  utterance.voice = selectedVoice
-}
-```
-
-#### **Option 3: Add Voice Selection UI** 🎛️
-
-Create a voice selector dropdown in the chat interface:
-
-```typescript
-// Add this state to StreamingChat
-const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
-
-// Add this effect to load available voices
-useEffect(() => {
-  if (synthRef.current) {
-    const voices = synthRef.current.getVoices()
-    console.log('Available voices:', voices.map(v => v.name))
-    if (voices.length > 0) {
-      setSelectedVoice(voices[0])
-    }
-  }
-}, [])
-
-// In the UI, add a select dropdown:
-<select onChange={(e) => {
-  const voices = synthRef.current?.getVoices() || []
-  const voice = voices.find(v => v.name === e.target.value)
-  if (voice) setSelectedVoice(voice)
-}}>
-  {synthRef.current?.getVoices().map((voice, i) => (
-    <option key={i} value={voice.name}>
-      {voice.name} ({voice.lang})
-    </option>
-  ))}
-</select>
-
-// Use the selected voice in speakNextInQueue:
-if (selectedVoice) {
-  utterance.voice = selectedVoice
-}
-```
-
-### **Voice Properties You Can Adjust** 🎚️
-
-In `components/StreamingChat.tsx`, modify these properties:
-
-```typescript
-const utterance = new SpeechSynthesisUtterance(cleanedSentence)
-
-// Adjust these properties:
-utterance.rate = 1.1        // Speed: 0.1 (slow) to 2.0 (fast)
-utterance.pitch = 1.0       // Pitch: 0.0 (low) to 2.0 (high)
-utterance.volume = 1.0      // Volume: 0.0 (silent) to 1.0 (loud)
-utterance.voice = voice     // Select specific voice
-
-// Examples:
-utterance.rate = 0.9        // Slower, more deliberate
-utterance.pitch = 1.2       // Higher pitched
-utterance.volume = 0.8      // Slightly quieter
-```
-
-### **Recommended Voice Combinations** 🎭
-
-**For Professional Teaching:**
-```
-Voice: Microsoft Zira (Windows) or Samantha (Mac)
-Rate: 1.0-1.1 (normal to slightly fast)
-Pitch: 1.0 (neutral)
-Volume: 1.0 (full)
-```
-
-**For Friendly Learning:**
-```
-Voice: Microsoft Hazel (Windows) or Victoria (Mac)
-Rate: 1.1 (slightly faster)
-Pitch: 1.1 (slightly higher)
-Volume: 1.0 (full)
-```
-
-**For Engaging Explanations:**
-```
-Voice: Microsoft Aria (Windows) or Moira (Mac)
-Rate: 0.95 (slightly slower)
-Pitch: 1.05 (slightly higher)
-Volume: 1.0 (full)
-```
-
-### **Troubleshooting Voice Issues** 🔧
-
-**No voice is playing:**
+**.env.local (Frontend)**
 ```bash
-# Check if speech synthesis is supported
-console.log(window.speechSynthesis)
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/elixra
+NEXTAUTH_SECRET=your_secret_key_here
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+AGORA_APP_ID=your_agora_app_id
+AGORA_CERTIFICATE=your_agora_certificate
+NODE_ENV=development
+```
 
-# Check available voices
-console.log(window.speechSynthesis.getVoices())
+**backend/.env (Backend)**
+```bash
+GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/elixra
+BACKEND_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+AGORA_APP_ID=your_agora_app_id
+AGORA_CERTIFICATE=your_agora_certificate
+```
 
-# If empty, wait for voices to load
-window.speechSynthesis.onvoiceschanged = () => {
-  console.log(window.speechSynthesis.getVoices())
+---
+
+## 📜 Scripts & Commands
+
+### Frontend Scripts
+
+```bash
+npm run dev      # Start development server (http://localhost:3000)
+npm run build    # Create optimized production build
+npm run start    # Start production server
+npm run lint     # Run ESLint checks
+```
+
+### Backend Scripts
+
+**Windows PowerShell:**
+```bash
+cd backend
+.\setup.ps1      # Create venv and install dependencies
+.\start.ps1      # Start FastAPI server
+```
+
+**Manual (All Platforms):**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Mac/Linux
+# or
+venv\Scripts\activate     # Windows
+
+pip install -r requirements.txt
+python main.py
+```
+
+### Testing & Validation
+
+```bash
+# Frontend linting
+npm run lint
+
+# Frontend type checking
+npx tsc --noEmit
+
+# Frontend tests (if configured)
+npx vitest
+
+# Backend API documentation
+# Open http://localhost:8000/docs (Swagger UI)
+# Open http://localhost:8000/redoc (ReDoc)
+```
+
+---
+
+## 📡 API Documentation
+
+The backend exposes comprehensive endpoints for all features. Full Swagger documentation available at `http://localhost:8000/docs`.
+
+### Key Endpoints
+
+**Chat & AI Tutor:**
+- `POST /chat` - Streaming chat with AI tutor
+- `POST /analyze-reaction` - Chemical reaction analysis
+- `POST /analyze-molecule` - Molecular structure analysis
+- `POST /generate-molecule` - AI-generated molecule creation
+- `WebSocket /ws` - Real-time WebSocket communication
+
+**Quiz & Learning:**
+- `POST /quiz/generate` - Dynamic quiz generation
+- `POST /quiz/generate-mcq` - Multiple choice questions
+- `POST /quiz/generate-reaction` - Reaction-based questions
+- `POST /quiz/generate-explanation` - Explanation questions
+
+**Spectroscopy:**
+- `POST /spectroscopy/analyze` - Spectroscopy data analysis
+- `POST /spectroscopy/interpret` - Spectrum interpretation
+
+**Voice & Audio:**
+- `POST /synthesize` - Text-to-speech synthesis (Polly - planned)
+- `WebSocket /transcribe` - Speech-to-text transcription (Transcribe - planned)
+
+**User & Progress:**
+- `GET /user/profile` - User profile data
+- `GET /user/progress` - Learning progress
+- `POST /user/achievements` - Achievement tracking
+
+### Example Requests
+
+**Quiz Generation:**
+```json
+POST /quiz/generate
+{
+  "difficulty": "medium",
+  "num_questions": 5,
+  "question_types": ["mcq", "explanation"],
+  "include_timer": true
 }
+```
+
+**AI Chat:**
+```json
+POST /chat
+{
+  "message": "Explain covalent bonding",
+  "context": "User is looking at a Carbon atom",
+  "history": []
+}
+```
+
+---
+
+## 🧪 Core Modules
+
+### Virtual Lab (`app/lab/`)
+Interactive chemistry workbench with:
+- Drag-and-drop equipment placement
+- Real-time reaction simulation
+- Physics-based interactions
+- Safety warnings and guidelines
+
+### Quiz System (`app/quiz/`)
+Adaptive learning with:
+- Dynamic question generation via Gemini AI
+- Multiple question types (MCQ, Reactions, Explanations)
+- Performance tracking and analytics
+- Difficulty scaling based on user performance
+
+### Molecule Viewer (`app/molecules/`)
+3D molecular visualization featuring:
+- Interactive 3D structure viewer (Three.js)
+- Bonding logic and validation
+- Molecular templates library
+- Periodic table integration
+
+### Spectroscopy (`app/spectroscopy/`)
+Advanced analysis tools for:
+- NMR spectrum interpretation
+- IR spectrum analysis
+- Mass spectrometry data
+- Interactive visualization with tooltips
+
+### Collaboration (`app/collaborate/`)
+Real-time features including:
+- Shared experiment workspaces
+- Live chat and annotations
+- Synchronized state management
+- Peer learning support
+
+---
+
+## 🎤 Avatar Voice Configuration
+
+### Available Voice Options
+
+The avatar uses the **Web Speech API** with platform-specific voices:
+
+**Windows:**
+- Microsoft Zira (Female) - Default, natural
+- Microsoft David (Male) - Professional
+- Microsoft Hazel (Female) - Warm, engaging
+- Microsoft Aria (Female) - Modern
+
+**macOS:**
+- Samantha (Female) - Default
+- Victoria (Female) - British accent
+- Moira (Female) - Irish accent
+- Alex (Male) - Professional
+
+### Customizing Avatar Voice
+
+**Option 1: Browser Settings (Easiest)**
+1. Chrome/Edge: Settings → Advanced → Accessibility → Text-to-speech
+2. Select your preferred voice
+3. Avatar will use this voice automatically
+
+**Option 2: Code Modification**
+
+Edit `components/StreamingChat.tsx`:
+
+```typescript
+const voices = synthRef.current.getVoices()
+const selectedVoice = voices.find(voice => 
+  voice.name.includes('Zira')  // Change to: David, Hazel, Aria
+)
+
+if (selectedVoice) {
+  utterance.voice = selectedVoice
+  utterance.rate = 1.1        // Speed: 0.1-2.0
+  utterance.pitch = 1.0       // Pitch: 0.0-2.0
+  utterance.volume = 1.0      // Volume: 0.0-1.0
+}
+```
+
+**Option 3: Add Voice Selection UI**
+
+Create a dropdown selector in the chat interface to let users choose voices dynamically.
+
+### Voice Properties
+
+```typescript
+utterance.rate = 1.1        // Speed (0.1 slow to 2.0 fast)
+utterance.pitch = 1.0       // Pitch (0.0 low to 2.0 high)
+utterance.volume = 1.0      // Volume (0.0 silent to 1.0 loud)
+```
+
+---
+
+## 🔄 Development Workflow
+
+### Git Workflow
+- **main** — Stable production branch
+- **feature branches** — e.g., `feature/spectroscopy`, `feature/lab-equipment`
+
+### Development Process
+1. Create a feature branch from `main`
+2. Implement changes with proper TypeScript types
+3. Run `npm run lint` to check code quality
+4. Run `npm run build` to verify production build
+5. Open a Pull Request with clear description
+6. Code review and merge to `main`
+
+### Code Standards
+- **Frontend**: ESLint rules, functional components, React Hooks
+- **Backend**: Type hints (Pydantic), PEP 8 compliance, async/await patterns
+
+---
+
+## 🧰 Troubleshooting
+
+### Frontend Issues
+
+**ChunkLoadError or outdated client files:**
+```bash
+# Stop dev server, clear cache, restart
+rm -rf .next
+npm run dev
+```
+
+**ESLint warnings:**
+- `@next/next/no-img-element`: Use `next/image` for optimized loading
+- `react-hooks/exhaustive-deps`: Include all dependencies in useEffect
+
+**TypeScript errors:**
+- Check type definitions in `types/` directory
+- Ensure all imports are properly typed
+
+### Backend Issues
+
+**ModuleNotFoundError:**
+```bash
+# Reinstall dependencies
+pip install -r requirements.txt
+```
+
+**Connection errors:**
+- Verify MongoDB URI in `.env`
+- Check Gemini API key validity
+- Ensure backend is running on port 8000
+
+**CORS errors:**
+- Verify `FRONTEND_URL` in backend `.env`
+- Check CORS configuration in `main.py`
+
+### Voice Issues
+
+**No voice playing:**
+```javascript
+console.log(window.speechSynthesis.getVoices())
 ```
 
 **Voice sounds robotic:**
@@ -323,237 +592,58 @@ window.speechSynthesis.onvoiceschanged = () => {
 - Adjust pitch to 0.9-1.1
 - Try different voice options
 
-**Voice is too quiet:**
-- Increase volume to 1.0
-- Check system volume settings
-- Try different voice (some are naturally quieter)
-
-**Voice not changing:**
-- Clear browser cache
-- Restart browser
-- Check if voice is available on your OS
-- Try selecting voice by language instead of name
-
-### **Advanced: Custom Voice Synthesis** 🚀
-
-For more control, consider using external TTS services:
-
-**Option 1: Google Cloud Text-to-Speech**
-```bash
-# Install
-npm install @google-cloud/text-to-speech
-
-# Use in code
-const textToSpeech = require('@google-cloud/text-to-speech')
-const client = new textToSpeech.TextToSpeechClient()
-
-const request = {
-  input: {text: 'Hello world'},
-  voice: {
-    languageCode: 'en-US',
-    name: 'en-US-Neural2-C'  // Premium neural voices
-  },
-  audioConfig: {audioEncoding: 'MP3'}
-}
-
-const [response] = await client.synthesizeSpeech(request)
-```
-
-**Option 2: Azure Speech Services**
-```bash
-# Install
-npm install microsoft-cognitiveservices-speech-sdk
-
-# Use in code
-const sdk = require('microsoft-cognitiveservices-speech-sdk')
-const speechConfig = sdk.SpeechConfig.fromSubscription(key, region)
-const synthesizer = new sdk.SpeechSynthesizer(speechConfig)
-
-synthesizer.speakTextAsync(
-  'Hello world',
-  result => console.log(result),
-  error => console.log(error)
-)
-```
-
-**Option 3: ElevenLabs (Premium AI Voices)**
-```bash
-# Install
-npm install elevenlabs
-
-# Use in code
-const { ElevenLabsClient } = require('elevenlabs')
-const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY })
-
-const audio = await client.generate({
-  voice: 'Bella',  // Premium voice
-  text: 'Hello world',
-  model_id: 'eleven_monolingual_v1'
-})
-```
-
-### **Voice Selection Best Practices** ✨
-
-```
-✅ Test different voices with your students
-✅ Choose voices that match your teaching style
-✅ Adjust rate/pitch for clarity
-✅ Use consistent voice throughout session
-✅ Consider accessibility (clear pronunciation)
-✅ Match voice to avatar personality
-✅ Test on different devices/browsers
-```
-
 ---
 
-## 🤖 AI Avatar Teacher with Conversational Support (NEW!)
->>>>>>> upstream/main
+## ☁️ AWS Services Migration
 
-- `npm run dev` — Starts the Next.js development server on port 3000
-- `npm run build` — Generates an optimized production build
-- `npm run start` — Starts the production server (default port 3000)
-- `npm run lint` — Runs ESLint checks
+Elixra is planning to migrate from Google Gemini and Agora SDK to AWS services for enhanced scalability and cost optimization.
 
-Optional:
-- `npx vitest` — Runs tests if/when test suites are added (see components/__tests__)
+### Planned AWS Integration
 
----
+**Amazon Bedrock** (replaces Gemini):
+- Claude 3 Sonnet for LLM tasks
+- Same streaming/JSON patterns
+- Minimal code changes required
 
-## 🔧 Configuration
+**Amazon Polly** (replaces Agora TTS):
+- Neural voices for avatar synthesis
+- Real-time audio streaming
+- Phoneme data for lip-sync
 
-Create a `.env` file in the root directory:
+**Amazon Transcribe** (replaces Agora STT):
+- Streaming speech-to-text
+- Chemistry vocabulary support
+- Real-time transcription
 
-| Variable | Description | Required |
-|:---|:---|:---:|
-| `GEMINI_API_KEY` | API Key for Google Gemini Model | ✅ |
-| `MONGODB_URI` | Connection string for MongoDB | ✅ |
-| `NEXTAUTH_SECRET` | Secret key for session encryption | ✅ |
-| `NEXTAUTH_URL` | Base URL (e.g., http://localhost:3000) | ✅ |
+### Migration Timeline
+- **Phase 1-2**: AWS setup and Bedrock integration (Weeks 1-4)
+- **Phase 3-4**: Polly and Transcribe integration (Weeks 5-8)
+- **Phase 5-8**: Testing, optimization, and deployment (Weeks 9-16)
 
----
-
-## 🧪 Testing & Linting
-
-- Lint: `npm run lint`
-- Unit tests: `npx vitest` (Vitest is installed; suites can be added in components/__tests__)
-- Type checking: Next.js build runs TypeScript validation; you can also run `npx tsc --noEmit`
-
----
-
-## 🔄 Development Workflow
-
-- Branches:
-  - `main` — Stable branch
-  - Feature branches — e.g., `spectroscopy`, `lab-equipment`
-- Workflow:
-  - Create a feature branch
-  - Implement changes
-  - Run lint and build locally
-  - Open a Pull Request into `main`
-
----
-
-## 📡 API Documentation
-
-The backend exposes several key endpoints. Full Swagger docs available at `http://localhost:8000/docs`.
-
-### Quiz Generation
-- **Endpoint**: `POST /quiz/generate`
-- **Body**:
-  ```json
-  {
-    "difficulty": "medium",
-    "num_questions": 5,
-    "question_types": ["mcq", "explanation"],
-    "include_timer": true
-  }
-  ```
-
-### AI Chat (Streaming)
-- **Endpoint**: `POST /chat`
-- **Body**:
-  ```json
-  {
-    "message": "Explain covalent bonding",
-    "context": "User is looking at a Carbon atom",
-    "history": []
-  }
-  ```
-
----
-
-## ⚗ Virtual Lab Equipment
-
-Elixra features a suite of interactive tools:
-
-<div align="center">
-  <img src="public/Assets/Equipments/Busen Burner.svg" width="60" alt="Bunsen Burner" title="Bunsen Burner" style="margin: 10px;" />
-  <img src="public/Assets/Equipments/Ph Meter.svg" width="60" alt="pH Meter" title="pH Meter" style="margin: 10px;" />
-  <img src="public/Assets/Equipments/Centrifuge.svg" width="60" alt="Centrifuge" title="Centrifuge" style="margin: 10px;" />
-  <img src="public/Assets/Equipments/Analytical Balance.svg" width="60" alt="Analytical Balance" title="Analytical Balance" style="margin: 10px;" />
-</div>
-
----
-
-## 🔬 Spectroscopy Pipeline (Frontend)
-
-- Generation route: [route.ts](file:///d:/Elixra/build-o-thon/app/api/spectroscopy/generate/route.ts)
-  - Prompts the AI to return detailed, multi-peak spectra and uses Unicode subscripts (e.g., CH₂).
-- Data handlers: [spectrumHandlers.ts](file:///d:/Elixra/build-o-thon/lib/spectrumHandlers.ts)
-  - Processes API JSON and preserves specific labels without generic fallbacks.
-- Page integration: [page.tsx](file:///d:/Elixra/build-o-thon/app/spectroscopy/page.tsx)
-  - Maps dynamic keys robustly (case-insensitive) and formats formulas with subscripts.
-- Graph rendering: [SpectrumGraph.tsx](file:///d:/Elixra/build-o-thon/components/SpectrumGraph.tsx)
-  - Smart tooltip positioning (clamping Y, flipping placement when needed).
-
----
-
-## 🧱 Molecule Viewer Highlights
-
-- Main page: [page.tsx](file:///d:/Elixra/build-o-thon/app/molecules/page.tsx)
-- Quick Actions include:
-  - Periodic Table and Templates
-  - Undo/Redo
-  - Clear All — resets atoms, bonds, analysis, and validation
-- 3D Viewer: [EnhancedMolecule3DViewer.tsx](file:///d:/Elixra/build-o-thon/components/EnhancedMolecule3DViewer.tsx)
-- Bonding logic: [bondingLogic.ts](file:///d:/Elixra/build-o-thon/lib/bondingLogic.ts)
-- Validation: [chemicalValidation.ts](file:///d:/Elixra/build-o-thon/lib/chemicalValidation.ts)
-
----
-
-## 🛡 Security & Secrets
-
-- Never commit real API keys or credentials.
-- Use `.env` (and `.env.local` for machine-specific overrides).
-- See `.env.example` for the required variables.
-
----
-
-## 🧰 Troubleshooting
-
-- ChunkLoadError or outdated client files:
-  - Stop the dev server, delete `.next/`, then `npm run dev` again.
-- ESLint warnings:
-  - `@next/next/no-img-element`: Use `next/image` instead of `img` for optimized loading.
-  - `react-hooks/exhaustive-deps`: Include all dependencies or refactor with stable callbacks.
-- TypeScript errors (e.g., NMR multiplicity):
-  - Multiplicity types live in [spectroscopy.ts](file:///d:/Elixra/build-o-thon/types/spectroscopy.ts). Ensure union includes all used descriptors.
+For detailed migration information, see `.kiro/specs/aws-services-replacement/`:
+- `INTEGRATION_SUMMARY.md` - Quick reference
+- `design.md` - Architecture and implementation
+- `tasks.md` - Detailed implementation tasks
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome contributions to Elixra! Please follow these guidelines:
 
-1.  **Fork** the repository.
-2.  Create a **Feature Branch** (`git checkout -b feature/NewExperiment`).
-3.  **Commit** your changes (`git commit -m 'Add titration simulation'`).
-4.  **Push** to the branch (`git push origin feature/NewExperiment`).
-5.  Open a **Pull Request**.
+1. **Fork** the repository
+2. Create a **Feature Branch** (`git checkout -b feature/YourFeature`)
+3. **Commit** your changes (`git commit -m 'Add YourFeature'`)
+4. **Push** to the branch (`git push origin feature/YourFeature`)
+5. Open a **Pull Request** with clear description
 
-### Coding Standards
-- **Frontend**: Follow ESLint rules, use functional components and Hooks.
-- **Backend**: Type hints (Pydantic), PEP 8 compliance.
+### Contribution Areas
+- New experiment templates
+- Enhanced 3D visualizations
+- Additional spectroscopy tools
+- Improved AI tutor responses
+- Performance optimizations
+- Documentation improvements
 
 ---
 
@@ -563,6 +653,28 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ---
 
+## 📞 Support & Resources
+
+### Documentation
+- [Next.js Documentation](https://nextjs.org/docs)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Three.js Documentation](https://threejs.org/docs/)
+- [MongoDB Documentation](https://docs.mongodb.com/)
+
+### Chemistry Resources
+- [IUPAC Nomenclature](https://www.iupac.org/)
+- [Chemical Reaction Types](https://www.britannica.com/science/chemical-reaction)
+- [Spectroscopy Guide](https://www.chem.ucla.edu/~bacher/General/Spectroscopy/)
+
+### AWS Services (Planned)
+- [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)
+- [Amazon Polly](https://docs.aws.amazon.com/polly/)
+- [Amazon Transcribe](https://docs.aws.amazon.com/transcribe/)
+
+---
+
 <div align="center">
   <sub>Built with ❤️ for the Future of Science Education</sub>
+  <br />
+  <sub>Elixra © 2024 - Making Chemistry Education Immersive & Interactive</sub>
 </div>
