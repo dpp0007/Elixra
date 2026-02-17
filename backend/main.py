@@ -530,6 +530,7 @@ class QuizConfig(BaseModel):
     include_timer: bool
     time_limit_per_question: Optional[int] = None  # in seconds
     user_id: Optional[str] = None
+    topics: Optional[List[str]] = None  # user-selected topics, empty list means all topics
 
 class QuizQuestion(BaseModel):
     id: int
@@ -581,7 +582,7 @@ async def generate_quiz(config: QuizConfig):
     # Generate questions based on config
     questions = []
     
-    # Pre-select topics to ensure diversity
+    # Use selected topics or all topics if none selected
     all_topics = [
         "Atomic Structure", "Periodic Table", "Chemical Bonding", "Stoichiometry", 
         "States of Matter", "Thermodynamics", "Chemical Equilibrium", "Acids and Bases",
@@ -589,7 +590,18 @@ async def generate_quiz(config: QuizConfig):
         "Hydrocarbons", "Alcohols and Ethers", "Aldehydes and Ketones", "Carboxylic Acids",
         "Biomolecules", "Polymers", "Environmental Chemistry", "Nuclear Chemistry"
     ]
-    random.shuffle(all_topics)
+    
+    # Filter topics based on user selection
+    if config.topics and len(config.topics) > 0:
+        selected_topics = [t for t in config.topics if t in all_topics]
+        if not selected_topics:
+            selected_topics = all_topics
+    else:
+        selected_topics = all_topics
+    
+    # Shuffle and cycle through topics
+    topics_cycle = selected_topics.copy()
+    random.shuffle(topics_cycle)
     
     # Keep track of generated question texts/hashes to enforce uniqueness
     generated_questions_texts = []
@@ -597,8 +609,8 @@ async def generate_quiz(config: QuizConfig):
     for i in range(config.num_questions):
         question_type = random.choice(config.question_types)
         
-        # Select a unique topic for this question if available
-        topic = all_topics[i % len(all_topics)]
+        # Select a unique topic for this question
+        topic = topics_cycle[i % len(topics_cycle)]
         
         # Try up to 3 times to generate a unique question
         question = None
@@ -657,8 +669,9 @@ async def generate_quiz(config: QuizConfig):
     
     quiz_sessions[session_id] = session
     
+    topics_info = f"Topics: {', '.join(selected_topics[:3])}{'...' if len(selected_topics) > 3 else ''}"
     print(f"✓ Quiz session created: {session_id}")
-    print(f"✓ Questions: {len(questions)}, Difficulty: {config.difficulty}")
+    print(f"✓ Questions: {len(questions)}, Difficulty: {config.difficulty}, {topics_info}")
     
     return {
         "session_id": session_id,

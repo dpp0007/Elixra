@@ -32,6 +32,7 @@ interface QuizConfig {
   question_types: QuestionType[]
   include_timer: boolean
   time_limit_per_question: number | null
+  topics: string[]
 }
 
 interface QuizQuestion {
@@ -70,6 +71,14 @@ const QUESTION_TYPE_OPTIONS: { value: QuestionType; label: string; icon: string 
   { value: 'complete_reaction', label: 'Complete Reaction', icon: '⚗️' },
   { value: 'balance_equation', label: 'Balance Equation', icon: '⚖️' },
   { value: 'guess_product', label: 'Guess Product', icon: '🎯' }
+]
+
+const TOPIC_OPTIONS = [
+  'Atomic Structure', 'Periodic Table', 'Chemical Bonding', 'Stoichiometry',
+  'States of Matter', 'Thermodynamics', 'Chemical Equilibrium', 'Acids and Bases',
+  'Redox Reactions', 'Electrochemistry', 'Chemical Kinetics', 'Organic Chemistry Basics',
+  'Hydrocarbons', 'Alcohols and Ethers', 'Aldehydes and Ketones', 'Carboxylic Acids',
+  'Biomolecules', 'Polymers', 'Environmental Chemistry', 'Nuclear Chemistry'
 ]
 
 
@@ -140,7 +149,8 @@ export default function QuizPage() {
     num_questions: 5,
     question_types: ['mcq'],
     include_timer: false,
-    time_limit_per_question: null
+    time_limit_per_question: null,
+    topics: []
   })
 
   const [sessionId, setSessionId] = useState<string>('')
@@ -459,6 +469,38 @@ export default function QuizPage() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Topics */}
+                  <div>
+                    <label className="block text-sm font-semibold text-elixra-secondary mb-4 uppercase tracking-wider">
+                      Topics (Optional - Leave empty for all topics)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {TOPIC_OPTIONS.map(topic => (
+                        <button
+                          key={topic}
+                          onClick={() => {
+                            const topics = config.topics.includes(topic)
+                              ? config.topics.filter(t => t !== topic)
+                              : [...config.topics, topic]
+                            setConfig({ ...config, topics })
+                          }}
+                          className={`p-3 rounded-lg text-sm font-medium transition-all duration-300 border text-center ${
+                            config.topics.includes(topic)
+                              ? 'bg-elixra-bunsen/20 text-elixra-bunsen border-elixra-bunsen/50 shadow-md shadow-elixra-bunsen/10'
+                              : 'bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white border-elixra-border-subtle hover:bg-white/80 dark:hover:bg-white/10 hover:border-elixra-bunsen/30'
+                          }`}
+                        >
+                          {topic}
+                        </button>
+                      ))}
+                    </div>
+                    {config.topics.length > 0 && (
+                      <p className="text-xs text-elixra-secondary mt-3">
+                        Selected: {config.topics.length} topic{config.topics.length !== 1 ? 's' : ''}
+                      </p>
+                    )}
                   </div>
 
                   {/* Timer */}
